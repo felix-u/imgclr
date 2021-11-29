@@ -1,10 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env pypy3
 
 from PIL import Image
 
 import argparse
 import psutil # for getting CPU count
 import multiprocessing
+
+# from tqdm import tqdm
+
 #
 # parsing
 parser = argparse.ArgumentParser()
@@ -13,10 +16,10 @@ parser.add_argument("input",
                     help='input file')
 parser.add_argument("output",
                     help='output file')
-parser.add_argument("-p", "--palette", nargs="+",
+parser.add_argument("-c", "--colours", nargs="+",
                     help='input custom palette')
-parser.add_argument("-t", "--threads", nargs="+",
-                    help='override thread count')
+parser.add_argument("-p", "--processes", nargs="+",
+                    help='override process count')
 
 args = parser.parse_args()
 
@@ -24,16 +27,16 @@ inputfile=args.input
 outputfile=args.output
 
 # establish thread count
-global threads
-if not args.threads:
-    threads = psutil.cpu_count()
-    print(f"Running on {threads} threads (custom thread count not specified).")
-elif int(args.threads[0]) > psutil.cpu_count():
-    threads = psutil.cpu_count()
-    print(f"Running on {threads} threads (custom thread count not possible).")
+global procs
+if not args.processes:
+    procs = psutil.cpu_count()
+    print(f"Starting {procs} processes (custom process count not specified).")
+elif int(args.processes[0]) > psutil.cpu_count():
+    procs = psutil.cpu_count()
+    print(f"Starting {procs} processes (custom process count not possible).")
 else:
-    threads = int(args.threads[0])
-    print(f"Running on {threads} threads.")
+    procs = int(args.processes[0])
+    print(f"Starting {procs} processes.")
 
 # open image
 image = Image.open(inputfile)
@@ -46,11 +49,11 @@ width, height = image.size
 
 # get palette scheme to compare to
 global colours
-if not args.palette:
+if not args.colours:
     colours = ['#1d1f21', '#cc6666', '#b5bd68', '#81a2be', '#c5c8c6']
     print('Using placeholder scheme (custom palette not specified).')
 else:
-    colours = args.palette
+    colours = args.colours
 
 # convert hex values to RGB
 def hexToRGB(hex):
@@ -110,9 +113,9 @@ def processAndConvert(widthStart, widthEnd):
 
 # create list of jobs, then append each process to it
 jobs = []
-for i in range(1, threads+1):
-    widthStart = int((i-1)*width/threads)
-    widthEnd = int(i*width/threads)
+for i in range(1, procs+1):
+    widthStart = int((i-1)*width/procs)
+    widthEnd = int(i*width/procs)
     process = multiprocessing.Process(target=processAndConvert(widthStart, widthEnd))
     jobs.append(process)
 
