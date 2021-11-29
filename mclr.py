@@ -91,6 +91,7 @@ def processAndConvert(widthStart, widthEnd):
             else:
                 comparison = {}
                 for i in range(len(scheme)):
+
                     diffR = scheme[i][0] - r
                     if diffR < 0:
                         diffR = -diffR
