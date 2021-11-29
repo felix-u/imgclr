@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 from PIL import Image
+
 import argparse
+import psutil # for getting CPU count
+import multiprocessing
 #
 # parsing
 parser = argparse.ArgumentParser()
@@ -12,11 +15,25 @@ parser.add_argument("output",
                     help='output file')
 parser.add_argument("-p", "--palette", nargs="+",
                     help='input custom palette')
+parser.add_argument("-t", "--threads", nargs="+",
+                    help='override thread count')
 
 args = parser.parse_args()
 
 inputfile=args.input
 outputfile=args.output
+
+# establish thread count
+global threads
+if not args.threads:
+    threads = psutil.cpu_count()
+    print(f"Running on {threads} threads (custom thread count not specified).")
+elif int(args.threads[0]) > psutil.cpu_count():
+    threads = psutil.cpu_count()
+    print(f"Running on {threads} threads (custom thread count not possible).")
+else:
+    threads = int(args.threads[0])
+    print(f"Running on {threads} threads.")
 
 # open image
 image = Image.open(inputfile)
@@ -28,8 +45,12 @@ out = Image.new('RGB', image.size, 0xffffff)
 width, height = image.size
 
 # get palette scheme to compare to
-colours = []
-colours = args.palette
+global colours
+if not args.palette:
+    colours = ['#1d1f21', '#cc6666', '#b5bd68', '#81a2be', '#c5c8c6']
+    print('Using placeholder scheme (custom palette not specified).')
+else:
+    colours = args.palette
 
 # convert hex values to RGB
 def hexToRGB(hex):
@@ -50,52 +71,56 @@ for i in range(len(colours)):
 # create dictionary in which to save matches
 matches = {}
 
-matchCount = 0
-newCount = 0
+# iterate over every pixel in range
+def processAndConvert(widthStart, widthEnd):
+    for x in range(widthStart, widthEnd):
+        for y in range(height):
 
-# iterate over every pixel
-for x in range(width):
-    for y in range(height):
+            # get pixel RGB colour values
+            r,g,b = image.getpixel((x,y))
+            pixelVal = (r,g,b)
 
-        # get pixel RGB colour values
-        r,g,b = image.getpixel((x,y))
-        pixelVal = f"{r}{g}{b}"
+            # check if match previously found
+            if pixelVal in matches:
+                out.putpixel((x,y), scheme[matches[pixelVal]])
 
-        # check if match previously found
-        if pixelVal in matches:
-            out.putpixel((x,y), scheme[matches[pixelVal]])
-            matchCount += 1
+            # otherwise, calculate best match and save it
+            else:
+                comparison = {}
+                for i in range(len(scheme)):
+                    diffR = scheme[i][0] - r
+                    if diffR < 0:
+                        diffR = -diffR
 
+                    diffG = scheme[i][1] - g
+                    if diffG < 0:
+                        diffG = -diffG
 
-        # otherwise, calculate best match
-        else:
+                    diffB = scheme[i][2] - b
+                    if diffB < 0:
+                        diffB = -diffB
 
-            comparison = {}
-            for i in range(len(scheme)):
-                diffR = scheme[i][0] - r
-                if diffR < 0:
-                    diffR = -diffR
+                    comparison[i] = diffR + diffG + diffB
 
-                diffG = scheme[i][1] - g
-                if diffG < 0:
-                    diffG = -diffG
+                bestMatch = min(comparison, key=comparison.get)
+                out.putpixel((x,y), scheme[bestMatch])
 
-                diffB = scheme[i][2] - b
-                if diffB < 0:
-                    diffB = -diffB
+                # save match
+                matches[pixelVal] = bestMatch
 
-                comparison[i] = diffR + diffG + diffB
+# create list of jobs, then append each process to it
+jobs = []
+for i in range(1, threads+1):
+    widthStart = int((i-1)*width/threads)
+    widthEnd = int(i*width/threads)
+    process = multiprocessing.Process(target=processAndConvert(widthStart, widthEnd))
+    jobs.append(process)
 
+for j in jobs:
+    j.start()
 
-            bestMatch = min(comparison, key=comparison.get)
-            out.putpixel((x,y), scheme[bestMatch])
-            newCount += 1
-
-            # save match
-            matches[pixelVal] = bestMatch
+for j in jobs:
+    j.join()
 
 # save output
 out.save(outputfile)
-
-print(f"{newCount} original matches calculated.")
-print(f"{matchCount} calculated matches repeated.")
