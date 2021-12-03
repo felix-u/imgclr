@@ -43,10 +43,23 @@ int main(int argc, char **argv) {
   }
 
   /* check if input is valid */
-  if (access(inputFile, F_OK) != 0) {
+  /* if (access(inputFile, F_OK) != 0) { */
+  /*   printf("Nonexistent input file \n"); */
+  /*   return 1; */
+  /* } */
+
+  FILE *file = fopen(inputFile, "r");
+  /* check that input file exists and exit if not*/
+  if (file == NULL) {
     printf("Nonexistent input file \n");
     return 1;
   }
+  /* read bytes to check if JPEG */
+  unsigned char bytes[3];
+  fread(bytes, 3, 1, file);
+  printf("%d\n", bytes[0]);
+  printf("%d\n", bytes[1]);
+  printf("%d\n", bytes[2]);
 
   /* initialise MagickWand */
   MagickWand *mw = NULL;
