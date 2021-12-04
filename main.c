@@ -13,8 +13,17 @@ int main(int argc, char **argv) {
   char *outputFile = NULL;
 
   /* return if incorrect usage */
-  int badInput() {
-    printf("Incorrect usage \n");
+  int badInput(char *errorType) {
+    switch(*errorType) {
+      case 'a':
+        printf("Not enough arguments \n");
+      break; case 'j' :
+        printf("Input corrupted or not JPG \n");
+      break; case 'n' :
+        printf("Input file nonexistent \n");
+      break; default:
+        printf("Incorrect usage \n");
+    }
     return 1;
   }
 
@@ -39,27 +48,20 @@ int main(int argc, char **argv) {
 
   /* fail with wrong usage message if mandatory options missing */
   if (inputFile == NULL || outputFile == NULL) {
-    return badInput();
+    return badInput("a");
   }
-
-  /* check if input is valid */
-  /* if (access(inputFile, F_OK) != 0) { */
-  /*   printf("Nonexistent input file \n"); */
-  /*   return 1; */
-  /* } */
 
   FILE *file = fopen(inputFile, "r");
   /* check that input file exists and exit if not*/
   if (file == NULL) {
-    printf("Nonexistent input file \n");
-    return 1;
+    return badInput("n");
   }
-  /* read bytes to check if JPEG */
+  /* read bytes to check if JPEG - error out if not */
   unsigned char bytes[3];
   fread(bytes, 3, 1, file);
-  printf("%d\n", bytes[0]);
-  printf("%d\n", bytes[1]);
-  printf("%d\n", bytes[2]);
+  if (bytes[0] != 255 || bytes[1] != 216 || bytes[2] != 255) {
+    return badInput("j");
+  }
 
   /* initialise MagickWand */
   MagickWand *mw = NULL;
