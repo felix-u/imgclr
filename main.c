@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-/* for imagemagick */
-#include <ImageMagick-7/MagickWand/MagickWand.h>
 /* for command line argument parsing and a couple other things*/
 #include <unistd.h>
 
@@ -50,16 +48,8 @@ int main(int argc, char **argv) {
         return badInput("j");
     }
 
-    /* initialise MagickWand */
-    MagickWand *mw = NULL;
-    mw = NewMagickWand();
-
-    MagickReadImage(mw, inputFile);
-    MagickWriteImage(mw, outputFile);
 
     printf("Done\n");
-
-    mw = DestroyMagickWand(mw);
 
     return 0;
 }
