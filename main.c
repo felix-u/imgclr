@@ -48,11 +48,11 @@ int main(int argc, char **argv) {
         return badInput("j");
     }
 
-
     printf("Done\n");
 
     return 0;
 }
+
 
 /* return if incorrect usage */
 int badInput(char *errorType) {
