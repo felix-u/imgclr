@@ -107,16 +107,19 @@ int main(int argc, char **argv) {
     const int byteOffset = 9 + widthByteCounter + heightByteCounter;
             /* P6 + newline + width + space + height + newline + 255 + newline
                2 + 1 + widthByteCounter + 1 + heightByteCounter + 1 + 3 + 1 */
-    // DEBUGGING
-    for (int i = -10; i < 20; i++) {
-        printf("%d\n", inputBytes[byteOffset+i]);
-    }
+
+    /* // DEBUGGING */
+    /* for (int i = 0; i < 20; i++) { */
+    /*     printf("%d\n", inputBytes[byteOffset+i]); */
+    /* } */
 
     for (int x = 0; x < WIDTH; x++) {
         for (int y = 0; y < HEIGHT; y++) {
-            colour[0] = inputBytes[byteOffset + 0];
-            colour[1] = inputBytes[byteOffset + 1];
-            colour[2] = inputBytes[byteOffset + 2];
+            /* int currentPixelByte = (x+1)*(y+0)*3; */
+            int currentPixelByte = WIDTH*HEIGHT*3;
+            colour[0] = inputBytes[currentPixelByte + byteOffset + 0];
+            colour[1] = inputBytes[currentPixelByte + byteOffset + 1];
+            colour[2] = inputBytes[currentPixelByte + byteOffset + 2];
             /* colour[0] = 255; // red */
             /* colour[1] = 100; // green */
             /* colour[2] = 100; // blue */
