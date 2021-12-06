@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-// for command line argument parsing and a couple other things
 #include <unistd.h>
 
 int badInput();
@@ -81,28 +80,24 @@ int main(int argc, char **argv) {
         }
     }
 
-    // we now know how many bytes WIDTH and HEIGHT take up
-    printf("widthByteCounter: %d\n", widthByteCounter);
-    printf("heightByteCounter: %d\n", heightByteCounter);
-
+    /* we now know how many bytes WIDTH and HEIGHT take up, and at which byte
+    they start */
     char INPUT_WIDTH[widthByteCounter];
-    printf("WIDTH: ");
     for (int i = 0; i < widthByteCounter; i++) {
         INPUT_WIDTH[i] = inputBytes[i + widthByteStart];
-        printf("%c", INPUT_WIDTH[i]);
     }
-    putchar(10);
 
-    char INPUT_height[heightByteCounter];
-    printf("HEIGHT: ");
+    char INPUT_HEIGHT[heightByteCounter];
     for (int i = 0; i < heightByteCounter; i++) {
-        INPUT_height[i] = inputBytes[i + heightByteStart];
-        printf("%c", INPUT_height[i]);
+        INPUT_HEIGHT[i] = inputBytes[i + heightByteStart];
     }
-    putchar(10);
 
-    // PPM test implementation
-    const int WIDTH = 1000, HEIGHT = 600;
+
+    // copy to output file, pixel by pixel
+    const int WIDTH = atoi(INPUT_WIDTH); // use same width as input
+    const int HEIGHT = atoi(INPUT_HEIGHT); // use same height as input
+    printf("WIDTH: %d\n", WIDTH);
+    printf("HEIGHT: %d\n", HEIGHT);
     int x, y;
     FILE *F_OUTPUT = fopen(outputFile, "wb");
     fprintf(F_OUTPUT, "P6\n%d %d\n255\n", WIDTH, HEIGHT);
