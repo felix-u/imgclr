@@ -113,10 +113,9 @@ int main(int argc, char **argv) {
     /*     printf("%d\n", inputBytes[byteOffset+i]); */
     /* } */
 
-    for (int x = 1; x <= WIDTH; x++) {
-        for (int y = 1; y <= HEIGHT; y++) {
-            int currentPixelByte = x*y*3-3;
-            /* int currentPixelByte = WIDTH*HEIGHT*3-3; */
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+            int currentPixelByte = 3*(x+WIDTH*y);
             colour[0] = inputBytes[currentPixelByte + byteOffset + 0];
             colour[1] = inputBytes[currentPixelByte + byteOffset + 1];
             colour[2] = inputBytes[currentPixelByte + byteOffset + 2];
