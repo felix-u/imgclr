@@ -98,15 +98,28 @@ int main(int argc, char **argv) {
     const int HEIGHT = atoi(INPUT_HEIGHT); // use same height as input
     printf("WIDTH: %d\n", WIDTH);
     printf("HEIGHT: %d\n", HEIGHT);
-    int x, y;
+
+    // write PPM header
     FILE *F_OUTPUT = fopen(outputFile, "wb");
     fprintf(F_OUTPUT, "P6\n%d %d\n255\n", WIDTH, HEIGHT);
-    for (x = 0; x < WIDTH; x++) {
-        for (y = 0; y < HEIGHT; y++) {
-            static unsigned char colour[3];
-            colour[0] = 255; // red
-            colour[1] = 100; // green
-            colour[2] = 100; // blue
+
+    unsigned char colour[3];
+    const int byteOffset = 9 + widthByteCounter + heightByteCounter;
+            /* P6 + newline + width + space + height + newline + 255 + newline
+               2 + 1 + widthByteCounter + 1 + heightByteCounter + 1 + 3 + 1 */
+    // DEBUGGING
+    for (int i = -10; i < 20; i++) {
+        printf("%d\n", inputBytes[byteOffset+i]);
+    }
+
+    for (int x = 0; x < WIDTH; x++) {
+        for (int y = 0; y < HEIGHT; y++) {
+            colour[0] = inputBytes[byteOffset + 0];
+            colour[1] = inputBytes[byteOffset + 1];
+            colour[2] = inputBytes[byteOffset + 2];
+            /* colour[0] = 255; // red */
+            /* colour[1] = 100; // green */
+            /* colour[2] = 100; // blue */
             fwrite(colour, 1, 3, F_OUTPUT);
         }
     }
