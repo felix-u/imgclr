@@ -113,9 +113,71 @@ int main(int argc, char **argv) {
                              "#ff8080", "#80ff80", "#8080ff",
                              "#ffff80", "#80ffff", "#ff80ff"};
     // DEBUGGING - print colour palette
-    printf("Palette:");
+    printf("Palette as specified:");
     for (long unsigned int i = 0; i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
         printf(" %s", inputPalette[i]);
+    }
+    putchar(10);
+
+
+    // get palette in decimal for mathematical comparison with image
+
+    // make array for storing palette in decimals
+    int decimalPalette[sizeof(inputPalette)/sizeof(inputPalette[0])][3] = {};
+
+    // iterate through characters of colours in input palette
+    for (long unsigned int i = 0; i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
+        for (long unsigned int j = 0; j < sizeof(inputPalette[i]); j++) {
+
+            // variable for managing what byte, colour channel is being parsed
+            int currentChannel = 0, currentByte = 0;
+
+            // if character is not hash
+            if (inputPalette[i][j] != 35) {
+
+                // if we are on first byte of channel hex, e.g "f" in "fe"
+                if (currentByte == 0) {
+                    switch(currentChannel) {
+                        case 0:        // R
+                            decimalPalette[i][0] = 0;
+                        break; case 1: // G
+                            decimalPalette[i][1] = 100;
+                        break; case 2: // B
+                            decimalPalette[i][2] = 200;
+                    }
+                    // currentByte goes to 1 for next run
+                    currentByte = 1;
+                }
+
+                } else if (currentByte == 1) {
+                    switch(currentChannel) {
+                        case 0:        // R
+                            decimalPalette[i][0] += 0;
+                        break; case 1: // G
+                            decimalPalette[i][1] += 0;
+                        break; case 2: // B
+                            decimalPalette[i][2] += 0;
+                    }
+                    // currentByte resets to 0 for next run
+                    currentByte = 0;
+
+                    // currentChannel advances for next run
+                    if (currentChannel < 2) {
+                        currentChannel++;
+                    } else if (currentChannel == 2) {
+                        currentChannel = 0;
+                    }
+                }
+
+        }
+    }
+
+    // DEBUGGING
+    printf("Palette in RGB:");
+    for (long unsigned int i = 0; i < sizeof(decimalPalette)/sizeof(decimalPalette[0]); i++) {
+        for (long unsigned int j = 0; j < sizeof(decimalPalette[i]); j++) {
+            printf(" %d", decimalPalette[i][j]);
+        }
     }
     putchar(10);
 
@@ -134,7 +196,6 @@ int main(int argc, char **argv) {
     fclose(F_INPUT); fclose(F_OUTPUT);
     return 0;
 }
-
 
 // return if incorrect usage
 int badInput(char *errorType) {
