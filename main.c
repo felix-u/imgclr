@@ -109,16 +109,17 @@ int main(int argc, char **argv) {
                2 + 1 + widthByteCounter + 1 + heightByteCounter + 1 + 3 + 1 */
 
     // placeholder colour palette
-    const char *palette[9] = {"#000000", "#808080", "#ffffff",
-                              "#ff8080", "#80ff80", "#8080ff",
-                              "#ffff80", "#80ffff", "#ff80ff"};
-    // print colour palette
+    char *inputPalette[9] = {"#000000", "#808080", "#ffffff",
+                             "#ff8080", "#80ff80", "#8080ff",
+                             "#ffff80", "#80ffff", "#ff80ff"};
+    // DEBUGGING - print colour palette
     printf("Palette:");
-    for (long unsigned int i = 0; i < sizeof(palette)/sizeof(palette[0]); i++) {
-        printf(" %s", palette[i]);
+    for (long unsigned int i = 0; i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
+        printf(" %s", inputPalette[i]);
     }
     putchar(10);
 
+    // write pixels to output
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
             int currentPixelByte = 3*(x+WIDTH*y);
