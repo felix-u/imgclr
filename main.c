@@ -35,7 +35,6 @@ int main(int argc, char **argv) {
         return badInput("p");
     }
 
-
     // save bytes of input to array inputBytes
     fseek(F_INPUT, 0, SEEK_END); // jump to end of file
     long inputLen = ftell(F_INPUT); // get current byte offset
@@ -209,7 +208,6 @@ int badInput(char *errorType) {
     }
     return 1;
 }
-
 
 /* /1* command line argument parsing *1/ */
 /* int argIndex = 0; */
