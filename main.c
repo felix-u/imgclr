@@ -118,13 +118,9 @@ int main(int argc, char **argv) {
         printf(" %s", inputPalette[i]);
     }
     putchar(10);
-
-
     // get palette in decimal for mathematical comparison with image
-
     // make array for storing palette in decimals
     int decimalPalette[sizeof(inputPalette)/sizeof(inputPalette[0])][3] = {};
-
     // iterate through characters of colours in input palette
     for (long unsigned int i = 0; i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
         for (long unsigned int j = 0; j < sizeof(inputPalette[i]); j++) {
