@@ -119,30 +119,59 @@ int main(int argc, char **argv) {
     }
     putchar(10);
 
-    // get palette in decimal for mathematical comparison with image
+
+    // GET PALETTE IN DECIMAL FOR MATHEMATICAL COMPARISON WITH IMAGE
+    //
     // make array for storing palette in decimals
-    int decimalPalette[sizeof(inputPalette)/sizeof(inputPalette[0])][3] = {};
+    int decimalPalette[sizeof(inputPalette)/sizeof(inputPalette[0])][3];
 
     // iterate through characters of colours in input palette
     for (long unsigned int i = 0; i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
+        char *currentClr = inputPalette[i];
+        int r, g, b;
+        sscanf(currentClr, "%02x%02x%02x", &r, &g, &b);
 
+        // store in decimalPalette
+        decimalPalette[i][0] = r;
+        decimalPalette[i][1] = g;
+        decimalPalette[i][2] = b;
     }
 
-    // test conversion to RGB - WORKS
-    char *background = inputPalette[0];
-    printf("%s \n", background);
-    int r, g, b;
-    sscanf(background, "%02x%02x%02x", &r, &g, &b);
-    printf("rgb(%d, %d, %d) \n", r, g, b);
+    // DEBUG - print RGB values
+    //
+    printf("\nPalette in RGB:\n");
+    for (long unsigned int i = 0; i < sizeof(decimalPalette)/sizeof(decimalPalette[i]); i++) {
+        printf("%d %d %d \n", decimalPalette[i][0], decimalPalette[i][1], decimalPalette[i][2]);
+    }
 
 
     // write pixels to output
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
-            int currentPixelByte = 3*(x+WIDTH*y);
-            colour[0] = inputBytes[currentPixelByte + byteOffset + 0]; // R
-            colour[1] = inputBytes[currentPixelByte + byteOffset + 1]; // G
-            colour[2] = inputBytes[currentPixelByte + byteOffset + 2]; // B
+
+            // current pixel position
+            int currentPixelByte = 3*(x+WIDTH*y) + byteOffset;
+
+            // setup for comparison to palette colours
+            int comparison[sizeof(decimalPalette)/3];
+            for (long unsigned int i = 0; i < sizeof(decimalPalette)/sizeof(decimalPalette[i]); i++) {
+                // get red channel difference
+                int diffR = decimalPalette[i][0] - inputBytes[currentPixelByte + 0];
+                if (diffR < 0) { diffR *= -1; }
+                // get green channel difference
+                int diffG = decimalPalette[i][1] - inputBytes[currentPixelByte + 1];
+                if (diffG < 0) { diffG *= -1; }
+                // get red channel difference
+                int diffB = decimalPalette[i][2] - inputBytes[currentPixelByte + 2];
+                if (diffB < 0) { diffB *= -1; }
+                // assign total difference to comparison at index i
+                comparison[i] = diffR + diffG + diffB;
+            }
+
+            // write pixel to output image
+            colour[0] = inputBytes[currentPixelByte + 0]; // R
+            colour[1] = inputBytes[currentPixelByte + 1]; // G
+            colour[2] = inputBytes[currentPixelByte + 2]; // B
             fwrite(colour, 1, 3, F_OUTPUT);
         }
     }
@@ -151,6 +180,7 @@ int main(int argc, char **argv) {
     fclose(F_INPUT); fclose(F_OUTPUT);
     return 0;
 }
+
 
 // return if incorrect usage
 int badInput(char *errorType) {
@@ -168,6 +198,7 @@ int badInput(char *errorType) {
     }
     return 1;
 }
+
 
 /* /1* command line argument parsing *1/ */
 /* int argIndex = 0; */
