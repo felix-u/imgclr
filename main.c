@@ -138,11 +138,10 @@ int main(int argc, char **argv) {
     }
 
     // DEBUG - print RGB values
-    //
     printf("\nPalette in RGB:\n");
     for (long unsigned int i = 0; i < sizeof(decimalPalette)/sizeof(decimalPalette[i]); i++) {
         printf("%d %d %d \n", decimalPalette[i][0], decimalPalette[i][1], decimalPalette[i][2]);
-    }
+    } putchar(10);
 
 
     // write pixels to output
@@ -151,31 +150,18 @@ int main(int argc, char **argv) {
 
             // current pixel position
             int currentPixelByte = 3*(x+WIDTH*y) + byteOffset;
-
-            // setup for comparison to palette colours
-            int comparison[sizeof(decimalPalette)/3];
-            for (long unsigned int i = 0; i < sizeof(decimalPalette)/sizeof(decimalPalette[i]); i++) {
-                // get red channel difference
-                int diffR = decimalPalette[i][0] - inputBytes[currentPixelByte + 0];
-                if (diffR < 0) { diffR *= -1; }
-                // get green channel difference
-                int diffG = decimalPalette[i][1] - inputBytes[currentPixelByte + 1];
-                if (diffG < 0) { diffG *= -1; }
-                // get red channel difference
-                int diffB = decimalPalette[i][2] - inputBytes[currentPixelByte + 2];
-                if (diffB < 0) { diffB *= -1; }
-                // assign total difference to comparison at index i
-                comparison[i] = diffR + diffG + diffB;
-            }
+            int inputR = inputBytes[currentPixelByte + 0];
+            int inputG = inputBytes[currentPixelByte + 1];
+            int inputB = inputBytes[currentPixelByte + 2];
 
             // write pixel to output image
-            colour[0] = inputBytes[currentPixelByte + 0]; // R
-            colour[1] = inputBytes[currentPixelByte + 1]; // G
-            colour[2] = inputBytes[currentPixelByte + 2]; // B
+            colour[0] = inputR; // R
+            colour[1] = inputG; // G
+            colour[2] = inputB; // B
             fwrite(colour, 1, 3, F_OUTPUT);
+
         }
     }
-
 
     fclose(F_INPUT); fclose(F_OUTPUT);
     return 0;
