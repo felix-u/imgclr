@@ -105,28 +105,28 @@ int main(int argc, char **argv) {
     // placeholder colour palette
 
     // solarised
-    char *inputPalette[18] = {"93a1a1", "002b36",
-                              "073642", "224750",
-                              "dc322f", "E35D5B",
-                              "859900", "B1CC00",
-                              "b58900", "e8b000",
-                              "268bd2", "4CA2DF",
-                              "6c71c4", "9094D3",
-                              "2aa198", "35C9BE",
-                              "657b83", "839496",
-                             };
+    // char *inputPalette[18] = {"93a1a1", "002b36",
+    //                           "073642", "224750",
+    //                           "dc322f", "E35D5B",
+    //                           "859900", "B1CC00",
+    //                           "b58900", "e8b000",
+    //                           "268bd2", "4CA2DF",
+    //                           "6c71c4", "9094D3",
+    //                           "2aa198", "35C9BE",
+    //                           "657b83", "839496",
+    //                          };
 
     // neutral test palette
-    // char *inputPalette[18] = {"1c1c1e", "f5f5f7",
-    //                           "2c2c2e", "3a3a3c",
-    //                           "E8322F", "ed5f5d",
-    //                           "619942", "79b757",
-    //                           "F0A81B", "f3ba4b",
-    //                           "2072F4", "5191f6",
-    //                           "DE3281", "e55e9c",
-    //                           "2AB2CA", "4ec5da",
-    //                           "8e8e93", "d1d1d6",
-    //                          };
+    char *inputPalette[18] = {"1c1c1e", "f5f5f7",
+                              "2c2c2e", "3a3a3c",
+                              "E8322F", "ed5f5d",
+                              "619942", "79b757",
+                              "F0A81B", "f3ba4b",
+                              "2072F4", "5191f6",
+                              "DE3281", "e55e9c",
+                              "2AB2CA", "4ec5da",
+                              "8e8e93", "d1d1d6",
+                             };
 
     // TODO - calculate number of colours in palette, don't hardcode
     int paletteLen = 18;
@@ -175,6 +175,11 @@ int main(int argc, char **argv) {
             int inputR = inputBytes[currentPixelByte + 0];
             int inputG = inputBytes[currentPixelByte + 1];
             int inputB = inputBytes[currentPixelByte + 2];
+
+            // FIXME - temp fix for negative RGB values (idfk either)
+            if (inputR < 0) { inputR = 255 + inputR; }
+            if (inputG < 0) { inputG = 255 + inputG; }
+            if (inputB < 0) { inputR = 255 + inputB; }
 
             // DEBUG
             if (x == 0 && y == 0) {
