@@ -105,38 +105,31 @@ int main(int argc, char **argv) {
     // placeholder colour palette
 
     // solarised
-    char *inputPalette[18] = {"93a1a1", "002b36",
-                              "073642", "224750",
-                              "dc322f", "E35D5B",
-                              "859900", "B1CC00",
-                              "b58900", "e8b000",
-                              "268bd2", "4CA2DF",
-                              "6c71c4", "9094D3",
-                              "2aa198", "35C9BE",
-                              "657b83", "839496",
-                             };
+    // char *inputPalette[18] = {"93a1a1", "002b36",
+    //                           "073642", "224750",
+    //                           "dc322f", "E35D5B",
+    //                           "859900", "B1CC00",
+    //                           "b58900", "e8b000",
+    //                           "268bd2", "4CA2DF",
+    //                           "6c71c4", "9094D3",
+    //                           "2aa198", "35C9BE",
+    //                           "657b83", "839496",
+    //                          };
 
     // neutral test palette
-    // char *inputPalette[18] = {"1c1c1e", "f5f5f7",
-    //                           "2c2c2e", "3a3a3c",
-    //                           "E8322F", "ed5f5d",
-    //                           "619942", "79b757",
-    //                           "F0A81B", "f3ba4b",
-    //                           "2072F4", "5191f6",
-    //                           "DE3281", "e55e9c",
-    //                           "2AB2CA", "4ec5da",
-    //                           "8e8e93", "d1d1d6",
-    //                          };
+    char *inputPalette[18] = {"1c1c1e", "f5f5f7",
+                              "2c2c2e", "3a3a3c",
+                              "E8322F", "ed5f5d",
+                              "619942", "79b757",
+                              "F0A81B", "f3ba4b",
+                              "2072F4", "5191f6",
+                              "DE3281", "e55e9c",
+                              "2AB2CA", "4ec5da",
+                              "8e8e93", "d1d1d6",
+                             };
 
     // TODO - calculate number of colours in palette, don't hardcode
     int paletteLen = 18;
-
-    // DEBUGGING - print colour palette
-    printf("Palette as specified:");
-    for (long unsigned int i = 0; i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
-        printf(" %s", inputPalette[i]);
-    }
-    putchar(10);
 
 
     // ------------------------------------------
@@ -157,11 +150,10 @@ int main(int argc, char **argv) {
     }
     // ------------------------------------------
 
-    // DEBUG - print RGB values
-    printf("\nPalette in RGB:\n");
-    for (long unsigned int i = 0; i < sizeof(decimalPalette)/sizeof(decimalPalette[i]); i++) {
-        printf("%d %d %d \n", decimalPalette[i][0], decimalPalette[i][1], decimalPalette[i][2]);
-    } putchar(10);
+    // TODO
+    // setup for storing existing matches to use them where possible rather
+    // than recalculating
+    // int matchedPixels[WIDTH*HEIGHT];
 
 
     // write pixels to output
@@ -181,10 +173,6 @@ int main(int argc, char **argv) {
             if (inputG < 0) { inputG = 255 + inputG; }
             if (inputB < 0) { inputB = 255 + inputB; }
 
-            // DEBUG
-            if (x == 0 && y == 0) {
-                printf("input pixel: %d %d %d\n", inputR, inputG, inputB);
-            }
 
             // ------------------------------------------
             // TODO - find closest match for pixel in palette
@@ -200,28 +188,15 @@ int main(int argc, char **argv) {
                 if (diffB < 0) { diffB = -diffB; }
 
                 comparisons[i] = diffR + diffG + diffB;
-                // // DEBUG
-                if (x == 0 && y == 0) {
-                    printf("comparisons[%d] = %d\n", i, comparisons[i]);
-                }
             }
             // find best match out of all comparisons
             int bestMatch;
             int diffTracker = 999; // impossibly large difference to start
-            // int count = 0; // DEBUG
             for (int i = 0; i < paletteLen; i++) {
                 if (comparisons[i] < diffTracker) {
                     diffTracker = comparisons[i-1];
                     bestMatch = i-1;
-                    // DEBUG
-                    // if (y > 90 && y < 100 && x < 10) {
-                    //     printf(
-                    //         "\nChecked %d/18 colours\nX: %d\tY: %d\nbestMatch: %d\ncurrent smallest diff: %d\n",
-                    //         count, x, y, bestMatch, diffTracker);
-                    // }
-                    //
                 }
-                // count++; // DEBUG
             }
             // ------------------------------------------
 
