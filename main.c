@@ -49,7 +49,8 @@ int main(int argc, char **argv) {
     fseek(F_INPUT, 0, SEEK_END); // jump to end of file
     long inputLen = ftell(F_INPUT); // get current byte offset
     rewind(F_INPUT); // go back to beginning of file
-    char *inputBytes = (char *)malloc(inputLen * sizeof(char)); // enough memory for the file
+    // enough memory for the file
+    char *inputBytes = (char *)malloc(inputLen * sizeof(char));
     fread(inputBytes, inputLen, 1, F_INPUT); // read in file
 
     /* ASCII: 10 = newline, 32 = space
@@ -148,7 +149,8 @@ int main(int argc, char **argv) {
     int decimalPalette[sizeof(inputPalette)/sizeof(inputPalette[0])][3];
 
     // iterate through characters of colours in input palette
-    for (long unsigned int i = 0; i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
+    for (long unsigned int i = 0;
+            i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
         char *currentClr = inputPalette[i];
         int r, g, b;
         sscanf(currentClr, "%02x%02x%02x", &r, &g, &b);
@@ -178,14 +180,13 @@ int main(int argc, char **argv) {
             int inputG = inputBytes[currentPixelByte + 1];
             int inputB = inputBytes[currentPixelByte + 2];
 
-            // FIXME - temp fix for negative RGB values (idfk either)
+            // FIXME - temp fix for negative RGB values
+            // (idfk but this solves it. maybe should use long int?)
             if (inputR < 0) { inputR = 255 + inputR; }
             if (inputG < 0) { inputG = 255 + inputG; }
             if (inputB < 0) { inputB = 255 + inputB; }
 
-
-            // ------------------------------------------
-            // TODO - find closest match for pixel in palette
+            // find closest match for pixel in palette
             int comparisons[paletteLen];
             for (int i = 0; i < paletteLen; i++) { // channel differences
                 int diffR = decimalPalette[i][0] - inputR;
@@ -208,7 +209,6 @@ int main(int argc, char **argv) {
                     bestMatch = i-1;
                 }
             }
-            // ------------------------------------------
 
             // write pixel to output image
 
@@ -249,5 +249,3 @@ int badInput(char *errorType) {
     }
     return 1;
 }
-
-
