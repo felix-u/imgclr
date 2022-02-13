@@ -9,9 +9,19 @@ int main(int argc, char **argv) {
     char *inputFile = NULL;
     char *outputFile = NULL;
 
-    inputFile = argv[1];  // first argument is input file
-    outputFile = argv[2]; // second argument is output file
-    // TODO: handle cases where program itself is not first argument
+    // command line argument parsing
+    int c;
+    while ((c = getopt(argc, argv, "i:o:")) != -1)
+        switch (c) {
+            case 'i':
+                inputFile = optarg;
+                break;
+            case 'o':
+                outputFile = optarg;
+                break;
+            default:
+                break;
+        }
 
     // fail with wrong usage message if mandatory options missing
     if (inputFile == NULL || outputFile == NULL) {
@@ -47,7 +57,7 @@ int main(int argc, char **argv) {
     HEIGHT (after space, before newline). we also need to know how many bytes
     are in WIDTH and HEIGHT */
     int whitespaceCounter = 0, heightByteCounter = 0, widthByteCounter = 0;
-    int heightByteStart, widthByteStart;
+    int heightByteStart = 0, widthByteStart;
     while (whitespaceCounter < 5) {
         for (int i= 0; i < inputLen; i++) {
             if (inputBytes[i] == 10 || inputBytes[i] == 32) {
@@ -190,7 +200,7 @@ int main(int argc, char **argv) {
                 comparisons[i] = diffR + diffG + diffB;
             }
             // find best match out of all comparisons
-            int bestMatch;
+            int bestMatch = 0;
             int diffTracker = 999; // impossibly large difference to start
             for (int i = 0; i < paletteLen; i++) {
                 if (comparisons[i] < diffTracker) {
@@ -241,20 +251,3 @@ int badInput(char *errorType) {
 }
 
 
-/* /1* command line argument parsing *1/ */
-/* int argIndex = 0; */
-/* /1* begin implementing options - disabled for now *1/ */
-/* while ((argIndex = getopt(argc, argv, "i:o")) != -1) { */
-/*   switch (argIndex) { */
-/*   case 'i': */
-/*     inputFile = optarg + 1; */
-/*     printf("inputFile is %s\n", inputFile); */
-/*     break; */
-/*   case 'o': */
-/*     outputFile = optarg + 1; */
-/*     printf("outputFile is %s\n", outputFile); */
-/*     break; */
-/*   default: */
-/*     return badInput(); */
-/*   } */
-/* } */
