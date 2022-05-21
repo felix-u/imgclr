@@ -9,9 +9,11 @@ int main(int argc, char **argv) {
     char *inputFile = NULL;
     char *outputFile = NULL;
 
+    int debug = 0;
+
     // command line argument parsing
     int c;
-    while ((c = getopt(argc, argv, "i:o:")) != -1)
+    while ((c = getopt(argc, argv, "i:o:d")) != -1)
         switch (c) {
             case 'i':
                 inputFile = optarg;
@@ -19,8 +21,10 @@ int main(int argc, char **argv) {
             case 'o':
                 outputFile = optarg;
                 break;
-            default:
-                break;
+	    case 'd':
+		debug = 1;
+	    default:
+		    break;
         }
 
     // fail with wrong usage message if mandatory options missing
