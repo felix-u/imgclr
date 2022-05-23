@@ -8,7 +8,6 @@ int main(int argc, char **argv) {
 
     char *inputFile = NULL;
     char *outputFile = NULL;
-
     int debug = 0;
 
     // command line argument parsing
@@ -24,7 +23,7 @@ int main(int argc, char **argv) {
 	    case 'd':
 		debug = 1;
 	    default:
-		    break;
+		break;
         }
 
     // fail with wrong usage message if mandatory options missing
@@ -104,48 +103,52 @@ int main(int argc, char **argv) {
     // copy to output file, pixel by pixel
     const int WIDTH = atoi(INPUT_WIDTH); // use same width as input
     const int HEIGHT = atoi(INPUT_HEIGHT); // use same height as input
-    printf("WIDTH: %d\n", WIDTH);
-    printf("HEIGHT: %d\n", HEIGHT);
+    if (debug) {
+	printf("WIDTH: %d\n", WIDTH);
+	printf("HEIGHT: %d\n", HEIGHT);
+    }
 
     // write PPM header
     FILE *F_OUTPUT = fopen(outputFile, "wb");
     fprintf(F_OUTPUT, "P6\n%d %d\n255\n", WIDTH, HEIGHT);
+    if (debug) printf("Wrote header\n");
 
     unsigned char colour[3];
     const int byteOffset = 9 + widthByteCounter + heightByteCounter;
-            /* P6 + newline + width + space + height + newline + 255 + newline
-               2 + 1 + widthByteCounter + 1 + heightByteCounter + 1 + 3 + 1 */
+    /* P6 + newline + width + space + height + newline + 255 + newline
+       2 + 1 + widthByteCounter + 1 + heightByteCounter + 1 + 3 + 1 */
 
     // TODO - get palette from command line args or input file, don't hardcode
     // placeholder colour palette
 
     // solarised
-    char *inputPalette[18] = {"93a1a1", "002b36",
-                              "073642", "224750",
-                              "dc322f", "E35D5B",
-                              "859900", "B1CC00",
-                              "b58900", "e8b000",
-                              "268bd2", "4CA2DF",
-                              "6c71c4", "9094D3",
-                              "2aa198", "35C9BE",
-                              "657b83", "839496",
-                             };
+    char *inputPalette[18] = {
+	"93a1a1", "002b36",
+	"073642", "224750",
+	"dc322f", "dc322f",
+	"859900", "859900",
+	"b58900", "b58900",
+	"268bd2", "268bd2",
+	"6c71c4", "6c71c4",
+	"2aa198", "2aa198",
+	"657b83", "839496",
+    };
 
-    // neutral test palette
-    // char *inputPalette[18] = {"1c1c1e", "f5f5f7",
-    //                           "2c2c2e", "3a3a3c",
-    //                           "E8322F", "ed5f5d",
-    //                           "619942", "79b757",
-    //                           "F0A81B", "f3ba4b",
-    //                           "2072F4", "5191f6",
-    //                           "DE3281", "e55e9c",
-    //                           "2AB2CA", "4ec5da",
-    //                           "8e8e93", "d1d1d6",
-    //                          };
+    /* // neutral test palette */
+    /* char *inputPalette[18] = {"1c1c1e", "f5f5f7", */
+    /* 	"2c2c2e", "3a3a3c", */
+    /* 	"E8322F", "ed5f5d", */
+    /* 	"619942", "79b757", */
+    /* 	"F0A81B", "f3ba4b", */
+    /* 	"2072F4", "5191f6", */
+    /* 	"DE3281", "e55e9c", */
+    /* 	"2AB2CA", "4ec5da", */
+    /* 	"8e8e93", "d1d1d6", */
+    /* }; */
 
     // TODO - calculate number of colours in palette, don't hardcode
     int paletteLen = 18;
-
+    if (debug) printf("Set palette of length %d\n", paletteLen);
 
     // ------------------------------------------
     // GET PALETTE IN DECIMAL FOR MATHEMATICAL COMPARISON WITH IMAGE
@@ -154,7 +157,7 @@ int main(int argc, char **argv) {
 
     // iterate through characters of colours in input palette
     for (long unsigned int i = 0;
-            i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
+	 i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
         char *currentClr = inputPalette[i];
         int r, g, b;
         sscanf(currentClr, "%02x%02x%02x", &r, &g, &b);
@@ -164,6 +167,7 @@ int main(int argc, char **argv) {
         decimalPalette[i][1] = g;
         decimalPalette[i][2] = b;
     }
+    if (debug) printf("Converted palette to decimal format\n\n");
     // ------------------------------------------
 
     // TODO
@@ -176,19 +180,24 @@ int main(int argc, char **argv) {
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
 
-            // current pixel position
-            int currentPixelByte = 3*(x+WIDTH*y) + byteOffset;
+	    if (debug) printf("Pos %d, %d\n", x+1, y+1);
+	    
+	    // current pixel position
+	    int currentPixelByte = 3*(x+WIDTH*y) + byteOffset;
+	    if (debug) printf("Byte %d\n", currentPixelByte);
 
-            // get input colour values
-            int inputR = inputBytes[currentPixelByte + 0];
+	    // get input colour values
+	    int inputR = inputBytes[currentPixelByte + 0];
             int inputG = inputBytes[currentPixelByte + 1];
             int inputB = inputBytes[currentPixelByte + 2];
 
-            // FIXME - temp fix for negative RGB values
-            // (idfk but this solves it. maybe should use long int?)
-            if (inputR < 0) { inputR = 255 + inputR; }
+	    // FIXME - temp fix for negative RGB values
+	    // (idfk but this solves it. maybe should use long int?)
+	    if (inputR < 0) { inputR = 255 + inputR; }
             if (inputG < 0) { inputG = 255 + inputG; }
             if (inputB < 0) { inputB = 255 + inputB; }
+
+	    if (debug) printf("At %d,%d,%d\n", inputR, inputG, inputB);
 
             // find closest match for pixel in palette
             int comparisons[paletteLen];
@@ -203,31 +212,40 @@ int main(int argc, char **argv) {
                 if (diffB < 0) { diffB = -diffB; }
 
                 comparisons[i] = diffR + diffG + diffB;
-            }
+		if (debug) printf("Comparison with colour %d is %d\n",
+				  i, comparisons[i]);
+	    }
             // find best match out of all comparisons
             int bestMatch = 0;
             int diffTracker = 999; // impossibly large difference to start
             for (int i = 0; i < paletteLen; i++) {
                 if (comparisons[i] < diffTracker) {
-                    diffTracker = comparisons[i-1];
-                    bestMatch = i-1;
+                    diffTracker = comparisons[i];
+                    bestMatch = i;
                 }
             }
+	    if (debug) printf("Best: index %d, value %d,%d,%d\n",
+			      bestMatch,
+			      decimalPalette[bestMatch][0],
+			      decimalPalette[bestMatch][1],
+			      decimalPalette[bestMatch][2]);
 
-            // write pixel to output image
+	    // write pixel to output image
 
-            /* // CASE - copy original without converting
-            colour[0] = inputR; // R
-            colour[1] = inputG; // G
-            colour[2] = inputB; // B
-            */
+	    /* // CASE - copy original without converting */
+	    /*    colour[0] = inputR; // R */
+	    /*    colour[1] = inputG; // G */
+	    /*    colour[2] = inputB; // B */
 
             // CASE - copy with new palette
             colour[0] = decimalPalette[bestMatch][0]; // R
             colour[1] = decimalPalette[bestMatch][1]; // G
             colour[2] = decimalPalette[bestMatch][2]; // B
 
-            fwrite(colour, 1, 3, F_OUTPUT);
+	    if (debug) printf("Wrote %d,%d,%d\n\n",
+			      colour[0], colour[1], colour[2]);
+
+	    fwrite(colour, 1, 3, F_OUTPUT);
 
         }
     }
