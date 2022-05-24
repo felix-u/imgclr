@@ -95,12 +95,12 @@ int main(int argc, char **argv) {
     /* we now know how many bytes WIDTH and HEIGHT take up, and at which byte
        they start */
     char INPUT_WIDTH[widthByteCounter];
-    for (int i = 0; i < widthByteCounter; i++) {
+    for (int i = 0; i <= widthByteCounter; i++) {
         INPUT_WIDTH[i] = inputBytes[i + widthByteStart];
     }
 
     char INPUT_HEIGHT[heightByteCounter];
-    for (int i = 0; i < heightByteCounter; i++) {
+    for (int i = 0; i <= heightByteCounter; i++) {
         INPUT_HEIGHT[i] = inputBytes[i + heightByteStart];
     }
 
