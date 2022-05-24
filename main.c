@@ -8,22 +8,27 @@ int main(int argc, char **argv) {
 
     char *inputFile = NULL;
     char *outputFile = NULL;
+    char *paletteFile = NULL;
     int debug = 0;
 
     // command line argument parsing
     int c;
-    while ((c = getopt(argc, argv, "i:o:d")) != -1)
+    while ((c = getopt(argc, argv, "di:o:p")) != -1)
         switch (c) {
-            case 'i':
-                inputFile = optarg;
-                break;
-            case 'o':
-                outputFile = optarg;
-                break;
-	    case 'd':
-		debug = 1;
-	    default:
-		break;
+	case 'd':
+	    debug = 1;
+	    // fall through
+	case 'i':
+	    inputFile = optarg;
+	    break;
+	case 'o':
+	    outputFile = optarg;
+	    break;
+	case 'p':
+	    paletteFile = optarg;
+	    break;
+	default:
+	    break;
         }
 
     // fail with wrong usage message if mandatory options missing
@@ -250,6 +255,7 @@ int main(int argc, char **argv) {
         }
     }
 
+    free(inputBytes);
     fclose(F_INPUT); fclose(F_OUTPUT);
     return 0;
 }

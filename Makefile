@@ -3,3 +3,6 @@ CFLAGS=-Wextra -Wall -O3
 
 mclr: main.c
 	$(CC) $(CFLAGS) -o mclr main.c
+
+debug: main.c
+	$(CC) $(CFLAGS) -g -o mclr main.c
