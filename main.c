@@ -65,8 +65,8 @@ int main(int argc, char **argv) {
     increment counter so we know to get WIDTH (after newline, before space), or
     HEIGHT (after space, before newline). we also need to know how many bytes
     are in WIDTH and HEIGHT */
-    int whitespaceCounter = 0, heightByteCounter = 0, widthByteCounter = 0;
-    int heightByteStart = 0, widthByteStart;
+    int whitespaceCounter = 0; int heightByteCounter = 0; int widthByteCounter = 0;
+    int heightByteStart = 0; int widthByteStart = 0;
     while (whitespaceCounter < 5) {
         for (int i= 0; i < inputLen; i++) {
             if (inputBytes[i] == 10 || inputBytes[i] == 32) {
@@ -75,25 +75,25 @@ int main(int argc, char **argv) {
 
             if (inputBytes[i] != 10 && inputBytes[i] != 32) {
                 switch(whitespaceCounter) {
-                    case 1:
-                        widthByteStart = i;
-                        whitespaceCounter++;
-                        widthByteCounter++; break;
-                    case 2:
-                        widthByteCounter++; break;
-                    case 3:
-                        heightByteStart = i;
-                        whitespaceCounter++;
-                        heightByteCounter++; break;
-                    case 4:
-                        heightByteCounter++; break;
+		case 1:
+		    widthByteStart = i;
+		    whitespaceCounter++;
+		    widthByteCounter++; break;
+		case 2:
+		    widthByteCounter++; break;
+		case 3:
+		    heightByteStart = i;
+		    whitespaceCounter++;
+		    heightByteCounter++; break;
+		case 4:
+		    heightByteCounter++; break;
                 }
             }
         }
     }
 
     /* we now know how many bytes WIDTH and HEIGHT take up, and at which byte
-    they start */
+       they start */
     char INPUT_WIDTH[widthByteCounter];
     for (int i = 0; i < widthByteCounter; i++) {
         INPUT_WIDTH[i] = inputBytes[i + widthByteStart];
