@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 
     // command line argument parsing
     int c;
-    while ((c = getopt(argc, argv, "di:o:pq")) != -1)
+    while ((c = getopt(argc, argv, "di:o:p:q")) != -1)
         switch (c) {
 	case 'd':
 	    debug = 1;
