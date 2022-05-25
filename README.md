@@ -3,21 +3,25 @@
 imgclr is an image colouriser written in C. It can be used to modify images to
 fit a given colour palette.
 
-<div style="display:flex; justify-content:center;">
-<p style="margin:auto;">
-	<img alt="Hubble image - original" src="examples/hubble1/original.jpg" width="35%"/>
-	&nbsp; &nbsp; &nbsp; &nbsp;
-	<img alt="NASA image - original" src="examples/nasa1/original.jpg" width="35%"/>
-	<br>
-	<img alt="Hubble image - solarised palette" src="examples/hubble1/convert1.jpg" width="35%"/>
-	&nbsp; &nbsp; &nbsp; &nbsp;
-	<img alt="NASA image - solarised palette" src="examples/nasa1/convert1.jpg" width="35%"/>
-	<br>
-	<img alt="Hubble image - alternative palette" src="examples/hubble1/convert2.jpg" width="35%"/>
-	&nbsp; &nbsp; &nbsp; &nbsp;
-	<img alt="NASA image - alternative palette" src="examples/nasa1/convert2.jpg" width="35%"/>
-</p>
-</div>
+<!-- <p> -->
+<!-- 	<img alt="Hubble image - original" src="examples/hubble1/original.jpg" width="35%"/> -->
+<!-- 	&nbsp; &nbsp; &nbsp; &nbsp; -->
+<!-- 	<img alt="NASA image - original" src="examples/nasa1/original.jpg" width="35%"/> -->
+<!-- 	<br> -->
+<!-- 	<img alt="Hubble image - solarised palette" src="examples/hubble1/convert1.jpg" width="35%"/> -->
+<!-- 	&nbsp; &nbsp; &nbsp; &nbsp; -->
+<!-- 	<img alt="NASA image - solarised palette" src="examples/nasa1/convert1.jpg" width="35%"/> -->
+<!-- 	<br> -->
+<!-- 	<img alt="Hubble image - alternative palette" src="examples/hubble1/convert2.jpg" width="35%"/> -->
+<!-- 	&nbsp; &nbsp; &nbsp; &nbsp; -->
+<!-- 	<img alt="NASA image - alternative palette" src="examples/nasa1/convert2.jpg" width="35%"/> -->
+<!-- </p> -->
+
+Hubble example                                    | NASA example
+:------------------------------------------------:|:--------------------------------------------:
+![Hubble-original](examples/hubble1/original.jpg) | ![NASA-original](examples/nasa1/original.jpg)
+![Hubble-original](examples/hubble1/convert1.jpg) | ![NASA-original](examples/nasa1/convert1.jpg)
+![Hubble-original](examples/hubble1/convert2.jpg) | ![NASA-original](examples/nasa1/convert2.jpg)
 
 
 ### Features
