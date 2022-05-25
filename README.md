@@ -3,7 +3,7 @@
 imgclr is an image colouriser written in C. It can be used to modify images to
 fit a given colour palette.
 
-## Features
+### Features
 - [x] Change palette of images
 - [ ] Read JPG and PNG as well as PPM (might be better to just tie into ImageMagick to convert these formats to PPM and back again)
 - [ ] Use dithering to generate smoother results
@@ -12,6 +12,14 @@ fit a given colour palette.
 
 ### Usage
 
-`./imgclr -i input.ppm -o output.ppm`
+To compile `imgclr`, run `make` in the project directory.
 
-The `-d` flag gives information helpful for debugging. Make sure you redirect to a log file, since several lines of information are generated per pixel written.
+`./imgclr [-dq] [-p palette] [-i input.ppm] [-o output.ppm]`
+
+**The `-i` and `-o` arguments are mandatory.**
+
+`-d`          Output debug information. It is recommended to redirect output to a file, since several lines will be outputted per pixel written.
+
+`-p file`     [NOT FUNCTIONAL] Read palette from file containing whitespace-separated hex values.
+
+`-q`          Do not output basic information and progress bar ("quiet").
