@@ -132,6 +132,7 @@ int main(int argc, char **argv) {
     // TODO - get palette from command line args or input file, don't hardcode
     // placeholder colour palette
 
+    // EDIT PALETTE HERE
     // solarised
     char *inputPalette[18] = {
 	"93a1a1", "002b36",
