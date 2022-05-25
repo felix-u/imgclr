@@ -1,8 +1,8 @@
 CFLAGS=-Wextra -Wall -O3
 # LIBS=`pkg-config --cflags`
 
-mclr: main.c
-	$(CC) $(CFLAGS) -o mclr main.c
+imgclr: main.c
+	$(CC) $(CFLAGS) -o imgclr main.c	
 
 debug: main.c
-	$(CC) $(CFLAGS) -g -o mclr main.c
+	$(CC) $(CFLAGS) -g -o imgclr main.c

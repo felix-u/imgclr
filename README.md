@@ -1,6 +1,6 @@
-# mclr
+# imgclr
 
-mclr is an image colouriser written in C. It can be used to modify images to
+imgclr is an image colouriser written in C. It can be used to modify images to
 fit a given colour palette.
 
 ## Features
@@ -12,6 +12,6 @@ fit a given colour palette.
 
 ### Usage
 
-`./mclr -i input.ppm -o output.ppm`
+`./imgclr -i input.ppm -o output.ppm`
 
 The `-d` flag gives information helpful for debugging. Make sure you redirect to a log file, since several lines of information are generated per pixel written.
