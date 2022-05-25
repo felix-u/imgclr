@@ -3,6 +3,8 @@
 #include <unistd.h>
 
 int badInput();
+int catPixel(int r, int g, int b);
+char* itoaZeroPad(int channel);
 
 int main(int argc, char **argv) {
 
@@ -183,9 +185,6 @@ int main(int argc, char **argv) {
     // TODO
     // setup for storing existing matches to use them where possible rather
     // than recalculating
-    /* int matches[WIDTH][HEIGHT][3]; */
-    /* int **pmatches = (int **)malloc(WIDTH * HEIGHT * 3 * sizeof(int)); */
-    /* int *matches = *pmatches; */
 
     // write pixels to output
     if (!quiet)
@@ -237,10 +236,8 @@ int main(int argc, char **argv) {
                     bestMatch = i;
                 }
             }
-            // save match
-            /* matches[x][y] = bestMatch */
 
-            if (debug) printf("Best: index %d, value %d,%d,%d\n",
+	    if (debug) printf("Best: index %d, value %d,%d,%d\n",
                     bestMatch,
                     decimalPalette[bestMatch][0],
                     decimalPalette[bestMatch][1],
