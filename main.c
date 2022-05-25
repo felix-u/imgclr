@@ -144,7 +144,8 @@ int main(int argc, char **argv) {
     };
 
     /* // neutral test palette */
-    /* char *inputPalette[18] = {"1c1c1e", "f5f5f7", */
+    /* char *inputPalette[18] = { */
+    /* 	"1c1c1e", "f5f5f7", */
     /* 	"2c2c2e", "3a3a3c", */
     /* 	"E8322F", "ed5f5d", */
     /* 	"619942", "79b757", */
@@ -182,98 +183,102 @@ int main(int argc, char **argv) {
     // TODO
     // setup for storing existing matches to use them where possible rather
     // than recalculating
-    // int matchedPixels[WIDTH*HEIGHT];
-
+    /* int matches[WIDTH][HEIGHT][3]; */
+    /* int **pmatches = (int **)malloc(WIDTH * HEIGHT * 3 * sizeof(int)); */
+    /* int *matches = *pmatches; */
 
     // write pixels to output
     if (!quiet)
 	printf("Writing %dx%d image to %s\n", WIDTH, HEIGHT, outputFile);
     for (int y = 0; y < HEIGHT; y++) {
-	for (int x = 0; x < WIDTH; x++) {
+        for (int x = 0; x < WIDTH; x++) {
 
-	    if (debug) printf("Pos %d, %d\n", x+1, y+1);
-	    
-	    // current pixel position
-	    int currentPixelByte = 3*(x+WIDTH*y) + byteOffset;
-	    if (debug) printf("Byte %d\n", currentPixelByte);
+            if (debug) printf("Pos %d, %d\n", x+1, y+1);
 
-	    // get input colour values
-	    int inputR = inputBytes[currentPixelByte + 0];
-	    int inputG = inputBytes[currentPixelByte + 1];
-	    int inputB = inputBytes[currentPixelByte + 2];
+            // current pixel position
+            int currentPixelByte = 3*(x+WIDTH*y) + byteOffset;
+            if (debug) printf("Byte %d\n", currentPixelByte);
 
-	    // FIXME - temp fix for negative RGB values
-	    // (idfk but this solves it. maybe should use long int?)
-	    if (inputR < 0) { inputR = 255 + inputR; }
-	    if (inputG < 0) { inputG = 255 + inputG; }
-	    if (inputB < 0) { inputB = 255 + inputB; }
+            // get input colour values
+            int inputR = inputBytes[currentPixelByte + 0];
+            int inputG = inputBytes[currentPixelByte + 1];
+            int inputB = inputBytes[currentPixelByte + 2];
 
-	    if (debug) printf("At %d,%d,%d\n", inputR, inputG, inputB);
+            // FIXME - temp fix for negative RGB values
+            // (idfk but this solves it. maybe should use long int?)
+            if (inputR < 0) { inputR = 255 + inputR; }
+            if (inputG < 0) { inputG = 255 + inputG; }
+            if (inputB < 0) { inputB = 255 + inputB; }
 
-	    // find closest match for pixel in palette
-	    int comparisons[paletteLen];
-	    for (int i = 0; i < paletteLen; i++) { // channel differences
-		int diffR = decimalPalette[i][0] - inputR;
-		if (diffR < 0) { diffR = -diffR; }
+            if (debug) printf("At %d,%d,%d\n", inputR, inputG, inputB);
 
-		int diffG = decimalPalette[i][1] - inputG;
-		if (diffG < 0) { diffG = -diffG; }
+            // find closest match for pixel in palette
+            int comparisons[paletteLen];
+            for (int i = 0; i < paletteLen; i++) { // channel differences
+            int diffR = decimalPalette[i][0] - inputR;
+            if (diffR < 0) { diffR = -diffR; }
 
-		int diffB = decimalPalette[i][2] - inputB;
-		if (diffB < 0) { diffB = -diffB; }
+            int diffG = decimalPalette[i][1] - inputG;
+            if (diffG < 0) { diffG = -diffG; }
 
-		comparisons[i] = diffR + diffG + diffB;
-		if (debug) printf("Comparison with colour %d is %d\n",
-				  i, comparisons[i]);
-	    }
-	    // find best match out of all comparisons
-	    int bestMatch = 0;
-	    int diffTracker = 999; // impossibly large difference to start
-	    for (int i = 0; i < paletteLen; i++) {
-		if (comparisons[i] < diffTracker) {
-		    diffTracker = comparisons[i];
-		    bestMatch = i;
-		}
-	    }
-	    if (debug) printf("Best: index %d, value %d,%d,%d\n",
-			      bestMatch,
-			      decimalPalette[bestMatch][0],
-			      decimalPalette[bestMatch][1],
-			      decimalPalette[bestMatch][2]);
+            int diffB = decimalPalette[i][2] - inputB;
+            if (diffB < 0) { diffB = -diffB; }
 
-	    // write pixel to output image
+            comparisons[i] = diffR + diffG + diffB;
+            if (debug) printf("Comparison with colour %d is %d\n",
+                    i, comparisons[i]);
+            }
+            // find best match out of all comparisons
+            int bestMatch = 0;
+            int diffTracker = 999; // impossibly large difference to start
+            for (int i = 0; i < paletteLen; i++) {
+                if (comparisons[i] < diffTracker) {
+                    diffTracker = comparisons[i];
+                    bestMatch = i;
+                }
+            }
+            // save match
+            /* matches[x][y] = bestMatch */
 
-	    /* // CASE - copy original without converting */
-	    /*    colour[0] = inputR; // R */
-	    /*    colour[1] = inputG; // G */
-	    /*    colour[2] = inputB; // B */
+            if (debug) printf("Best: index %d, value %d,%d,%d\n",
+                    bestMatch,
+                    decimalPalette[bestMatch][0],
+                    decimalPalette[bestMatch][1],
+                    decimalPalette[bestMatch][2]);
 
-	    // CASE - copy with new palette
-	    colour[0] = decimalPalette[bestMatch][0]; // R
-	    colour[1] = decimalPalette[bestMatch][1]; // G
-	    colour[2] = decimalPalette[bestMatch][2]; // B
+            // write pixel to output image
 
-	    if (debug) printf("Wrote %d,%d,%d\n\n",
-			      colour[0], colour[1], colour[2]);
+            /* // CASE - copy original without converting */
+            /*    colour[0] = inputR; // R */
+            /*    colour[1] = inputG; // G */
+            /*    colour[2] = inputB; // B */
 
-	    fwrite(colour, 1, 3, F_OUTPUT);
+            // CASE - copy with new palette
+            colour[0] = decimalPalette[bestMatch][0]; // R
+            colour[1] = decimalPalette[bestMatch][1]; // G
+            colour[2] = decimalPalette[bestMatch][2]; // B
 
-	}
+            if (debug) printf("Wrote %d,%d,%d\n\n",
+                    colour[0], colour[1], colour[2]);
 
-	// progress bar, unless quiet flag
-	if (!quiet) {
-	    float prog = y;
-	    printf("\rProgress: [%3.0f%%] [", (prog/HEIGHT)*100);
-	    int barLen = 20;
-	    int count = (prog/HEIGHT)*barLen;
-	    for (int p = 0; p <= count; p++) putchar ('#');
-	    for (int p = 1; p < barLen-count; p++) putchar ('.');
-	    putchar(']');
-	    fflush(stdout);
-	}
+            fwrite(colour, 1, 3, F_OUTPUT);
+
+        }
+
+        // progress bar, unless quiet flag
+        if (!quiet) {
+            float prog = y;
+            printf("\rProgress: [%3.0f%%] [", (prog/HEIGHT)*100);
+            int barLen = 20;
+            int count = (prog/HEIGHT)*barLen;
+            for (int p = 0; p <= count; p++) putchar ('#');
+            for (int p = 1; p < barLen-count; p++) putchar ('.');
+            putchar(']');
+            fflush(stdout);
+        }
     }
-    if (!quiet) putchar('\n');
 
+    if (!quiet) putchar('\n');
     free(inputBytes);
     fclose(F_INPUT); fclose(F_OUTPUT);
     return 0;

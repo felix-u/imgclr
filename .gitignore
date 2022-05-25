@@ -1,4 +1,5 @@
 mclr
 *.jpg
 *.ppm
+*.org
 log
