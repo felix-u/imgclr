@@ -3,7 +3,8 @@
 imgclr is an image colouriser written in C. It can be used to modify images to
 fit a given colour palette.
 
-<p style="display:flex; justify-content:center;">
+<div style="display:flex; justify-content:center;">
+<p style="margin:auto;">
 	<img alt="Hubble image - original" src="examples/hubble1/original.jpg" width="35%"/>
 	&nbsp; &nbsp; &nbsp; &nbsp;
 	<img alt="NASA image - original" src="examples/nasa1/original.jpg" width="35%"/>
@@ -16,6 +17,7 @@ fit a given colour palette.
 	&nbsp; &nbsp; &nbsp; &nbsp;
 	<img alt="NASA image - alternative palette" src="examples/nasa1/convert2.jpg" width="35%"/>
 </p>
+</div>
 
 
 ### Features
