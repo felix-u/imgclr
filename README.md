@@ -25,7 +25,8 @@ Hubble example                                    | NASA example
 
 ### Features
 - [x] Change palette of images
-- [ ] Read JPG and PNG as well as PPM (might be better to just tie into ImageMagick to convert these formats to PPM and back again)
+- [ ] Read JPG and PNG as well as PPM (might be better to just tie into ImageMagick to convert these formats to PPM and
+      back again)
 - [ ] Use dithering to generate smoother results
 - [ ] Allow the inversion of image brightness levels (convert dark images to
       light and vice versa)
@@ -44,7 +45,8 @@ When ready, compile `imgclr` by running `make` in the project directory.
 
 **The `-i` and `-o` arguments are mandatory.**
 
-`-d`: Output debug information. It is recommended to redirect output to a file, since several lines will be outputted per pixel written.
+`-d`: Output debug information. It is recommended to redirect output to a file, since several lines will be outputted per
+pixel written.
 
 `-p file`: [NOT FUNCTIONAL] Read palette from file containing whitespace-separated hex values.
 
