@@ -18,8 +18,8 @@ To compile `imgclr`, run `make` in the project directory.
 
 **The `-i` and `-o` arguments are mandatory.**
 
-`-d`          Output debug information. It is recommended to redirect output to a file, since several lines will be outputted per pixel written.
+`-d`: Output debug information. It is recommended to redirect output to a file, since several lines will be outputted per pixel written.
 
-`-p file`     [NOT FUNCTIONAL] Read palette from file containing whitespace-separated hex values.
+`-p file`: [NOT FUNCTIONAL] Read palette from file containing whitespace-separated hex values.
 
-`-q`          Do not output basic information and progress bar ("quiet").
+`-q`: Do not output basic information and progress bar ("quiet").
