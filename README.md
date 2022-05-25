@@ -1,7 +1,6 @@
 # imgclr
 
-imgclr is an image colouriser written in C. It can be used to modify images to
-fit a given colour palette.
+`imgclr` modifies images to fit a given colour palette.
 
 <!-- <p> -->
 <!-- 	<img alt="Hubble image - original" src="examples/hubble1/original.jpg" width="35%"/> -->
