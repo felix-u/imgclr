@@ -11,11 +11,11 @@ int main(int argc, char **argv) {
     char *inputFile = NULL;
     char *outputFile = NULL;
     char *paletteFile = NULL;
-    int debug = 0, quiet = 0;
+    int debug = 0, quiet = 0, slow = 0;
 
     // command line argument parsing
     int c;
-    while ((c = getopt(argc, argv, "di:o:p:q")) != -1)
+    while ((c = getopt(argc, argv, "di:o:p:qs")) != -1)
         switch (c) {
 	case 'd':
 	    debug = 1;
@@ -33,6 +33,9 @@ int main(int argc, char **argv) {
 	    quiet = 1;
 	    // fall through
 	    break;
+	case 's':
+	    slow = 1;
+	    // fall through
 	default:
 	    break;
         }
@@ -183,10 +186,11 @@ int main(int argc, char **argv) {
     if (debug) printf("Converted palette to decimal format\n\n");
     // ------------------------------------------
 
-    // TODO
-    // setup for storing existing matches to use them where possible rather
-    // than recalculating
+    // setup to save previous match for a sort of "run-length" matching
+    // so if current pixel = prev pixel, no need to recompute best match
+    int prevR = 300, prevG = 300, prevB = 300;
 
+    int bestMatch = 0;
     // write pixels to output
     if (!quiet)
 	printf("Writing %dx%d image to %s\n", WIDTH, HEIGHT, outputFile);
@@ -210,54 +214,56 @@ int main(int argc, char **argv) {
             if (inputG < 0) { inputG = 255 + inputG; }
             if (inputB < 0) { inputB = 255 + inputB; }
 
-            if (debug) printf("At %d,%d,%d\n", inputR, inputG, inputB);
+	    if (debug) printf("At %d,%d,%d\n", inputR, inputG, inputB);
 
-            // find closest match for pixel in palette
-            int comparisons[paletteLen];
-            for (int i = 0; i < paletteLen; i++) { // channel differences
-            int diffR = decimalPalette[i][0] - inputR;
-            if (diffR < 0) { diffR = -diffR; }
+	    // compare to prev pixel
+	    if (inputR == prevR && inputG == prevG && inputB == prevB && !slow) {
+		if (debug) printf("Reusing match from previous pixel\n");
+		// this will go ahead to writing the pixel, below the else block
+		// since we already have a good match
+	    }
+	    else { // otherwise, we need to compute a brand new match
+		int comparisons[paletteLen];
+		for (int i = 0; i < paletteLen; i++) { // channel differences
+		    int diffR = decimalPalette[i][0] - inputR;
+		    if (diffR < 0) { diffR = -diffR; }
 
-            int diffG = decimalPalette[i][1] - inputG;
-            if (diffG < 0) { diffG = -diffG; }
+		    int diffG = decimalPalette[i][1] - inputG;
+		    if (diffG < 0) { diffG = -diffG; }
 
-            int diffB = decimalPalette[i][2] - inputB;
-            if (diffB < 0) { diffB = -diffB; }
+		    int diffB = decimalPalette[i][2] - inputB;
+		    if (diffB < 0) { diffB = -diffB; }
 
-            comparisons[i] = diffR + diffG + diffB;
-            if (debug) printf("Comparison with colour %d is %d\n",
-                    i, comparisons[i]);
-            }
-            // find best match out of all comparisons
-            int bestMatch = 0;
-            int diffTracker = 999; // impossibly large difference to start
-            for (int i = 0; i < paletteLen; i++) {
-                if (comparisons[i] < diffTracker) {
-                    diffTracker = comparisons[i];
-                    bestMatch = i;
-                }
-            }
+		    comparisons[i] = diffR + diffG + diffB;
+		    if (debug) printf("Comparison with colour %d is %d\n",
+				      i, comparisons[i]);
+		}
+		// find best match out of all comparisons
+		int diffTracker = 999; // impossibly large difference to start
+		for (int i = 0; i < paletteLen; i++) {
+		    if (comparisons[i] < diffTracker) {
+			diffTracker = comparisons[i];
+			bestMatch = i;
+		    }
+		}
 
-	    if (debug) printf("Best: index %d, value %d,%d,%d\n",
-                    bestMatch,
-                    decimalPalette[bestMatch][0],
-                    decimalPalette[bestMatch][1],
-                    decimalPalette[bestMatch][2]);
+		if (debug) printf("Best: index %d, value %d,%d,%d\n",
+				  bestMatch,
+				  decimalPalette[bestMatch][0],
+				  decimalPalette[bestMatch][1],
+				  decimalPalette[bestMatch][2]);
+	    }
 
             // write pixel to output image
-
-            /* // CASE - copy original without converting */
-            /*    colour[0] = inputR; // R */
-            /*    colour[1] = inputG; // G */
-            /*    colour[2] = inputB; // B */
-
-            // CASE - copy with new palette
             colour[0] = decimalPalette[bestMatch][0]; // R
             colour[1] = decimalPalette[bestMatch][1]; // G
             colour[2] = decimalPalette[bestMatch][2]; // B
 
-            if (debug) printf("Wrote %d,%d,%d\n\n",
-                    colour[0], colour[1], colour[2]);
+	    // save current pixels to prev variables, for next iteration
+	    prevR = inputR; prevG = inputG; prevB = inputB;
+	    
+	    if (debug) printf("Wrote %d,%d,%d\n\n",
+			      colour[0], colour[1], colour[2]);
 
             fwrite(colour, 1, 3, F_OUTPUT);
 

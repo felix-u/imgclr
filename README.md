@@ -41,13 +41,16 @@ variable exactly!
 
 When ready, compile `imgclr` by running `make` in the project directory.
 
-`./imgclr [-dq] [-p palette] [-i input.ppm] [-o output.ppm]`
+`./imgclr [-d] [-i input.ppm] [-o output.ppm] [-p palette] [-qs]`
 
 **The `-i` and `-o` arguments are mandatory.**
 
 `-d`: Output debug information. It is recommended to redirect output to a file, since several lines will be outputted per
-pixel written.
+pixel written, leading to raw text output in the hundreds of megabytes.
 
 `-p file`: [NOT FUNCTIONAL] Read palette from file containing whitespace-separated hex values.
 
-`-q`: Do not output basic information and progress bar ("quiet").
+`-q`: "Quiet" - do **not** output basic information and progress bar.
+
+`-s`: "Slow" - do **not** optimise by reusing the previous match if the current pixel is identical to the previous
+	  pixel. This option exists purely for benchmarking and is not recommended.
