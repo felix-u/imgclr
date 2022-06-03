@@ -1,0 +1,11 @@
+imgclr
+target/
+*.jpg
+*.png
+*.ppm
+*.org
+
+
+# Added by cargo
+
+/target
