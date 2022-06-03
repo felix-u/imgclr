@@ -2,6 +2,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// EDIT PALETTE HERE
+// default is solarised
+int paletteLen = 18;
+char* inputPalette[18] = {
+    "93a1a1", "002b36",
+    "073642", "224750",
+    "dc322f", "dc322f",
+    "859900", "859900",
+    "b58900", "b58900",
+    "268bd2", "268bd2",
+    "6c71c4", "6c71c4",
+    "2aa198", "2aa198",
+    "657b83", "839496",
+};
+
 int badInput();
 
 int main(int argc, char **argv) {
@@ -127,27 +142,11 @@ int main(int argc, char **argv) {
     /* P6 + newline + width + space + height + newline + 255 + newline
        2 + 1 + widthByteCounter + 1 + heightByteCounter + 1 + 3 + 1 */
 
-    // EDIT PALETTE HERE
-    // default is solarised
-    char* inputPalette[18] = {
-        "93a1a1", "002b36",
-        "073642", "224750",
-        "dc322f", "dc322f",
-        "859900", "859900",
-        "b58900", "b58900",
-        "268bd2", "268bd2",
-        "6c71c4", "6c71c4",
-        "2aa198", "2aa198",
-        "657b83", "839496",
-    };
-
-    int paletteLen = 18;
-    if (debug) printf("Set palette of length %d\n", paletteLen);
-
     // ------------------------------------------
     // GET PALETTE IN DECIMAL FOR MATHEMATICAL COMPARISON WITH IMAGE
     // make array for storing palette in decimals
     int decimalPalette[paletteLen][3];
+    if (debug) printf("Set palette of length %d\n", paletteLen);
 
     // iterate through characters of colours in input palette
     for (int i = 0; i < paletteLen; i++) {
