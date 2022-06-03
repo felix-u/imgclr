@@ -1,9 +1,9 @@
 use clap::{Arg,Command};
 use std::path::Path;
-use image::{GenericImageView, ImageBuffer, Pixel};
+use image::{GenericImageView, GenericImage, ImageBuffer, Pixel, Rgb, RgbImage};
 use exitcode;
 
-fn main() {
+fn main() -> std::io::Result<()> {
 
     // parse command-line arguments
     let args = Command::new("imgclr")
@@ -48,22 +48,32 @@ fn main() {
         println!("Of dimensions {} by {}", width, height);
     }
 
+    // copy input file as-is to output path
+    // fs::copy(input_file, output_file)?;
+    // open output image
+    // let mut img_out = image::open(output_file).expect("Could not open output image. Caught error");
+    let mut img_out = RgbImage::new(width, height);
 
-    // // create output image
-    // let mut img_out = ImageBuffer::new(width, height);
-    // for (x, y, pixel) in img_in.pixels() {
-    //     // palette conversion process somewhere in here lol
-    //     // FIXME: Don't just copy with no changes lol
-    //     img_out.put_pixel(x, y,
-    //                       pixel.map(|p| p))
-    // }
+    // process image
+    for (x, y, pixel) in img_in.pixels() {
 
-    // working placeholder: copy input to output path with no changes
-    match img_in.save(output_file) {
+        // pixel is an array. index 0 is R, 1 is G, 2 is B, and 3 is alpha
+        img_out.put_pixel(x, y, Rgb([255, 255, 255]));
+
+        // println!("{:?}", pixel);
+        // Working placeholder - copy pixel-by-pixel with no changes
+        // img_out.put_pixel(x, y,
+        //                   pixel.map(|p| p))
+
+    }
+
+    // save to output path
+    match img_out.save(output_file) {
         Ok(()) => {},
         Err(e) => {
-            eprintln!("Could not save to output path. Caught error:\n{}", e);
+            eprintln!("Couldn't save output. Caught error: {}", e);
         }
     }
 
+    Ok(())
 }
