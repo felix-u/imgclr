@@ -3,8 +3,6 @@
 #include <unistd.h>
 
 int badInput();
-int catPixel(int r, int g, int b);
-char* itoaZeroPad(int channel);
 
 int main(int argc, char **argv) {
 
@@ -261,7 +259,7 @@ int main(int argc, char **argv) {
 
 	    // save current pixels to prev variables, for next iteration
 	    prevR = inputR; prevG = inputG; prevB = inputB;
-	    
+
 	    if (debug) printf("Wrote %d,%d,%d\n\n",
 			      colour[0], colour[1], colour[2]);
 
