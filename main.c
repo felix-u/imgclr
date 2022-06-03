@@ -8,35 +8,32 @@ int main(int argc, char **argv) {
 
     char *inputFile = NULL;
     char *outputFile = NULL;
-    char *paletteFile = NULL;
     int debug = 0, quiet = 0, slow = 0;
 
     // command line argument parsing
-    int c;
-    while ((c = getopt(argc, argv, "di:o:p:qs")) != -1)
-        switch (c) {
-	case 'd':
-	    debug = 1;
-	    // fall through
-	case 'i':
-	    inputFile = optarg;
-	    break;
-	case 'o':
-	    outputFile = optarg;
-	    break;
-	case 'p':
-	    paletteFile = optarg;
-	    break;
-	case 'q':
-	    quiet = 1;
-	    // fall through
-	    break;
-	case 's':
-	    slow = 1;
-	    // fall through
-	default:
-	    break;
+    int opt;
+    while ((opt = getopt(argc, argv, "di:o:qs")) != -1) {
+        switch (opt) {
+            case 'd':
+                debug = 1;
+                // fall through
+            case 'i':
+                inputFile = optarg;
+                break;
+            case 'o':
+                outputFile = optarg;
+                break;
+            case 'q':
+                quiet = 1;
+                // fall through
+                break;
+            case 's':
+                slow = 1;
+                // fall through
+            default:
+                break;
         }
+    }
 
     // fail with wrong usage message if mandatory options missing
     if (inputFile == NULL || outputFile == NULL) {
@@ -82,18 +79,18 @@ int main(int argc, char **argv) {
 
             if (inputBytes[i] != 10 && inputBytes[i] != 32) {
                 switch(whitespaceCounter) {
-		case 1:
-		    widthByteStart = i;
-		    whitespaceCounter++;
-		    widthByteCounter++; break;
-		case 2:
-		    widthByteCounter++; break;
-		case 3:
-		    heightByteStart = i;
-		    whitespaceCounter++;
-		    heightByteCounter++; break;
-		case 4:
-		    heightByteCounter++; break;
+                    case 1:
+                        widthByteStart = i;
+                        whitespaceCounter++;
+                        widthByteCounter++; break;
+                    case 2:
+                        widthByteCounter++; break;
+                    case 3:
+                        heightByteStart = i;
+                        whitespaceCounter++;
+                        heightByteCounter++; break;
+                    case 4:
+                        heightByteCounter++; break;
                 }
             }
         }
@@ -130,48 +127,30 @@ int main(int argc, char **argv) {
     /* P6 + newline + width + space + height + newline + 255 + newline
        2 + 1 + widthByteCounter + 1 + heightByteCounter + 1 + 3 + 1 */
 
-    // TODO - get palette from command line args or input file, don't hardcode
-    // placeholder colour palette
-
     // EDIT PALETTE HERE
-    // solarised
-    char *inputPalette[18] = {
-	"93a1a1", "002b36",
-	"073642", "224750",
-	"dc322f", "dc322f",
-	"859900", "859900",
-	"b58900", "b58900",
-	"268bd2", "268bd2",
-	"6c71c4", "6c71c4",
-	"2aa198", "2aa198",
-	"657b83", "839496",
+    // default is solarised
+    char* inputPalette[18] = {
+        "93a1a1", "002b36",
+        "073642", "224750",
+        "dc322f", "dc322f",
+        "859900", "859900",
+        "b58900", "b58900",
+        "268bd2", "268bd2",
+        "6c71c4", "6c71c4",
+        "2aa198", "2aa198",
+        "657b83", "839496",
     };
 
-    /* // neutral test palette */
-    /* char *inputPalette[18] = { */
-    /* 	"1c1c1e", "f5f5f7", */
-    /* 	"2c2c2e", "3a3a3c", */
-    /* 	"E8322F", "ed5f5d", */
-    /* 	"619942", "79b757", */
-    /* 	"F0A81B", "f3ba4b", */
-    /* 	"2072F4", "5191f6", */
-    /* 	"DE3281", "e55e9c", */
-    /* 	"2AB2CA", "4ec5da", */
-    /* 	"8e8e93", "d1d1d6", */
-    /* }; */
-
-    // TODO - calculate number of colours in palette, don't hardcode
     int paletteLen = 18;
     if (debug) printf("Set palette of length %d\n", paletteLen);
 
     // ------------------------------------------
     // GET PALETTE IN DECIMAL FOR MATHEMATICAL COMPARISON WITH IMAGE
     // make array for storing palette in decimals
-    int decimalPalette[sizeof(inputPalette)/sizeof(inputPalette[0])][3];
+    int decimalPalette[paletteLen][3];
 
     // iterate through characters of colours in input palette
-    for (long unsigned int i = 0;
-	 i < sizeof(inputPalette)/sizeof(inputPalette[0]); i++) {
+    for (int i = 0; i < paletteLen; i++) {
         char *currentClr = inputPalette[i];
         int r, g, b;
         sscanf(currentClr, "%02x%02x%02x", &r, &g, &b);
@@ -289,17 +268,21 @@ int main(int argc, char **argv) {
 
 // return if incorrect usage
 int badInput(char *errorType) {
+    printf("Error: ");
     switch(*errorType) {
         case 'a':
-            printf("Not enough arguments \n");
+            printf("Not enough arguments");
+        break; case 'h':
+            printf("Hex values must be at least six characters in length.");
         break; case 'j' :
-            printf("Please convert JPG to PPM \n");
+            printf("Please convert JPG to PPM");
         break; case 'p' :
-            printf("Input not a PPM image \n");
+            printf("Input not a PPM image");
         break; case 'n' :
-            printf("Input file nonexistent \n");
+            printf("Input file nonexistent");
         break; default:
-            printf("Incorrect usage \n");
+            printf("Incorrect usage");
     }
+    putchar('\n');
     return 1;
 }
