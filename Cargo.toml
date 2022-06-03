@@ -8,3 +8,7 @@ edition = "2021"
 [dependencies]
 # argument parsing
 clap = { version = "3.0", features = ["derive"] }
+# exiting with appropriate error codes
+exitcode = "1.1.2"
+# processing images of various formats
+image = "0.24.2"
