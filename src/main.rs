@@ -43,21 +43,12 @@ fn main() -> std::io::Result<()> {
     // get palette
     let palette_input: Vec<_> = args.values_of("palette").unwrap().collect();
 
-    // // this paragraph is previous experimentation I'm keeping as an example
-    // for i in 0..Vec::len(&palette) {
-    //     let str_clr = Color::new_string(palette[i]).unwrap();
-    //     println!("R: {}\tG: {}\tB: {}", str_clr.red, str_clr.green, str_clr.blue);
-    // }
-    // let mut palette: vec![ClrpColor; Vec::len(&palette_input)];
-    //
-
     // save palette to array in processed format
     let mut palette: Vec<ClrpColor> = Vec::new();
     for i in 0..Vec::len(&palette_input) {
         let str_clr = ClrpColor::new_string(palette_input[i]).unwrap();
         palette.push(str_clr);
     }
-
 
     // check that input file exists and error out if not
     if !Path::new(input_file).exists() {
@@ -75,22 +66,36 @@ fn main() -> std::io::Result<()> {
         println!("Of dimensions {} by {}", width, height);
     }
 
-    // copy input file as-is to output path
-    // fs::copy(input_file, output_file)?;
     // open output image
-    // let mut img_out = image::open(output_file).expect("Could not open output image. Caught error");
     let mut img_out = RgbImage::new(width, height);
 
     // process image
     for (x, y, pixel) in img_in.pixels() {
 
         // pixel is an array. index 0 is R, 1 is G, 2 is B, and 3 is alpha
-        img_out.put_pixel(x, y, Rgb([255, 255, 255]));
+        let this_r = pixel[0];
+        let this_g = pixel[1];
+        let this_b = pixel[2];
 
-        // println!("{:?}", pixel);
-        // Working placeholder - copy pixel-by-pixel with no changes
-        // img_out.put_pixel(x, y,
-        //                   pixel.map(|p| p))
+        // set up array for comparisons
+        let mut best_match = 0;
+        let mut min_diff: u16 = 999;
+        for i in 0..Vec::len(&palette) {
+            let comp_r: u16 = this_r.abs_diff(palette[i].red).into();
+            let comp_g: u16 = this_g.abs_diff(palette[i].green).into();
+            let comp_b: u16 = this_b.abs_diff(palette[i].blue).into();
+            let diff_total: u16 = comp_r + comp_g + comp_b;
+            if diff_total < min_diff {
+                min_diff = diff_total;
+                best_match = i;
+            }
+        }
+
+        let clr_match = &palette[best_match];
+        let best_r = clr_match.red;
+        let best_g = clr_match.green;
+        let best_b = clr_match.blue;
+        img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
 
     }
 
