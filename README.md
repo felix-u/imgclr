@@ -26,7 +26,6 @@ First, [install rust and cargo](https://doc.rust-lang.org/cargo/getting-started/
 
 ### Usage
 
-Output of `imgclr --help`:
 ```
 USAGE:
     imgclr --input <input file> --output <output file> --palette <palette>...
@@ -48,6 +47,7 @@ quoted. The following are a few possible ways to represent perfect red:
 * `hsl(0, 100%, 50%)`
 * `#ff0000`
 * `f00`
+
 Here's what an `imglcr` command using black, white, red, green, and blue might look like, using a mix of these formats:
 ```sh
 imgclr -i input.jpg -o output.jpg -p 000 fff "hsl(0, 100%, 50%)" "rgb(0, 255, 0)" 0000ff
