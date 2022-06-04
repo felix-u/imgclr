@@ -1,5 +1,5 @@
-use clap::{Arg,Command};
-use std::path::Path;
+use clap::{Arg, Command, Values};
+use std::{path::Path, str::Matches, vec};
 use image::{GenericImageView, GenericImage, ImageBuffer, Pixel, Rgb, RgbImage};
 use exitcode;
 
@@ -21,6 +21,13 @@ fn main() -> std::io::Result<()> {
                 .required(true)
                 .takes_value(true)
                 .help("Supply path to output file"),
+            Arg::new("palette")
+                .multiple_values(true)
+                .short('p')
+                .long("palette")
+                .required(true)
+                .takes_value(true)
+                .help("Supply palette as whitespace-separated hex values"),
             Arg::new("verbose")
                 .short('v')
                 .long("verbose")
@@ -31,6 +38,12 @@ fn main() -> std::io::Result<()> {
 
     let input_file = args.value_of("input file").unwrap();
     let output_file = args.value_of("output file").unwrap();
+
+    // get palette
+    let palette: Vec<_> = args.values_of("palette").unwrap().collect();
+    for i in 0..Vec::len(&palette) {
+        println!("{:?}", palette[i]);
+    }
 
     // check that input file exists and error out if not
     if !Path::new(input_file).exists() {
