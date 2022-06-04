@@ -1,5 +1,5 @@
 use clap::{Arg, Command};
-use color_processing::Color;
+use color_processing::Color as ClrpColor;
 use exitcode;
 use image::{GenericImageView, Rgb, RgbImage};
 use std::path::Path;
@@ -41,11 +41,23 @@ fn main() -> std::io::Result<()> {
     let output_file = args.value_of("output file").unwrap();
 
     // get palette
-    let palette: Vec<_> = args.values_of("palette").unwrap().collect();
-    for i in 0..Vec::len(&palette) {
-        let str_clr = Color::new_string(palette[i]).unwrap();
-        println!("R: {}\tG: {}\tB: {}", str_clr.red, str_clr.green, str_clr.blue);
+    let palette_input: Vec<_> = args.values_of("palette").unwrap().collect();
+
+    // // this paragraph is previous experimentation I'm keeping as an example
+    // for i in 0..Vec::len(&palette) {
+    //     let str_clr = Color::new_string(palette[i]).unwrap();
+    //     println!("R: {}\tG: {}\tB: {}", str_clr.red, str_clr.green, str_clr.blue);
+    // }
+    // let mut palette: vec![ClrpColor; Vec::len(&palette_input)];
+    //
+
+    // save palette to array in processed format
+    let mut palette: Vec<ClrpColor> = Vec::new();
+    for i in 0..Vec::len(&palette_input) {
+        let str_clr = ClrpColor::new_string(palette_input[i]).unwrap();
+        palette.push(str_clr);
     }
+
 
     // check that input file exists and error out if not
     if !Path::new(input_file).exists() {
