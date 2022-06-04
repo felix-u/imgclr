@@ -57,3 +57,6 @@ Input                                                | Result
 :---------------------------------------------------:|:--------------------------------------------------:
 ![Original image](examples/jacek-dylag/original.jpg) | ![Processed image](examples/jacek-dylag/output.jpg)
 
+<!-- #### Using Xresources -->
+<!---->
+<!-- You may wish to  -->
