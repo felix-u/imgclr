@@ -2,6 +2,7 @@ use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
 use exitcode;
 use image::{GenericImageView, Rgb, RgbImage};
+// use indicatif::ProgressBar;
 use std::path::Path;
 
 fn main() -> std::io::Result<()> {
@@ -29,12 +30,6 @@ fn main() -> std::io::Result<()> {
                 .required(true)
                 .takes_value(true)
                 .help("Supply palette as whitespace-separated hex values"),
-            Arg::new("verbose")
-                .short('v')
-                .long("verbose")
-                .required(false)
-                .takes_value(false)
-                .help("Print additional information"),
         ]).get_matches();
 
     let input_file = args.value_of("input file").unwrap();
@@ -61,13 +56,11 @@ fn main() -> std::io::Result<()> {
                         .expect("Could not open image. Caught error");
     let (width, height) = img_in.dimensions();
 
-    if args.is_present("verbose") {
-        print!("Input file: {}\nOutput file: {}\n", input_file, output_file);
-        println!("Of dimensions {} by {}", width, height);
-    }
-
     // open output image
     let mut img_out = RgbImage::new(width, height);
+
+    // // progress bar
+    // let bar = ProgressBar::new(100);
 
     // process image
     for (x, y, pixel) in img_in.pixels() {
@@ -97,7 +90,12 @@ fn main() -> std::io::Result<()> {
         let best_b = clr_match.blue;
         img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
 
+        // // increment progress bar
+        // bar.inc(((x*y)/(width*height)*100).into());
+
     }
+
+    // bar.finish();
 
     // save to output path
     match img_out.save(output_file) {
@@ -106,6 +104,8 @@ fn main() -> std::io::Result<()> {
             eprintln!("Couldn't save output. Caught error: {}", e);
         }
     }
+
+    println!("Wrote image of size {}x{} to {}", width, height, output_file);
 
     Ok(())
 }

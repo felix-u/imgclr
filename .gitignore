@@ -5,6 +5,7 @@ target/
 *.ppm
 *.org
 log
+!examples/*.jpg
 
 
 # Added by cargo
