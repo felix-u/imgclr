@@ -12,3 +12,5 @@ clap = { version = "3.0", features = ["derive"] }
 exitcode = "1.1.2"
 # processing images of various formats
 image = "0.24.2"
+# working with colour
+color_processing = "0.6.1"

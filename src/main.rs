@@ -1,7 +1,8 @@
-use clap::{Arg, Command, Values};
-use std::{path::Path, str::Matches, vec};
-use image::{GenericImageView, GenericImage, ImageBuffer, Pixel, Rgb, RgbImage};
+use clap::{Arg, Command};
+use color_processing::Color;
 use exitcode;
+use image::{GenericImageView, Rgb, RgbImage};
+use std::path::Path;
 
 fn main() -> std::io::Result<()> {
 
@@ -42,7 +43,8 @@ fn main() -> std::io::Result<()> {
     // get palette
     let palette: Vec<_> = args.values_of("palette").unwrap().collect();
     for i in 0..Vec::len(&palette) {
-        println!("{:?}", palette[i]);
+        let str_clr = Color::new_string(palette[i]).unwrap();
+        println!("R: {}\tG: {}\tB: {}", str_clr.red, str_clr.green, str_clr.blue);
     }
 
     // check that input file exists and error out if not
