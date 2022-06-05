@@ -2,12 +2,13 @@
 
 `imgclr` modifies images to fit a given colour palette.
 
-Hubble example                                    | NASA example
-:------------------------------------------------:|:--------------------------------------------:
-![Hubble-original](examples/hubble1/original.jpg) | ![NASA-original](examples/nasa1/original.jpg)
-![Hubble-original](examples/hubble1/convert1.jpg) | ![NASA-original](examples/nasa1/convert1.jpg)
-![Hubble-original](examples/hubble1/convert2.jpg) | ![NASA-original](examples/nasa1/convert2.jpg)
+<!-- Hubble example                                    | NASA example -->
+<!-- :------------------------------------------------:|:--------------------------------------------: -->
+<!-- ![Hubble-original](examples/hubble1/original.jpg) | ![NASA-original](examples/nasa1/original.jpg) -->
+<!-- ![Hubble-original](examples/hubble1/convert1.jpg) | ![NASA-original](examples/nasa1/convert1.jpg) -->
+<!-- ![Hubble-original](examples/hubble1/convert2.jpg) | ![NASA-original](examples/nasa1/convert2.jpg) -->
 
+![Banner image](examples/planet-volumes.jpg)
 
 ### Features
 - [x] Change palette of images
@@ -57,6 +58,10 @@ Input                                                | Result
 :---------------------------------------------------:|:--------------------------------------------------:
 ![Original image](examples/jacek-dylag/original.jpg) | ![Processed image](examples/jacek-dylag/output.jpg)
 
-<!-- #### Using Xresources -->
-<!---->
-<!-- You may wish to  -->
+#### Using Xresources
+
+You may wish to automatically pass in your Xresources theme colours. The `xres.sh` script is included for this very
+purpose: simply set the path to your Xresources file (by default `~/.Xresources`) and the path to the `imgclr` binary
+(set to the default location, `target/release/imgclr`), and run the script, passing in the same arguments you would use
+with `imgclr`. The script simple *parses* a file in the Xresources format, which means it'll also work on Wayland, in
+the TTY, or on any operating system with a shell that can run it.
