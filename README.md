@@ -61,7 +61,7 @@ Input                                                | Result
 #### Using Xresources
 
 You may wish to automatically pass in your Xresources theme colours. The `xres.sh` script is included for this very
-purpose: simply set the path to your Xresources file (by default `~/.Xresources`) and the path to the `imgclr` binary
-(set to the default location, `target/release/imgclr`), and run the script, passing in the same arguments you would use
-with `imgclr`. The script simple *parses* a file in the Xresources format, which means it'll also work on Wayland, in
-the TTY, or on any operating system with a shell that can run it.
+purpose: at the top of the script, simply set the path to your Xresources file (by default `~/.Xresources`) and the
+path to the `imgclr` binary (set to the default location, `target/release/imgclr`), and run the script, passing in the
+same arguments you would use with `imgclr`. The script simple *parses* a file in the Xresources format, which means
+it'll also work on Wayland, in the TTY, or on any operating system with a shell that can run it.
