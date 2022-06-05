@@ -8,7 +8,7 @@
 <!-- ![Hubble-original](examples/hubble1/convert1.jpg) | ![NASA-original](examples/nasa1/convert1.jpg) -->
 <!-- ![Hubble-original](examples/hubble1/convert2.jpg) | ![NASA-original](examples/nasa1/convert2.jpg) -->
 
-![Banner image](examples/planet-volumes/planet-volumes.jpg)
+![Banner image](examples/planet-volumes.jpg)
 
 ### Features
 - [x] Change palette of images
