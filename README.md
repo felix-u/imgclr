@@ -2,20 +2,13 @@
 
 `imgclr` modifies images to fit a given colour palette.
 
-<!-- Hubble example                                    | NASA example -->
-<!-- :------------------------------------------------:|:--------------------------------------------: -->
-<!-- ![Hubble-original](examples/hubble1/original.jpg) | ![NASA-original](examples/nasa1/original.jpg) -->
-<!-- ![Hubble-original](examples/hubble1/convert1.jpg) | ![NASA-original](examples/nasa1/convert1.jpg) -->
-<!-- ![Hubble-original](examples/hubble1/convert2.jpg) | ![NASA-original](examples/nasa1/convert2.jpg) -->
-
 ![Banner image](examples/planet-volumes/planet-volumes.jpg)
 
 ### Features
 - [x] Change palette of images
-- [x] Work on JPG, PNG, and a variety of other image formats (see full list below)
+- [x] Work on JPG, PNG, and a variety of other image formats (see full ordered list below)
 - [ ] Use dithering to generate smoother results
-- [ ] Allow the inversion of image brightness levels (convert dark images to
-      light and vice versa)
+- [x] Allow the inversion of image brightness levels (convert dark images to light and vice versa)
 
 
 ### Building
@@ -29,13 +22,14 @@ First, [install rust and cargo](https://doc.rust-lang.org/cargo/getting-started/
 
 ```
 USAGE:
-    imgclr --input <input file> --output <output file> --palette <palette>...
+    imgclr [OPTIONS] --input <input file> --output <output file> --palette <palette>...
 
 OPTIONS:
     -h, --help                    Print help information
     -i, --input <input file>      Supply path to input file
     -o, --output <output file>    Supply path to output file
     -p, --palette <palette>...    Supply palette as whitespace-separated hex values
+    -s, --swap                    Invert image brightness, preserving hue and saturation
 ```
 Note that the `-i` and `-o` arguments are **required**.
 
@@ -57,6 +51,15 @@ imgclr -i input.jpg -o output.jpg -p 000 fff "hsl(0, 100%, 50%)" "rgb(0, 255, 0)
 Input                                                | Result
 :---------------------------------------------------:|:--------------------------------------------------:
 ![Original image](examples/jacek-dylag/original.jpg) | ![Processed image](examples/jacek-dylag/output.jpg)
+
+The `-s` or `--swap` flag inverts luminance whilst preserving hue and saturation. For example, perfect grey will remain
+the same, black will become white, white will become black, and dark green will become light green. This inverted
+version of your input image is what will be processed to generate the output image. Here's an example using the
+[tokyonight](https://github.com/folke/tokyonight.nvim) colour scheme:
+
+Input                                                   | Processed regularly                                     | Processed after luma inversion
+:------------------------------------------------------:|:-------------------------------------------------------:|:--------------------------------------------------------------------------:
+![Original image](examples/milad-fakurian/original.jpg) | ![Processed image](examples/milad-fakurian/convert.jpg) | ![Processed image with inversion](examples/milad-fakurian/convert-swap.jpg)
 
 #### Using Xresources
 
