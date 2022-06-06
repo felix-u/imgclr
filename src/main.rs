@@ -30,6 +30,12 @@ fn main() -> std::io::Result<()> {
                 .required(true)
                 .takes_value(true)
                 .help("Supply palette as whitespace-separated hex values"),
+            Arg::new("swap luma")
+                .short('s')
+                .long("swap")
+                .required(false)
+                .takes_value(false)
+                .help("Invert image brightness, preserving hue and saturation")
         ]).get_matches();
 
     let input_file = args.value_of("input file").unwrap();
@@ -65,10 +71,21 @@ fn main() -> std::io::Result<()> {
     // process image
     for (x, y, pixel) in img_in.pixels() {
 
+        let this_r;
+        let this_g;
+        let this_b;
         // pixel is an array. index 0 is R, 1 is G, 2 is B, and 3 is alpha
-        let this_r = pixel[0];
-        let this_g = pixel[1];
-        let this_b = pixel[2];
+        if args.is_present("swap luma")  {
+            let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2]).invert_luminescence();
+            this_r = this_pix.red;
+            this_g = this_pix.green;
+            this_b = this_pix.blue;
+        }
+        else {
+            this_r = pixel[0];
+            this_g = pixel[1];
+            this_b = pixel[2];
+        }
 
         // set up array for comparisons
         let mut best_match = 0;
