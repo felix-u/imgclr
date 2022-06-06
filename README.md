@@ -61,6 +61,8 @@ Input                                                   | Processed regularly   
 :------------------------------------------------------:|:-------------------------------------------------------:|:--------------------------------------------------------------------------:
 ![Original image](examples/milad-fakurian/original.jpg) | ![Processed image](examples/milad-fakurian/convert.jpg) | ![Processed image with inversion](examples/milad-fakurian/convert-swap.jpg)
 
+Notice that the bottom-most line keeps its colour. Usually, red would invert to green, and purple to yellow.
+
 #### Using Xresources
 
 You may wish to automatically pass in your Xresources theme colours. The `xres.sh` script is included for this very
