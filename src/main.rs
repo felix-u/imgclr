@@ -2,7 +2,6 @@ use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
 use exitcode;
 use image::{GenericImageView, Rgb, RgbImage};
-// use indicatif::ProgressBar;
 use std::path::Path;
 
 fn main() -> std::io::Result<()> {
@@ -11,6 +10,12 @@ fn main() -> std::io::Result<()> {
     let args = Command::new("imgclr")
         .about("Image colouriser")
         .args(&[
+            Arg::new("disable dithering")
+                .short('n')
+                .long("no-dither")
+                .required(false)
+                .takes_value(false)
+                .help("[NOT YET IMPLEMENTED] Disable dithering"),
             Arg::new("input file")
                 .short('i')
                 .long("input")
@@ -35,7 +40,7 @@ fn main() -> std::io::Result<()> {
                 .long("swap")
                 .required(false)
                 .takes_value(false)
-                .help("Invert image brightness, preserving hue and saturation")
+                .help("Invert image brightness, preserving hue and saturation"),
         ]).get_matches();
 
     let input_file = args.value_of("input file").unwrap();
@@ -65,29 +70,28 @@ fn main() -> std::io::Result<()> {
     // open output image
     let mut img_out = RgbImage::new(width, height);
 
-    // // progress bar
-    // let bar = ProgressBar::new(100);
-
-    // process image
+    // conversion process
     for (x, y, pixel) in img_in.pixels() {
 
+        // get current pixel
         let this_r;
         let this_g;
         let this_b;
-        // pixel is an array. index 0 is R, 1 is G, 2 is B, and 3 is alpha
-        if args.is_present("swap luma")  {
-            let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2]).invert_luminescence();
+        if args.is_present("swap luma")  { // if swapping luma
+            let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
+                            .invert_luminescence();
             this_r = this_pix.red;
             this_g = this_pix.green;
             this_b = this_pix.blue;
         }
         else {
+            // pixel is an array. index 0 is R, 1 is G, 2 is B, and 3 is alpha
             this_r = pixel[0];
             this_g = pixel[1];
             this_b = pixel[2];
         }
-
-        // set up array for comparisons
+        
+        // find best match
         let mut best_match = 0;
         let mut min_diff: u16 = 999;
         for i in 0..Vec::len(&palette) {
@@ -100,21 +104,17 @@ fn main() -> std::io::Result<()> {
                 best_match = i;
             }
         }
-
         let clr_match = &palette[best_match];
         let best_r = clr_match.red;
         let best_g = clr_match.green;
         let best_b = clr_match.blue;
+        
+        // write pixel
         img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
-
-        // // increment progress bar
-        // bar.inc(((x*y)/(width*height)*100).into());
 
     }
 
-    // bar.finish();
-
-    // save to output path
+    // sae image to output path
     match img_out.save(output_file) {
         Ok(()) => {},
         Err(e) => {

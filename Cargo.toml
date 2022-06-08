@@ -17,6 +17,3 @@ image = "0.24.2"
 
 # working with colour
 color_processing = "0.6.1"
-
-# # progress bar
-# indicatif = "0.16.2"
