@@ -73,12 +73,14 @@ fn main() -> std::io::Result<()> {
         .map(char::from)
         .collect();
     let temp_dir = env::temp_dir().into_os_string().into_string().unwrap();
-    let temp_file = temp_dir + "/" + rand_alphanum.as_str() + ".png";
-    println!("Using tempfile at {}", temp_file);
+    // FIXME: that ".jpg" actually has to be the same as whatever format the
+    //        input happens to be.
+    let temp_file = temp_dir + "/" + rand_alphanum.as_str() + ".jpg";
+    print!("Using tempfile at {}", temp_file);
     fs::copy(input_file, &temp_file)?;
     
     // open the image
-    let img_in = image::open(input_file)
+    let img_in = image::open(&temp_file)
                         .expect("Could not open image. Caught error");
     let (width, height) = img_in.dimensions();
 
