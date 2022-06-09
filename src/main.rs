@@ -73,8 +73,8 @@ fn main() -> std::io::Result<()> {
         .map(char::from)
         .collect();
     let temp_dir = env::temp_dir().into_os_string().into_string().unwrap();
-    let temp_file = temp_dir + "/" + rand_alphanum.as_str() + ".ppm";
-    println!("{}", temp_file);
+    let temp_file = temp_dir + "/" + rand_alphanum.as_str() + ".png";
+    println!("Using tempfile at {}", temp_file);
     fs::copy(input_file, &temp_file)?;
     
     // open the image
