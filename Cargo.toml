@@ -17,3 +17,6 @@ image = "0.24.2"
 
 # working with colour
 color_processing = "0.6.1"
+
+# copying input file contents to temporary file
+rand = "0.8.5"

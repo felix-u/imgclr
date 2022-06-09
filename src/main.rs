@@ -2,8 +2,10 @@ use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
 use exitcode;
 use image::{GenericImageView, Rgb, RgbImage};
-use std::fs;
+use std::{fs, env};
 use std::path::Path;
+use rand::{thread_rng, Rng};
+use rand::distributions::Alphanumeric;
 
 fn main() -> std::io::Result<()> {
 
@@ -62,7 +64,19 @@ fn main() -> std::io::Result<()> {
         eprintln!("Error: could not find {}", input_file);
         std::process::exit(exitcode::NOINPUT);
     }
-
+    
+    
+    // copy input file to tempfile
+    let rand_alphanum: String = thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(8)
+        .map(char::from)
+        .collect();
+    let temp_dir = env::temp_dir().into_os_string().into_string().unwrap();
+    let temp_file = temp_dir + "/" + rand_alphanum.as_str() + ".ppm";
+    println!("{}", temp_file);
+    fs::copy(input_file, &temp_file)?;
+    
     // open the image
     let img_in = image::open(input_file)
                         .expect("Could not open image. Caught error");
@@ -121,7 +135,8 @@ fn main() -> std::io::Result<()> {
         }
     }
 
+        
+    fs::remove_file(temp_file)?;
     println!("Wrote image of size {}x{} to {}", width, height, output_file);
-
     Ok(())
 }
