@@ -2,6 +2,8 @@ use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
 use exitcode;
 use image::{GenericImageView, Rgb, RgbImage};
+// use image::imageops::dither;
+// use std::fs;
 use std::path::Path;
 
 fn main() -> std::io::Result<()> {
@@ -67,60 +69,68 @@ fn main() -> std::io::Result<()> {
                         .expect("Could not open image. Caught error");
     let (width, height) = img_in.dimensions();
 
-    // open output image
-    let mut img_out = RgbImage::new(width, height);
-
+    // completely disfunctional for now
+    if !args.is_present("disable dithering") {
+        // fs::copy(input_file, output_file)?;
+        // let img_out = image::open(output_file).unwrap().into_rgb8();
+        // dither(&mut img_out, &palette);
+    }
     // conversion process
-    for (x, y, pixel) in img_in.pixels() {
+    else {
+        // open output image
+        let mut img_out = RgbImage::new(width, height);
 
-        // get current pixel
-        let this_r;
-        let this_g;
-        let this_b;
-        if args.is_present("swap luma")  { // if swapping luma
-            let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
-                            .invert_luminescence();
-            this_r = this_pix.red;
-            this_g = this_pix.green;
-            this_b = this_pix.blue;
-        }
-        else {
-            // pixel is an array. index 0 is R, 1 is G, 2 is B, and 3 is alpha
-            this_r = pixel[0];
-            this_g = pixel[1];
-            this_b = pixel[2];
-        }
+        for (x, y, pixel) in img_in.pixels() {
+
+            // get current pixel
+            let this_r;
+            let this_g;
+            let this_b;
+            if args.is_present("swap luma")  { // if swapping luma
+                let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
+                                .invert_luminescence();
+                this_r = this_pix.red;
+                this_g = this_pix.green;
+                this_b = this_pix.blue;
+            }
+            else {
+                // pixel is an array. index 0 is R, 1 is G, 2 is B, and 3 is alpha
+                this_r = pixel[0];
+                this_g = pixel[1];
+                this_b = pixel[2];
+            }
         
-        // find best match
-        let mut best_match = 0;
-        let mut min_diff: u16 = 999;
-        for i in 0..Vec::len(&palette) {
-            let comp_r: u16 = this_r.abs_diff(palette[i].red).into();
-            let comp_g: u16 = this_g.abs_diff(palette[i].green).into();
-            let comp_b: u16 = this_b.abs_diff(palette[i].blue).into();
-            let diff_total: u16 = comp_r + comp_g + comp_b;
-            if diff_total < min_diff {
-                min_diff = diff_total;
-                best_match = i;
+            // find best match
+            let mut best_match = 0;
+            let mut min_diff: u16 = 999;
+            for i in 0..Vec::len(&palette) {
+                let comp_r: u16 = this_r.abs_diff(palette[i].red).into();
+                let comp_g: u16 = this_g.abs_diff(palette[i].green).into();
+                let comp_b: u16 = this_b.abs_diff(palette[i].blue).into();
+                let diff_total: u16 = comp_r + comp_g + comp_b;
+                if diff_total < min_diff {
+                    min_diff = diff_total;
+                    best_match = i;
+                }
+            }
+            let clr_match = &palette[best_match];
+            let best_r = clr_match.red;
+            let best_g = clr_match.green;
+            let best_b = clr_match.blue;
+        
+            // write pixel
+            img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
+
+        }
+        // save image to output path
+        match img_out.save(output_file) {
+            Ok(()) => {},
+            Err(e) => {
+                eprintln!("Couldn't save output. Caught error: {}", e);
             }
         }
-        let clr_match = &palette[best_match];
-        let best_r = clr_match.red;
-        let best_g = clr_match.green;
-        let best_b = clr_match.blue;
-        
-        // write pixel
-        img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
-
     }
 
-    // sae image to output path
-    match img_out.save(output_file) {
-        Ok(()) => {},
-        Err(e) => {
-            eprintln!("Couldn't save output. Caught error: {}", e);
-        }
-    }
 
     println!("Wrote image of size {}x{} to {}", width, height, output_file);
 
