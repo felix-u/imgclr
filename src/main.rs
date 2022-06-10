@@ -1,7 +1,7 @@
 use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
 use exitcode;
-use image::{ImageFormat, GenericImageView, Rgb, RgbImage};
+use image::{ImageFormat, GenericImageView, Rgb, RgbImage, Rgba, GenericImage, DynamicImage};
 use std::{fs, env};
 use std::path::Path;
 use rand::{thread_rng, Rng};
@@ -78,40 +78,44 @@ fn main() -> std::io::Result<()> {
     fs::copy(input_file, &temp_file)?;
     
     // open input image, using tempfile
-    let img_in = image::open(&temp_file)
+    let mut img_in = image::open(&temp_file)
                         .expect("Could not open image. Caught error");
     let (width, height) = img_in.dimensions();
     // open output image
     let mut img_out = RgbImage::new(width, height);
+    
+    // open original image to iterate over for x, y, and pixels
+    let img_orig = image::open(input_file)
+                        .expect("Could not open image. Caught error");
 
     // conversion
-    for (x, y, pixel) in img_in.pixels() {
+    for (x, y, pixel) in img_orig.pixels() {
 
         // get current pixel
-        let this_r;
-        let this_g;
-        let this_b;
+        let this_r: i16;
+        let this_g: i16;
+        let this_b: i16;
         if args.is_present("swap luma")  {
             let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
                             .invert_luminescence();
-            this_r = this_pix.red;
-            this_g = this_pix.green;
-            this_b = this_pix.blue;
+            this_r = this_pix.red as i16;
+            this_g = this_pix.green as i16;
+            this_b = this_pix.blue as i16;
         }
         else {
             // pixel is an array. index 0 is R, 1 is G, 2 is B, and 3 is alpha
-            this_r = pixel[0];
-            this_g = pixel[1];
-            this_b = pixel[2];
+            this_r = pixel[0] as i16;
+            this_g = pixel[1] as i16;
+            this_b = pixel[2] as i16;
         }
     
         // find best match
         let mut best_match = 0;
         let mut min_diff: u16 = 999;
         for i in 0..Vec::len(&palette) {
-            let comp_r: u16 = this_r.abs_diff(palette[i].red).into();
-            let comp_g: u16 = this_g.abs_diff(palette[i].green).into();
-            let comp_b: u16 = this_b.abs_diff(palette[i].blue).into();
+            let comp_r: u16 = this_r.abs_diff(palette[i].red as i16).into();
+            let comp_g: u16 = this_g.abs_diff(palette[i].green as i16).into();
+            let comp_b: u16 = this_b.abs_diff(palette[i].blue as i16).into();
             let diff_total: u16 = comp_r + comp_g + comp_b;
             if diff_total < min_diff {
                 min_diff = diff_total;
@@ -119,13 +123,42 @@ fn main() -> std::io::Result<()> {
             }
         }
         let clr_match = &palette[best_match];
-        let best_r = clr_match.red;
-        let best_g = clr_match.green;
-        let best_b = clr_match.blue;
+        let best_r = clr_match.red as i16;
+        let best_g = clr_match.green as i16;
+        let best_b = clr_match.blue as i16;
     
         // write pixel
-        img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
-
+        img_out.put_pixel(x, y, Rgb([best_r as u8, best_g as u8, best_b as u8]));
+        
+        // dithering - see https://en.wikipedia.org/wiki/Floyd-Steinberg_dithering
+        if !args.is_present("disable dithering") {
+            
+            let quant_error: [i16; 3] = [
+                this_r - best_r,
+                this_g - best_g,
+                this_b - best_b
+            ];
+            
+            // operates on the following, where * is the current pixel
+            //   * 1
+            // 2 3 4
+            
+            // 1
+            if x < (width - 1) {
+                let that_pix = img_in.get_pixel(x+1, y);
+                let that_r = that_pix[0];
+                let that_g = that_pix[1];
+                let that_b = that_pix[2];
+                // that_r += (quant_error[0] * 7 / 16) as u8;
+                img_in.put_pixel(x+1, y, Rgba([
+                    (that_r as i16 + (quant_error[0] * 7 / 16)) as u8,
+                    (that_g as i16 + (quant_error[1] * 7 / 16)) as u8,
+                    (that_b as i16 + (quant_error[2] * 7 / 16)) as u8,
+                    255
+                ]));
+            }
+            
+        }
     }
     
     // save image to output path
@@ -136,7 +169,8 @@ fn main() -> std::io::Result<()> {
         }
     }
        
-    fs::remove_file(temp_file)?;
+    // FIXME: uncomment when done implementing dithering!
+    // fs::remove_file(temp_file)?;
     println!("Wrote image of size {}x{} to {}", width, height, output_file);
     Ok(())
 }
