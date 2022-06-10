@@ -77,21 +77,21 @@ fn main() -> std::io::Result<()> {
     println!("Using tempfile at {}", temp_file);
     fs::copy(input_file, &temp_file)?;
     
-    // open the image
+    // open input image, using tempfile
     let img_in = image::open(&temp_file)
                         .expect("Could not open image. Caught error");
     let (width, height) = img_in.dimensions();
-
     // open output image
     let mut img_out = RgbImage::new(width, height);
 
+    // conversion
     for (x, y, pixel) in img_in.pixels() {
 
         // get current pixel
         let this_r;
         let this_g;
         let this_b;
-        if args.is_present("swap luma")  { // if swapping luma
+        if args.is_present("swap luma")  {
             let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
                             .invert_luminescence();
             this_r = this_pix.red;
@@ -127,6 +127,7 @@ fn main() -> std::io::Result<()> {
         img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
 
     }
+    
     // save image to output path
     match img_out.save(output_file) {
         Ok(()) => {},
@@ -134,8 +135,7 @@ fn main() -> std::io::Result<()> {
             eprintln!("Couldn't save output. Caught error: {}", e);
         }
     }
-
-        
+       
     fs::remove_file(temp_file)?;
     println!("Wrote image of size {}x{} to {}", width, height, output_file);
     Ok(())
