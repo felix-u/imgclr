@@ -1,7 +1,7 @@
 use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
 use exitcode;
-use image::{GenericImageView, Rgb, RgbImage};
+use image::{ImageFormat, GenericImageView, Rgb, RgbImage};
 use std::{fs, env};
 use std::path::Path;
 use rand::{thread_rng, Rng};
@@ -18,7 +18,7 @@ fn main() -> std::io::Result<()> {
                 .long("no-dither")
                 .required(false)
                 .takes_value(false)
-                .help("[NOT YET IMPLEMENTED] Disable dithering"),
+                .help("Disable dithering"),
             Arg::new("input file")
                 .short('i')
                 .long("input")
@@ -65,7 +65,6 @@ fn main() -> std::io::Result<()> {
         std::process::exit(exitcode::NOINPUT);
     }
     
-    
     // copy input file to tempfile
     let rand_alphanum: String = thread_rng()
         .sample_iter(&Alphanumeric)
@@ -73,10 +72,9 @@ fn main() -> std::io::Result<()> {
         .map(char::from)
         .collect();
     let temp_dir = env::temp_dir().into_os_string().into_string().unwrap();
-    // FIXME: that ".jpg" actually has to be the same as whatever format the
-    //        input happens to be.
-    let temp_file = temp_dir + "/" + rand_alphanum.as_str() + ".jpg";
-    print!("Using tempfile at {}", temp_file);
+    let ext = ImageFormat::extensions_str(ImageFormat::from_path(input_file).unwrap())[0];
+    let temp_file = temp_dir + "/" + rand_alphanum.as_str() + "." + ext;
+    println!("Using tempfile at {}", temp_file);
     fs::copy(input_file, &temp_file)?;
     
     // open the image
