@@ -1,11 +1,13 @@
 use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
 use exitcode;
-use image::{ImageFormat, GenericImageView, Rgb, RgbImage, Rgba, GenericImage, DynamicImage};
+use image::{ImageFormat, GenericImageView, Rgb, RgbImage, Rgba, GenericImage,
+            DynamicImage};
 use std::{fs, env};
 use std::path::Path;
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
+
 
 fn main() -> std::io::Result<()> {
 
@@ -72,18 +74,20 @@ fn main() -> std::io::Result<()> {
         .map(char::from)
         .collect();
     let temp_dir = env::temp_dir().into_os_string().into_string().unwrap();
-    let ext = ImageFormat::extensions_str(ImageFormat::from_path(input_file).unwrap())[0];
+    let ext = ImageFormat::extensions_str(
+        ImageFormat::from_path(input_file).unwrap())[0];
     let temp_file = temp_dir + "/" + rand_alphanum.as_str() + "." + ext;
     println!("Using tempfile at {}", temp_file);
     fs::copy(input_file, &temp_file)?;
     
     // open input image, using tempfile
-    let mut img_in = image::open(&temp_file)
+    let img_in = image::open(&temp_file)
                         .expect("Could not open image. Caught error");
     let (width, height) = img_in.dimensions();
     // open output image
     let mut img_out = RgbImage::new(width, height);
     
+
     // conversion
     for (x, y, pixel) in img_in.pixels() {
 
@@ -145,7 +149,8 @@ fn main() -> std::io::Result<()> {
                 let that_r = that_pix[0];
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
-                put_quantised(x+1, y, quant_error, 7, [that_r, that_g, that_b], img_in);
+                put_quantised(x+1, y, quant_error, 7, 
+                    [that_r, that_g, that_b], img_in);
             }
             
             // 2
@@ -154,7 +159,8 @@ fn main() -> std::io::Result<()> {
                 let that_r = that_pix[0];
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
-                put_quantised(x-1, y+1, quant_error, 3, [that_r, that_g, that_b], img_in);
+                put_quantised(x-1, y+1, quant_error, 3,
+                    [that_r, that_g, that_b], img_in);
             }
             
             // 3
@@ -163,7 +169,8 @@ fn main() -> std::io::Result<()> {
                 let that_r = that_pix[0];
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
-                put_quantised(x, y+1, quant_error, 5, [that_r, that_g, that_b], img_in);
+                put_quantised(x, y+1, quant_error, 5,
+                    [that_r, that_g, that_b], img_in);
             }
             
             // 4
@@ -172,7 +179,8 @@ fn main() -> std::io::Result<()> {
                 let that_r = that_pix[0];
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
-                put_quantised(x+1, y+1, quant_error, 1, [that_r, that_g, that_b], img_in);
+                put_quantised(x+1, y+1, quant_error, 1,
+                    [that_r, that_g, that_b], img_in);
             }
 
         }
@@ -194,7 +202,7 @@ fn main() -> std::io::Result<()> {
 
 
 fn put_quantised(loc_x: u32, loc_y: u32, error: [i16; 3], numerator: i16,
-                             channels: [u8; 3], some_img: DynamicImage) {
+                             channels: [u8; 3], mut some_img: DynamicImage) {
     
     let new_r = (channels[0] as i16 + error[0] * numerator / 16) as u8;
     let new_g = (channels[1] as i16 + error[1] * numerator / 16) as u8;
