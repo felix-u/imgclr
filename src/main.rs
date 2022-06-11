@@ -89,7 +89,7 @@ fn main() -> std::io::Result<()> {
     
 
     // conversion
-    for (x, y, pixel) in img_in.pixels() {
+    for (x, y, pixel) in img_in.clone().pixels() {
 
         // get current pixel
         let this_r: i16;
