@@ -84,12 +84,8 @@ fn main() -> std::io::Result<()> {
     // open output image
     let mut img_out = RgbImage::new(width, height);
     
-    // open original image to iterate over for x, y, and pixels
-    let img_orig = image::open(input_file)
-                        .expect("Could not open image. Caught error");
-
     // conversion
-    for (x, y, pixel) in img_orig.pixels() {
+    for (x, y, pixel) in img_in.pixels() {
 
         // get current pixel
         let this_r: i16;
@@ -149,15 +145,56 @@ fn main() -> std::io::Result<()> {
                 let that_r = that_pix[0];
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
-                // that_r += (quant_error[0] * 7 / 16) as u8;
                 img_in.put_pixel(x+1, y, Rgba([
-                    (that_r as i16 + (quant_error[0] * 7 / 16)) as u8,
-                    (that_g as i16 + (quant_error[1] * 7 / 16)) as u8,
-                    (that_b as i16 + (quant_error[2] * 7 / 16)) as u8,
+                    return_quantised(quant_error[0], 7, that_r),
+                    return_quantised(quant_error[1], 7, that_g),
+                    return_quantised(quant_error[2], 7, that_b),
                     255
                 ]));
             }
             
+            // 2
+            if x > 0 && y < (height - 1) {
+                let that_pix = img_in.get_pixel(x-1, y+1);
+                let that_r = that_pix[0];
+                let that_g = that_pix[1];
+                let that_b = that_pix[2];
+                img_in.put_pixel(x-1, y+1, Rgba([
+                    return_quantised(quant_error[0], 3, that_r),
+                    return_quantised(quant_error[1], 3, that_g),
+                    return_quantised(quant_error[2], 3, that_b),
+                    255
+                ]));
+            }
+            
+            // 3
+            if y < (height - 1) {
+                let that_pix = img_in.get_pixel(x, y+1);
+                let that_r = that_pix[0];
+                let that_g = that_pix[1];
+                let that_b = that_pix[2];
+                img_in.put_pixel(x, y+1, Rgba([
+                    return_quantised(quant_error[0], 5, that_r),
+                    return_quantised(quant_error[1], 5, that_g),
+                    return_quantised(quant_error[2], 5, that_b),
+                    255
+                ]));
+            }
+            
+            // 4
+            if x < (width - 1) && y < (height - 1) {
+                let that_pix = img_in.get_pixel(x+1, y+1);
+                let that_r = that_pix[0];
+                let that_g = that_pix[1];
+                let that_b = that_pix[2];
+                img_in.put_pixel(x+1, y+1, Rgba([
+                    return_quantised(quant_error[0], 1, that_r),
+                    return_quantised(quant_error[1], 1, that_g),
+                    return_quantised(quant_error[2], 1, that_b),
+                    255
+                ]));
+            }
+
         }
     }
     
@@ -173,4 +210,10 @@ fn main() -> std::io::Result<()> {
     // fs::remove_file(temp_file)?;
     println!("Wrote image of size {}x{} to {}", width, height, output_file);
     Ok(())
+}
+
+
+fn return_quantised(error: i16, numerator: i16, val: u8) -> u8 {
+    let new_val = (val as i16 + error * numerator / 16) as u8;
+    return new_val;
 }
