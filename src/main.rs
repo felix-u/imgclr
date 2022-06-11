@@ -150,7 +150,7 @@ fn main() -> std::io::Result<()> {
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
                 put_quantised(x+1, y, quant_error, 7, 
-                    [that_r, that_g, that_b], img_in);
+                    [that_r, that_g, that_b], img_in.clone());
             }
             
             // 2
@@ -160,7 +160,7 @@ fn main() -> std::io::Result<()> {
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
                 put_quantised(x-1, y+1, quant_error, 3,
-                    [that_r, that_g, that_b], img_in);
+                    [that_r, that_g, that_b], img_in.clone());
             }
             
             // 3
@@ -170,7 +170,7 @@ fn main() -> std::io::Result<()> {
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
                 put_quantised(x, y+1, quant_error, 5,
-                    [that_r, that_g, that_b], img_in);
+                    [that_r, that_g, that_b], img_in.clone());
             }
             
             // 4
@@ -180,7 +180,7 @@ fn main() -> std::io::Result<()> {
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
                 put_quantised(x+1, y+1, quant_error, 1,
-                    [that_r, that_g, that_b], img_in);
+                    [that_r, that_g, that_b], img_in.clone());
             }
 
         }
