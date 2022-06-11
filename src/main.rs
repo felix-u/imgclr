@@ -145,12 +145,7 @@ fn main() -> std::io::Result<()> {
                 let that_r = that_pix[0];
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
-                img_in.put_pixel(x+1, y, Rgba([
-                    return_quantised(quant_error[0], 7, that_r),
-                    return_quantised(quant_error[1], 7, that_g),
-                    return_quantised(quant_error[2], 7, that_b),
-                    255
-                ]));
+                put_quantised(x+1, y, quant_error, 7, [that_r, that_g, that_b], img_in);
             }
             
             // 2
@@ -159,12 +154,7 @@ fn main() -> std::io::Result<()> {
                 let that_r = that_pix[0];
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
-                img_in.put_pixel(x-1, y+1, Rgba([
-                    return_quantised(quant_error[0], 3, that_r),
-                    return_quantised(quant_error[1], 3, that_g),
-                    return_quantised(quant_error[2], 3, that_b),
-                    255
-                ]));
+                put_quantised(x-1, y+1, quant_error, 3, [that_r, that_g, that_b], img_in);
             }
             
             // 3
@@ -173,12 +163,7 @@ fn main() -> std::io::Result<()> {
                 let that_r = that_pix[0];
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
-                img_in.put_pixel(x, y+1, Rgba([
-                    return_quantised(quant_error[0], 5, that_r),
-                    return_quantised(quant_error[1], 5, that_g),
-                    return_quantised(quant_error[2], 5, that_b),
-                    255
-                ]));
+                put_quantised(x, y+1, quant_error, 5, [that_r, that_g, that_b], img_in);
             }
             
             // 4
@@ -187,12 +172,7 @@ fn main() -> std::io::Result<()> {
                 let that_r = that_pix[0];
                 let that_g = that_pix[1];
                 let that_b = that_pix[2];
-                img_in.put_pixel(x+1, y+1, Rgba([
-                    return_quantised(quant_error[0], 1, that_r),
-                    return_quantised(quant_error[1], 1, that_g),
-                    return_quantised(quant_error[2], 1, that_b),
-                    255
-                ]));
+                put_quantised(x+1, y+1, quant_error, 1, [that_r, that_g, that_b], img_in);
             }
 
         }
@@ -213,7 +193,13 @@ fn main() -> std::io::Result<()> {
 }
 
 
-fn return_quantised(error: i16, numerator: i16, val: u8) -> u8 {
-    let new_val = (val as i16 + error * numerator / 16) as u8;
-    return new_val;
+fn put_quantised(loc_x: u32, loc_y: u32, error: [i16; 3], numerator: i16,
+                             channels: [u8; 3], some_img: DynamicImage) {
+    
+    let new_r = (channels[0] as i16 + error[0] * numerator / 16) as u8;
+    let new_g = (channels[1] as i16 + error[1] * numerator / 16) as u8;
+    let new_b = (channels[2] as i16 + error[2] * numerator / 16) as u8;
+    some_img.put_pixel(loc_x, loc_y, Rgba([
+        new_r, new_g, new_b, 255  
+    ]))
 }
