@@ -209,5 +209,5 @@ fn put_quantised(loc_x: u32, loc_y: u32, error: [i16; 3], numerator: i16,
     let new_b = (channels[2] as i16 + error[2] * numerator / 16) as u8;
     some_img.put_pixel(loc_x, loc_y, Rgba([
         new_r, new_g, new_b, 255
-    ]))
+    ]));
 }
