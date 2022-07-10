@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     // iterate through characters of colours in input palette
     for (int i = 0; i < paletteLen; i++) {
         char *currentClr = inputPalette[i];
-        int r, g, b;
+        unsigned int r, g, b;
         sscanf(currentClr, "%02x%02x%02x", &r, &g, &b);
 
         // store in decimalPalette
@@ -185,7 +185,7 @@ int main(int argc, char **argv) {
             int inputB = inputBytes[currentPixelByte + 2];
 
             // FIXME - temp fix for negative RGB values
-            // (idfk but this solves it. maybe should use long int?)
+            // (idfk but this solves it. some kind of overflow)
             if (inputR < 0) { inputR = 255 + inputR; }
             if (inputG < 0) { inputG = 255 + inputG; }
             if (inputB < 0) { inputB = 255 + inputB; }
