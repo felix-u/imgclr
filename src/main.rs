@@ -1,9 +1,6 @@
 use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
-use exitcode;
 use image::{GenericImageView, Rgb, RgbImage};
-// use image::imageops::dither;
-// use std::fs;
 use std::path::Path;
 
 fn main() -> std::io::Result<()> {
