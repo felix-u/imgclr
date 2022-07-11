@@ -69,30 +69,19 @@ fn main() -> std::io::Result<()> {
     // open output image
     let mut img_out = RgbImage::new(width, height);
 
+    if args.is_present("swap luma") {
+        swap_luma(&mut img_in);
+    }
 
     // conversion
-    // for (x, y, pixel) in img_in.pixels() {
     for x in 0..width {
         for y in 0..height {
 
         // get current pixel
-        let this_r: i16;
-        let this_g: i16;
-        let this_b: i16;
         let pixel = img_in.get_pixel(x, y);
-        if args.is_present("swap luma")  {
-            let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
-                            .invert_luminescence();
-            this_r = this_pix.red as i16;
-            this_g = this_pix.green as i16;
-            this_b = this_pix.blue as i16;
-        }
-        else {
-            // pixel is an array. index 0 is R, 1 is G, 2 is B, and 3 is alpha
-            this_r = pixel[0] as i16;
-            this_g = pixel[1] as i16;
-            this_b = pixel[2] as i16;
-        }
+        let this_r = pixel[0] as i16;
+        let this_g = pixel[1] as i16;
+        let this_b = pixel[2] as i16;
 
         // find best match
         let mut best_match = 0;
@@ -200,6 +189,7 @@ fn put_quantised(loc_x: u32, loc_y: u32, error: [i16; 3], numerator: i16,
     ]));
 }
 
+
 // TODO: abstract the dithering computation, incorporating this overflow
 //       checking into said abstraction directly
 // fixes any overflows due to 
@@ -210,4 +200,13 @@ fn flatten(n: &mut i16) {
     if *n < 0 {
         *n = 0;
     }
+}    
+
+
+fn swap_luma(some_img: &mut DynamicImage) {
+    for (x, y, pixel) in some_img.clone().pixels() {
+        let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
+                        .invert_luminescence();
+        some_img.put_pixel(x, y, Rgba([this_pix.red, this_pix.green, this_pix.blue, 255]));
+    } 
 }
