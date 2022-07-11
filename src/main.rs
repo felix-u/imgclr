@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
 use image::{GenericImageView, Rgb, RgbImage, Rgba, GenericImage, DynamicImage};
@@ -14,7 +15,7 @@ fn main() -> std::io::Result<()> {
                 .long("no-dither")
                 .required(false)
                 .takes_value(false)
-                .help("Disable dithering"),
+                .help("Disable Floyd-Steinberg dithering"),
             Arg::new("input file")
                 .short('i')
                 .long("input")
@@ -33,7 +34,7 @@ fn main() -> std::io::Result<()> {
                 .long("palette")
                 .required(true)
                 .takes_value(true)
-                .help("Supply palette as whitespace-separated hex values"),
+                .help("Supply palette as whitespace-separated colours"),
             Arg::new("swap luma")
                 .short('s')
                 .long("swap")
