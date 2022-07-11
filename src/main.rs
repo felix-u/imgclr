@@ -170,8 +170,6 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    // FIXME: uncomment when done implementing dithering!
-    // fs::remove_file(temp_file)?;
     println!("Wrote image of size {}x{} to {}", width, height, output_file);
     Ok(())
 }
@@ -193,7 +191,8 @@ fn put_quantised(loc_x: u32, loc_y: u32, error: [i16; 3], numerator: i16,
 
 // TODO: abstract the dithering computation, incorporating this overflow
 //       checking into said abstraction directly
-// fixes any overflows due to 
+// fixes any overflows caused by dithering computation making channel values
+// smaller than 0 or greater than 255
 fn flatten(n: &mut i16) {
     if *n > 255 {
         *n = 255;
