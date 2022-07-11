@@ -61,7 +61,7 @@ the output, making it seem as if there is more colour fidelity than there really
 colour in the input image may be approximated using your supplied blue, red, and black, even if you specified no
 purple. This works due to the same effect that makes a red and white striped shirt appear pink from a distance.
 
-Input                                                | Result (simple): 1-bit colour (black and white only)                            | Result (dithered): 1-bit colour (black and white only)
+Input                                                | Result (simple): each pixel either black or white                               | Result (dithered): each pixel either black or white
 :---------------------------------------------------:|:-------------------------------------------------------------------------------:|:-------------------------------------------------------------------------:
 ![Original image](examples/jacek-dylag/original.jpg) | ![Processed image (not dithered)](examples/jacek-dylag/monochrome-nodither.jpg) | ![Processed image (dithered)](examples/jacek-dylag/monochrome-dither.jpg)
 
