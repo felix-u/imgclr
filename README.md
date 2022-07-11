@@ -99,3 +99,10 @@ purpose: at the top of the script, just set the path to your Xresources file (by
 path to the `imgclr` binary (by default `target/release/imgclr`), and run the script, passing in the
 same arguments you would use with `imgclr`. The script simply *parses* a file in the Xresources format, which means
 it'll also work on Wayland, in the TTY, or on any operating system with a shell that can run it.
+
+### Licence
+
+This work is dual-licensed under MIT and  GPL 3.0 (or any later version).
+You can choose between one of them if you use this work.
+
+`SPDX-License-Identifier: MIT OR GPL-3.0-or-later`
