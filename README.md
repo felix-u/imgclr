@@ -6,8 +6,8 @@
 
 ### Features
 - [x] Change palette of images
-- [x] Work on JPG, PNG, and a variety of other image formats (see full ordered list below)
-- [ ] Use dithering to generate smoother results
+- [x] Support JPG, PNG, and a variety of popular lossy and lossless image formats (full list below)
+- [x] Use dithering to generate smoother results
 - [x] Allow the inversion of image brightness levels (convert dark images to light and vice versa)
 
 
@@ -27,11 +27,12 @@ USAGE:
 OPTIONS:
     -h, --help                    Print help information
     -i, --input <input file>      Supply path to input file
+    -n, --no-dither               Disable Floyd-Steinberg dithering
     -o, --output <output file>    Supply path to output file
-    -p, --palette <palette>...    Supply palette as whitespace-separated hex values
+    -p, --palette <palette>...    Supply palette as whitespace-separated colours
     -s, --swap                    Invert image brightness, preserving hue and saturation
 ```
-Note that the `-i` and `-o` arguments are **required**.
+Note that the `-i`/`--input` and `-o`/`--output` arguments are **required**.
 
 `imgclr` uses the [image](https://docs.rs/image/latest/image/) crate, which supports the most popular image formats,
 including JPG and PNG. A full list of supported formats is in the [`image` README](https://github.com/image-rs/image).
@@ -48,9 +49,33 @@ Here's what an `imglcr` command using black, white, red, green, and blue might l
 imgclr -i input.jpg -o output.jpg -p 000 fff "hsl(0, 100%, 50%)" "rgb(0, 255, 0)" 0000ff
 ```
 
-Input                                                | Result
+Input                                                | Result (dithered)
 :---------------------------------------------------:|:--------------------------------------------------:
-![Original image](examples/jacek-dylag/original.jpg) | ![Processed image](examples/jacek-dylag/output.jpg)
+![Original image](examples/jacek-dylag/original.jpg) | ![Processed image](examples/jacek-dylag/output-dither.jpg)
+
+#### Dithering
+
+You'll notice that the output looks suspiciously similar to the input, and perhaps slightly grainy. This is because 
+`imgclr` uses [Floyd-Steinberg dithering](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering) to smoothen
+the output, making it seem as if there is more colour fidelity than there really is. With dithering, a dark purple
+colour in the input image may be approximated using your supplied blue, red, and black, even if you specified no
+purple. This works due to the same effect that makes a red and white striped shirt appear pink from a distance.
+
+With dithering disabled, `imgclr` simply goes through each pixel, choosing the closest match from your input palette.
+Let's retry our previous example, disabling dithering with the `-n`/`--no-dither` flag:
+
+```sh
+imgclr -i input.jpg -o output.jpg -p 000 fff "hsl(0, 100%, 50%)" "rgb(0, 255, 0)" 0000ff --no-dither
+```
+
+Input                                                | Result (simple)
+:---------------------------------------------------:|:--------------------------------------------------:
+![Original image](examples/jacek-dylag/original.jpg) | ![Processed image](examples/jacek-dylag/output-nodither.jpg)
+
+Dithering is enabled by default due to its great improvement of results and low impact on speed (50% or less).  For
+more abstract or cartoonish images, disabling dithering will generally yield better-looking results.
+
+#### Inverting brightness
 
 The `-s` or `--swap` flag inverts luminance whilst preserving hue and saturation. For example, perfect grey will remain
 the same, black will become white, white will become black, and dark green will become light green. This inverted
