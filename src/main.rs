@@ -75,10 +75,9 @@ fn main() -> std::io::Result<()> {
     }
 
     // conversion
-    let bar = ProgressBar::new(width as u64);
-    bar.set_style(ProgressStyle::default_bar()
-        .template("{eta:.cyan.bold} [{bar:27}] {percent}%")
-        .progress_chars("=> "));
+    println!("Converting image...");
+    let conversion_bar = ProgressBar::new(width as u64);
+    conversion_bar.set_style(bar_style());
     for x in 0..width {
         for y in 0..height {
 
@@ -165,9 +164,9 @@ fn main() -> std::io::Result<()> {
 
             }
         }
-        bar.inc(1);
+        conversion_bar.inc(1);
     }
-    bar.finish();
+    conversion_bar.finish_with_message("Done!");
 
     // save image to output path
     match img_out.save(output_file) {
@@ -211,10 +210,18 @@ fn flatten(n: &mut i16) {
 
 
 fn swap_luma(some_img: &mut DynamicImage) {
+    println!("Inverting image...");
     for (x, y, pixel) in some_img.clone().pixels() {
         let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
                         .invert_luminescence();
         some_img.put_pixel(x, y, 
             Rgba([this_pix.red, this_pix.green, this_pix.blue, 255]));
     } 
+}
+
+
+fn bar_style() -> ProgressStyle {
+    ProgressStyle::default_bar()
+        .template("{eta:.cyan.bold} [{bar:27}] {percent}%  {msg:.bold}")
+        .progress_chars("=> ")
 }
