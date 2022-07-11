@@ -1,5 +1,6 @@
 #![allow(clippy::needless_range_loop)]
 use clap::{Arg, Command};
+use colored::*;
 use color_processing::Color as ClrpColor;
 use image::{GenericImageView, Rgb, RgbImage, Rgba, GenericImage, DynamicImage};
 use indicatif::{ProgressBar, ProgressStyle};
@@ -75,7 +76,7 @@ fn main() -> std::io::Result<()> {
     }
 
     // conversion
-    println!("Converting image...");
+    println!("{}", "Converting image...".green().bold());
     let conversion_bar = ProgressBar::new(width as u64);
     conversion_bar.set_style(bar_style());
     for x in 0..width {
@@ -176,7 +177,14 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    println!("Wrote image of size {}x{} to {}", width, height, output_file);
+    println!("{} {}{}{} {} {} {}",
+        String::from("Wrote").bold(),
+        width.to_string().bold(), 
+        String::from("x").bold(),
+        height.to_string().bold(),
+        String::from("pixels").bold(),
+        String::from("to"),
+        output_file.italic().bold());
     Ok(())
 }
 
@@ -210,7 +218,7 @@ fn flatten(n: &mut i16) {
 
 
 fn swap_luma(some_img: &mut DynamicImage) {
-    println!("Inverting image...");
+    println!("{}", "Inverting image...".green().bold());
     for (x, y, pixel) in some_img.clone().pixels() {
         let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
                         .invert_luminescence();
@@ -222,6 +230,6 @@ fn swap_luma(some_img: &mut DynamicImage) {
 
 fn bar_style() -> ProgressStyle {
     ProgressStyle::default_bar()
-        .template("{eta:.cyan.bold} [{bar:27}] {percent}%  {msg:.bold}")
+        .template("{eta:.cyan.bold} [{bar:27}] {percent}%  {msg:.blue.bold}")
         .progress_chars("=> ")
 }
