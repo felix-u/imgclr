@@ -50,8 +50,8 @@ imgclr -i input.jpg -o output.jpg -p 000 fff "hsl(0, 100%, 50%)" "rgb(0, 255, 0)
 ```
 
 Input                                                | Result (dithered)
-:---------------------------------------------------:|:--------------------------------------------------:
-![Original image](examples/jacek-dylag/original.jpg) | ![Processed image](examples/jacek-dylag/output-dither.jpg)
+:---------------------------------------------------:|:---------------------------------------------------------------------:
+![Original image](examples/jacek-dylag/original.jpg) | ![Processed image (dithered)](examples/jacek-dylag/output-dither.jpg)
 
 #### Dithering
 
@@ -61,16 +61,20 @@ the output, making it seem as if there is more colour fidelity than there really
 colour in the input image may be approximated using your supplied blue, red, and black, even if you specified no
 purple. This works due to the same effect that makes a red and white striped shirt appear pink from a distance.
 
+Input                                                | Result (simple): 1-bit colour (black and white only)                            | Result (dithered): 1-bit colour (black and white only)
+:---------------------------------------------------:|:-------------------------------------------------------------------------------:|:-------------------------------------------------------------------------:
+![Original image](examples/jacek-dylag/original.jpg) | ![Processed image (not dithered)](examples/jacek-dylag/monochrome-nodither.jpg) | ![Processed image (dithered)](examples/jacek-dylag/monochrome-dither.jpg)
+
 With dithering disabled, `imgclr` simply goes through each pixel, choosing the closest match from your input palette.
-Let's retry our previous example, disabling dithering with the `-n`/`--no-dither` flag:
+Let's retry our example in colour, this time disabling dithering with the `-n`/`--no-dither` flag:
 
 ```sh
 imgclr -i input.jpg -o output.jpg -p 000 fff "hsl(0, 100%, 50%)" "rgb(0, 255, 0)" 0000ff --no-dither
 ```
 
 Input                                                | Result (simple)
-:---------------------------------------------------:|:--------------------------------------------------:
-![Original image](examples/jacek-dylag/original.jpg) | ![Processed image](examples/jacek-dylag/output-nodither.jpg)
+:---------------------------------------------------:|:---------------------------------------------------------------------------:
+![Original image](examples/jacek-dylag/original.jpg) | ![Processed image (not dithered)](examples/jacek-dylag/output-nodither.jpg)
 
 Dithering is enabled by default due to its great improvement of results and low impact on speed (50% or less).  For
 more abstract or cartoonish images, disabling dithering will generally yield better-looking results.
@@ -82,7 +86,7 @@ the same, black will become white, white will become black, and dark green will 
 version of your input image is what will be processed to generate the output image. Here's an example using the
 [tokyonight](https://github.com/folke/tokyonight.nvim) colour scheme:
 
-Input                                                   | Processed regularly                                     | Processed after luma inversion
+Input                                                   | Processed normally (no dithering)                       | Processed after luma inversion (no dithering)
 :------------------------------------------------------:|:-------------------------------------------------------:|:--------------------------------------------------------------------------:
 ![Original image](examples/milad-fakurian/original.jpg) | ![Processed image](examples/milad-fakurian/convert.jpg) | ![Processed image with inversion](examples/milad-fakurian/convert-swap.jpg)
 
