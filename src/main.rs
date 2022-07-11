@@ -183,13 +183,12 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    println!("{} {}{}{} {} {} {}",
+    println!("{} {}{}{} {} {}",
         String::from("Wrote").bold(),
         width.to_string().bold(), 
         String::from("x").bold(),
         height.to_string().bold(),
-        String::from("pixels").bold(),
-        String::from("to"),
+        String::from("pixels to").bold(),
         output_file.italic().bold());
     Ok(())
 }
