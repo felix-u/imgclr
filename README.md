@@ -2,7 +2,7 @@
 
 `imgclr` modifies images to fit a given colour palette.
 
-![Banner image](examples/planet-volumes/planet-volumes.jpg)
+![Banner image](examples/planet-volumes/planet-volumes-dither.jpg)
 
 ### Features
 - [x] Change palette of images
