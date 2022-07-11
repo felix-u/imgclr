@@ -9,11 +9,14 @@ edition = "2021"
 # argument parsing
 clap = { version = "3.2.8", features = ["derive"] }
 
+# working with colour
+color_processing = "0.6.1"
+
 # exiting with appropriate error codes
 exitcode = "1.1.2"
 
 # processing images of various formats
 image = "0.24.2"
 
-# working with colour
-color_processing = "0.6.1"
+# progress bar
+indicatif = "0.16.2"

@@ -2,6 +2,7 @@
 use clap::{Arg, Command};
 use color_processing::Color as ClrpColor;
 use image::{GenericImageView, Rgb, RgbImage, Rgba, GenericImage, DynamicImage};
+use indicatif::{ProgressBar, ProgressStyle};
 use std::path::Path;
 
 fn main() -> std::io::Result<()> {
@@ -74,6 +75,10 @@ fn main() -> std::io::Result<()> {
     }
 
     // conversion
+    let bar = ProgressBar::new(width as u64);
+    bar.set_style(ProgressStyle::default_bar()
+        .template("{eta:.cyan.bold} [{bar:27}] {percent}%")
+        .progress_chars("=> "));
     for x in 0..width {
         for y in 0..height {
 
@@ -160,7 +165,9 @@ fn main() -> std::io::Result<()> {
 
             }
         }
+        bar.inc(1);
     }
+    bar.finish();
 
     // save image to output path
     match img_out.save(output_file) {
