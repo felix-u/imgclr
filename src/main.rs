@@ -77,88 +77,89 @@ fn main() -> std::io::Result<()> {
     for x in 0..width {
         for y in 0..height {
 
-        // get current pixel
-        let pixel = img_in.get_pixel(x, y);
-        let this_r = pixel[0] as i16;
-        let this_g = pixel[1] as i16;
-        let this_b = pixel[2] as i16;
+            // get current pixel
+            let pixel = img_in.get_pixel(x, y);
+            let this_r = pixel[0] as i16;
+            let this_g = pixel[1] as i16;
+            let this_b = pixel[2] as i16;
 
-        // find best match
-        let mut best_match = 0;
-        let mut min_diff: u16 = 999;
-        for i in 0..Vec::len(&palette) {
-            let comp_r: u16 = this_r.abs_diff(palette[i].red as i16);
-            let comp_g: u16 = this_g.abs_diff(palette[i].green as i16);
-            let comp_b: u16 = this_b.abs_diff(palette[i].blue as i16);
-            let diff_total: u16 = comp_r + comp_g + comp_b;
-            if diff_total < min_diff {
-                min_diff = diff_total;
-                best_match = i;
+            // find best match
+            let mut best_match = 0;
+            let mut min_diff: u16 = 999;
+            for i in 0..Vec::len(&palette) {
+                let comp_r: u16 = this_r.abs_diff(palette[i].red as i16);
+                let comp_g: u16 = this_g.abs_diff(palette[i].green as i16);
+                let comp_b: u16 = this_b.abs_diff(palette[i].blue as i16);
+                let diff_total: u16 = comp_r + comp_g + comp_b;
+                if diff_total < min_diff {
+                    min_diff = diff_total;
+                    best_match = i;
+                }
+            }
+            let clr_match = &palette[best_match];
+            let best_r = clr_match.red as i16;
+            let best_g = clr_match.green as i16;
+            let best_b = clr_match.blue as i16;
+
+            // write pixel
+            img_out.put_pixel(x, y, Rgb([best_r as u8, best_g as u8, best_b as u8]));
+
+            // dithering
+            // https://en.wikipedia.org/wiki/Floyd-Steinberg_dithering
+            if !args.is_present("disable dithering") {
+
+                let quant_error: [i16; 3] = [
+                    this_r - best_r,
+                    this_g - best_g,
+                    this_b - best_b
+                ];
+
+                // operates on the following, where * is the current pixel
+                //   * 1
+                // 2 3 4
+
+                // 1
+                if x < (width - 1) {
+                    let that_pix = img_in.get_pixel(x+1, y);
+                    let that_r = that_pix[0];
+                    let that_g = that_pix[1];
+                    let that_b = that_pix[2];
+                    put_quantised(x+1, y, quant_error, 7,
+                        [that_r, that_g, that_b], &mut img_in);
+                }
+
+                // 2
+                if x > 0 && y < (height - 1) {
+                    let that_pix = img_in.get_pixel(x-1, y+1);
+                    let that_r = that_pix[0];
+                    let that_g = that_pix[1];
+                    let that_b = that_pix[2];
+                    put_quantised(x-1, y+1, quant_error, 3,
+                        [that_r, that_g, that_b], &mut img_in);
+                }
+
+                // 3
+                if y < (height - 1) {
+                    let that_pix = img_in.get_pixel(x, y+1);
+                    let that_r = that_pix[0];
+                    let that_g = that_pix[1];
+                    let that_b = that_pix[2];
+                    put_quantised(x, y+1, quant_error, 5,
+                        [that_r, that_g, that_b], &mut img_in);
+                }
+
+                // 4
+                if x < (width - 1) && y < (height - 1) {
+                    let that_pix = img_in.get_pixel(x+1, y+1);
+                    let that_r = that_pix[0];
+                    let that_g = that_pix[1];
+                    let that_b = that_pix[2];
+                    put_quantised(x+1, y+1, quant_error, 1,
+                        [that_r, that_g, that_b], &mut img_in);
+                }
+
             }
         }
-        let clr_match = &palette[best_match];
-        let best_r = clr_match.red as i16;
-        let best_g = clr_match.green as i16;
-        let best_b = clr_match.blue as i16;
-
-        // write pixel
-        img_out.put_pixel(x, y, Rgb([best_r as u8, best_g as u8, best_b as u8]));
-
-        // dithering - see https://en.wikipedia.org/wiki/Floyd-Steinberg_dithering
-        if !args.is_present("disable dithering") {
-
-            let quant_error: [i16; 3] = [
-                this_r - best_r,
-                this_g - best_g,
-                this_b - best_b
-            ];
-
-            // operates on the following, where * is the current pixel
-            //   * 1
-            // 2 3 4
-
-            // 1
-            if x < (width - 1) {
-                let that_pix = img_in.get_pixel(x+1, y);
-                let that_r = that_pix[0];
-                let that_g = that_pix[1];
-                let that_b = that_pix[2];
-                put_quantised(x+1, y, quant_error, 7,
-                    [that_r, that_g, that_b], &mut img_in);
-            }
-
-            // 2
-            if x > 0 && y < (height - 1) {
-                let that_pix = img_in.get_pixel(x-1, y+1);
-                let that_r = that_pix[0];
-                let that_g = that_pix[1];
-                let that_b = that_pix[2];
-                put_quantised(x-1, y+1, quant_error, 3,
-                    [that_r, that_g, that_b], &mut img_in);
-            }
-
-            // 3
-            if y < (height - 1) {
-                let that_pix = img_in.get_pixel(x, y+1);
-                let that_r = that_pix[0];
-                let that_g = that_pix[1];
-                let that_b = that_pix[2];
-                put_quantised(x, y+1, quant_error, 5,
-                    [that_r, that_g, that_b], &mut img_in);
-            }
-
-            // 4
-            if x < (width - 1) && y < (height - 1) {
-                let that_pix = img_in.get_pixel(x+1, y+1);
-                let that_r = that_pix[0];
-                let that_g = that_pix[1];
-                let that_b = that_pix[2];
-                put_quantised(x+1, y+1, quant_error, 1,
-                    [that_r, that_g, that_b], &mut img_in);
-            }
-
-        }
-    }
     }
 
     // save image to output path
@@ -207,6 +208,7 @@ fn swap_luma(some_img: &mut DynamicImage) {
     for (x, y, pixel) in some_img.clone().pixels() {
         let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
                         .invert_luminescence();
-        some_img.put_pixel(x, y, Rgba([this_pix.red, this_pix.green, this_pix.blue, 255]));
+        some_img.put_pixel(x, y, 
+            Rgba([this_pix.red, this_pix.green, this_pix.blue, 255]));
     } 
 }
