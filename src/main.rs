@@ -74,7 +74,6 @@ fn main() -> std::io::Result<()> {
     for x in 0..width {
         for y in 0..height {
 
-        println!("{x}, {y}");
         // get current pixel
         let this_r: i16;
         let this_g: i16;
@@ -189,10 +188,25 @@ fn main() -> std::io::Result<()> {
 
 fn put_quantised(loc_x: u32, loc_y: u32, error: [i16; 3], numerator: i16,
                              channels: [u8; 3], some_img: &mut DynamicImage) {
-    let new_r = (channels[0] as i16 + error[0] * numerator / 16) as u8;
-    let new_g = (channels[1] as i16 + error[1] * numerator / 16) as u8;
-    let new_b = (channels[2] as i16 + error[2] * numerator / 16) as u8;
+    let mut new_r = channels[0] as i16 + error[0] * numerator / 16;
+    let mut new_g = channels[1] as i16 + error[1] * numerator / 16;
+    let mut new_b = channels[2] as i16 + error[2] * numerator / 16;
+    flatten(&mut new_r);
+    flatten(&mut new_g);
+    flatten(&mut new_b);
     some_img.put_pixel(loc_x, loc_y, Rgba([
-        new_r, new_g, new_b, 255
+        new_r as u8, new_g as u8, new_b as u8, 255
     ]));
+}
+
+// TODO: abstract the dithering computation, incorporating this overflow
+//       checking into said abstraction directly
+// fixes any overflows due to 
+fn flatten(n: &mut i16) {
+    if *n > 255 {
+        *n = 255;
+    }
+    if *n < 0 {
+        *n = 0;
+    }
 }
