@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+// #define STB_IMAGE_IMPLEMENTATION
+// #include "stb_image.h"
+// #define STB_IMAGE_WRITE_IMPLEMENTATION
+// #include "stb_image_write.h"
 
 // EDIT PALETTE HERE
 // default is solarised
@@ -22,6 +22,7 @@ char* inputPalette[18] = {
 };
 
 int badInput();
+int check_format(unsigned char* bytes);
 
 int main(int argc, char **argv)
 {
@@ -66,34 +67,27 @@ int main(int argc, char **argv)
         return badInput("n");
     }
 
-    // read bytes to check if JPEG - error if so
     unsigned char bytes[3];
     fread(bytes, 3, 1, F_INPUT);
-    if (bytes[0] == 255 && bytes[1] == 216 && bytes[2] == 255) {
-        return badInput("j");
-    }
-    // check if PPM - error if not
-    if (bytes[0] != 80 /*P*/ || bytes[1] != 54 /*6*/) {
-        return badInput("p");
-    }
+
+    // error if incorrect format
+    check_format(bytes);
 
     // save bytes of input to array inputBytes
-    fseek(F_INPUT, 0, SEEK_END); // jump to end of file
-    long inputLen = ftell(F_INPUT); // get current byte offset
-    rewind(F_INPUT); // go back to beginning of file
-    // enough memory for the file
+    fseek(F_INPUT, 0, SEEK_END);
+    long inputLen = ftell(F_INPUT);
+    rewind(F_INPUT);
     char *inputBytes = (char *)malloc(inputLen * sizeof(char));
-    fread(inputBytes, inputLen, 1, F_INPUT); // read in file
+    fread(inputBytes, inputLen, 1, F_INPUT);
 
-    /* ASCII: 10 = newline, 32 = space
-    increment counter so we know to get WIDTH (after newline, before space), or
-    HEIGHT (after space, before newline). we also need to know how many bytes
-    are in WIDTH and HEIGHT */
+    // increment counter so we know to get WIDTH (after newline, before space), or
+    // HEIGHT (after space, before newline). we also need to know how many bytes
+    // are in WIDTH and HEIGHT
     int whitespaceCounter = 0; int heightByteCounter = 0; int widthByteCounter = 0;
     int heightByteStart = 0; int widthByteStart = 0;
     while (whitespaceCounter < 5) {
         for (int i= 0; i < inputLen; i++) {
-            if (inputBytes[i] == 10 || inputBytes[i] == 32) {
+            if (inputBytes[i] == '\n' || inputBytes[i] == ' ') {
                 whitespaceCounter++;
             }
 
@@ -275,6 +269,17 @@ int main(int argc, char **argv)
     return 0;
 }
 
+int check_format(unsigned char* bytes)
+{
+    if (bytes[0] == 255 && bytes[1] == 216 && bytes[2] == 255) {
+        return badInput("j");
+    }
+    // check if PPM - error if not
+    if (bytes[0] != 80 /*P*/ || bytes[1] != 54 /*6*/) {
+        return badInput("p");
+    }
+    return 1;
+}
 
 // return if incorrect usage
 int badInput(char *errorType)
