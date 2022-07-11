@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-// #define STB_IMAGE_IMPLEMENTATION
-// #include "stb_image.h"
-// #define STB_IMAGE_WRITE_IMPLEMENTATION
-// #include "stb_image_write.h"
 
 // EDIT PALETTE HERE
 // default is solarised
@@ -116,12 +112,10 @@ int main(int argc, char **argv)
     for (int i = 0; i <= widthByteCounter; i++) {
         INPUT_WIDTH[i] = inputBytes[i + widthByteStart];
     }
-
     char INPUT_HEIGHT[heightByteCounter];
     for (int i = 0; i <= heightByteCounter; i++) {
         INPUT_HEIGHT[i] = inputBytes[i + heightByteStart];
     }
-
 
     // copy to output file, pixel by pixel
     const int WIDTH = atoi(INPUT_WIDTH); // use same width as input
