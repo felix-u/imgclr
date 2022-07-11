@@ -69,7 +69,7 @@ fn main() -> std::io::Result<()> {
 
     // open input image
     let mut img_in = image::open(input_file)
-                           .expect(&format!("\n\n{} {}\n{}\n\n",
+                           .unwrap_or_else(|_| panic!("\n\n{} {}\n{}\n\n",
                             String::from("Error:").red().bold(),
                             String::from("could not open file as image."),
                             "Caught:"));
