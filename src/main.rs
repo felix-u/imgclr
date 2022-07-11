@@ -60,7 +60,10 @@ fn main() -> std::io::Result<()> {
 
     // check that input file exists and error out if not
     if !Path::new(input_file).exists() {
-        eprintln!("Error: could not find {}", input_file);
+        eprintln!("{} {} {}",
+            String::from("Error:").red().bold(),
+            String::from("could not find file"),
+            input_file.italic());
         std::process::exit(exitcode::NOINPUT);
     }
 
