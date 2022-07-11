@@ -69,7 +69,10 @@ fn main() -> std::io::Result<()> {
 
     // open input image
     let mut img_in = image::open(input_file)
-                           .expect("Could not open image. Caught error");
+                           .expect(&format!("\n\n{} {}\n{}\n\n",
+                            String::from("Error:").red().bold(),
+                            String::from("could not open file as image."),
+                            "Caught:"));
     let (width, height) = img_in.dimensions();
     // open output image
     let mut img_out = RgbImage::new(width, height);
