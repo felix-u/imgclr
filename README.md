@@ -4,6 +4,8 @@
 
 ![Banner image](examples/planet-volumes/planet-volumes-dither.jpg)
 
+Dual-licensed under [GPL-3.0](./LICENSE-GPL3) or [MIT](./LICENSE-MIT).
+
 ### Features
 - [x] Change palette of images
 - [x] Support JPG, PNG, and a variety of popular lossy and lossless image formats (full list below)
@@ -102,7 +104,33 @@ it'll also work on Wayland, in the TTY, or on any operating system with a shell 
 
 ### Licence
 
-This work is dual-licensed under MIT and  GPL 3.0 (or any later version).
-You can choose between one of them if you use this work.
+imgclr is licensed under the terms of the MIT License, or alternatively under the terms of the General Public License
+(GPL) Version 3. You may use imgclr according to either of these licences as is most appropriate for your project on a
+case-by-case basis.
+
+The terms of each licence can be found in the root directory of the imgclr source repository:
+ 
+MIT Licence: [./LICENSE-MIT](./LICENSE-MIT)
+GPL3 Licence: [./LICENSE-GPL3](./LICENSE-GPL3)
 
 `SPDX-License-Identifier: MIT OR GPL-3.0-or-later`
+
+### Dependencies
+
+*You do **not** need to install any software on your system, except for `cargo`, to compile `imgclr`.*
+
+These dependencies are **not** re-distributed with this repository, but are downloaded from the internet when building
+`imgclr` with `cargo`.
+
+- [`clap`](https://crates.io/crates/clap) - Copyright (c) 2015-2022 Kevin B. Knapp and Clap Contributors.
+  [MIT](https://github.com/clap-rs/clap/blob/master/LICENSE-MIT)
+- [`colored`](https://crates.io/crates/colored) - 
+  [MPL-2.0](https://github.com/mackwic/colored/blob/master/LICENSE)
+- [`color_processing`](https://crates.io/crates/color_processing) - 
+  [CC0-1.0](https://choosealicense.com/licenses/cc0-1.0/)
+- [`exitcode`](https://crates.io/crates/exitcode) -
+  [Apache-2.0](https://github.com/benwilber/exitcode/blob/master/LICENSE)
+- [`image`](https://crates.io/crates/image) - Copyright (c) 2014 PistonDevelopers.
+  [MIT](https://github.com/image-rs/image/blob/master/LICENSE)
+- [`indicatif`](https://crates.io/crates/indicatif) - Copyright (c) 2017 Armin Ronacher <armin.ronacher@active-4.com>.
+  [MIT](https://github.com/console-rs/indicatif/blob/main/LICENSE)
