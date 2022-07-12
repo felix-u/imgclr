@@ -110,8 +110,8 @@ case-by-case basis.
 
 The terms of each licence can be found in the root directory of the imgclr source repository:
  
-MIT Licence: [./LICENSE-MIT](./LICENSE-MIT)
-GPL3 Licence: [./LICENSE-GPL3](./LICENSE-GPL3)
+- MIT Licence: [LICENSE-MIT](./LICENSE-MIT)
+- GPL3 Licence: [LICENSE-GPL3](./LICENSE-GPL3)
 
 `SPDX-License-Identifier: MIT OR GPL-3.0-or-later`
 
