@@ -75,9 +75,6 @@ fn main() -> std::io::Result<()> {
                             "Caught:"));
     let (width, height) = img_in.dimensions();
     let mut img_buf: image::ImageBuffer<Rgb<u8>, Vec<u8>> = img_in.to_rgb8();
-    //                      // w    h    channel
-    // let example = img_buf[(500, 500)][0];
-    // open output image
     let mut img_out = RgbImage::new(width, height);
 
     if args.is_present("swap luma") {
@@ -91,47 +88,41 @@ fn main() -> std::io::Result<()> {
     for y in 0..height {
         for x in 0..width {
 
-            // // get current pixel
-            // let pixel = img_in.get_pixel(x, y);
-            // let this_r = pixel[0] as i16;
-            // let this_g = pixel[1] as i16;
-            // let this_b = pixel[2] as i16;
-
             // get current pixel
-            let this_r = img_buf[(x, y)][0] as i16;
-            let this_g = img_buf[(x, y)][1] as i16;
-            let this_b = img_buf[(x, y)][2] as i16;
+            let this_r = img_buf[(x, y)][0];
+            let this_g = img_buf[(x, y)][1];
+            let this_b = img_buf[(x, y)][2];
 
             // find best match
             let mut best_match = 0;
             let mut min_diff: u16 = 999;
             for i in 0..Vec::len(&palette) {
-                let comp_r: u16 = this_r.abs_diff(palette[i].red as i16);
-                let comp_g: u16 = this_g.abs_diff(palette[i].green as i16);
-                let comp_b: u16 = this_b.abs_diff(palette[i].blue as i16);
-                let diff_total: u16 = comp_r + comp_g + comp_b;
+                let comp_r = this_r.abs_diff(palette[i].red);
+                let comp_g = this_g.abs_diff(palette[i].green);
+                let comp_b = this_b.abs_diff(palette[i].blue);
+                let diff_total: u16 = comp_r as u16 + comp_g as u16 + comp_b as u16;
                 if diff_total < min_diff {
                     min_diff = diff_total;
                     best_match = i;
                 }
             }
             let clr_match = &palette[best_match];
-            let best_r = clr_match.red as i16;
-            let best_g = clr_match.green as i16;
-            let best_b = clr_match.blue as i16;
+            let best_r = clr_match.red;
+            let best_g = clr_match.green;
+            let best_b = clr_match.blue;
 
             // write pixel
-            img_out.put_pixel(x, y, Rgb([best_r as u8, best_g as u8, best_b as u8]));
+            img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
 
             // dithering
             // https://en.wikipedia.org/wiki/Floyd-Steinberg_dithering
             if !args.is_present("disable dithering") {
 
                 let quant_error: [i16; 3] = [
-                    this_r - best_r,
-                    this_g - best_g,
-                    this_b - best_b
-                ];
+                    this_r as i16 - best_r as i16,
+                    this_g as i16 - best_g as i16,
+                    this_b as i16 - best_b as i16,
+                 ];
 
                 // operates on the following, where * is the current pixel
                 //   * 1
@@ -139,44 +130,39 @@ fn main() -> std::io::Result<()> {
 
                 // 1
                 if x < (width - 1) {
-                    let that_pix = img_buf[(x+1, y)];
+                    let that_pix = &img_buf[(x+1, y)];
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
-                    put_quantised(x+1, y, quant_error, 7,
-                        [that_r, that_g, that_b], &mut img_buf);
+                    put_quantised(&quant_error, 7, [that_r, that_g, that_b], &mut img_buf[(x+1, y)]);
                 }
 
                 // 2
                 if x > 0 && y < (height - 1) {
-                    let that_pix = img_buf[(x-1, y+1)];
+                    let that_pix = &img_buf[(x-1, y+1)];
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
-                    put_quantised(x-1, y+1, quant_error, 3,
-                        [that_r, that_g, that_b], &mut img_buf);
+                    put_quantised(&quant_error, 3, [that_r, that_g, that_b], &mut img_buf[(x-1, y+1)]);
                 }
 
                 // 3
                 if y < (height - 1) {
-                    let that_pix = img_buf[(x, y+1)];
+                    let that_pix = &img_buf[(x, y+1)];
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
-                    put_quantised(x, y+1, quant_error, 5,
-                        [that_r, that_g, that_b], &mut img_buf);
+                    put_quantised(&quant_error, 5, [that_r, that_g, that_b], &mut img_buf[(x, y+1)]);
                 }
 
                 // 4
                 if x < (width - 1) && y < (height - 1) {
-                    let that_pix = img_buf[(x+1, y+1)];
+                    let that_pix = &img_buf[(x+1, y+1)];
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
-                    put_quantised(x+1, y+1, quant_error, 1,
-                        [that_r, that_g, that_b], &mut img_buf);
+                    put_quantised(&quant_error, 1, [that_r, that_g, that_b], &mut img_buf[(x+1, y+1)]);
                 }
-
             }
         }
         conversion_bar.inc(1);
@@ -202,20 +188,14 @@ fn main() -> std::io::Result<()> {
 }
 
 
-fn put_quantised(loc_x: u32, loc_y: u32, error: [i16; 3], numerator: i16,
-                    channels: [u8; 3],
-                    img_buf: &mut image::ImageBuffer<Rgb<u8>, Vec<u8>>
-) {
+fn put_quantised(error: &[i16; 3], numerator: i16, channels: [u8; 3], loc: &mut Rgb<u8>) {
     let mut new_r = channels[0] as i16 + error[0] * numerator / 16;
     let mut new_g = channels[1] as i16 + error[1] * numerator / 16;
     let mut new_b = channels[2] as i16 + error[2] * numerator / 16;
     flatten(&mut new_r);
     flatten(&mut new_g);
     flatten(&mut new_b);
-    // img_buf.put_pixel(loc_x, loc_y, Rgba([
-    //     new_r as u8, new_g as u8, new_b as u8, 255
-    // ]));
-    img_buf[(loc_x, loc_y)] = Rgb([new_r as u8, new_g as u8, new_b as u8]);
+    *loc = Rgb([new_r as u8, new_g as u8, new_b as u8]);
 }
 
 
