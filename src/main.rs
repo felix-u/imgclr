@@ -74,6 +74,9 @@ fn main() -> std::io::Result<()> {
                             String::from("could not open file as image."),
                             "Caught:"));
     let (width, height) = img_in.dimensions();
+    let mut img_buf: image::ImageBuffer<Rgb<u8>, Vec<u8>> = img_in.to_rgb8();
+    //                      // w    h    channel
+    // let example = img_buf[(500, 500)][0];
     // open output image
     let mut img_out = RgbImage::new(width, height);
 
@@ -83,16 +86,21 @@ fn main() -> std::io::Result<()> {
 
     // conversion
     println!("{}", "Converting image...".green().bold());
-    let conversion_bar = ProgressBar::new(width as u64);
+    let conversion_bar = ProgressBar::new(height as u64);
     conversion_bar.set_style(bar_style());
-    for x in 0..width {
-        for y in 0..height {
+    for y in 0..height {
+        for x in 0..width {
+
+            // // get current pixel
+            // let pixel = img_in.get_pixel(x, y);
+            // let this_r = pixel[0] as i16;
+            // let this_g = pixel[1] as i16;
+            // let this_b = pixel[2] as i16;
 
             // get current pixel
-            let pixel = img_in.get_pixel(x, y);
-            let this_r = pixel[0] as i16;
-            let this_g = pixel[1] as i16;
-            let this_b = pixel[2] as i16;
+            let this_r = img_buf[(x, y)][0] as i16;
+            let this_g = img_buf[(x, y)][1] as i16;
+            let this_b = img_buf[(x, y)][2] as i16;
 
             // find best match
             let mut best_match = 0;
@@ -131,42 +139,42 @@ fn main() -> std::io::Result<()> {
 
                 // 1
                 if x < (width - 1) {
-                    let that_pix = img_in.get_pixel(x+1, y);
+                    let that_pix = img_buf[(x+1, y)];
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
                     put_quantised(x+1, y, quant_error, 7,
-                        [that_r, that_g, that_b], &mut img_in);
+                        [that_r, that_g, that_b], &mut img_buf);
                 }
 
                 // 2
                 if x > 0 && y < (height - 1) {
-                    let that_pix = img_in.get_pixel(x-1, y+1);
+                    let that_pix = img_buf[(x-1, y+1)];
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
                     put_quantised(x-1, y+1, quant_error, 3,
-                        [that_r, that_g, that_b], &mut img_in);
+                        [that_r, that_g, that_b], &mut img_buf);
                 }
 
                 // 3
                 if y < (height - 1) {
-                    let that_pix = img_in.get_pixel(x, y+1);
+                    let that_pix = img_buf[(x, y+1)];
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
                     put_quantised(x, y+1, quant_error, 5,
-                        [that_r, that_g, that_b], &mut img_in);
+                        [that_r, that_g, that_b], &mut img_buf);
                 }
 
                 // 4
                 if x < (width - 1) && y < (height - 1) {
-                    let that_pix = img_in.get_pixel(x+1, y+1);
+                    let that_pix = img_buf[(x+1, y+1)];
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
                     put_quantised(x+1, y+1, quant_error, 1,
-                        [that_r, that_g, that_b], &mut img_in);
+                        [that_r, that_g, that_b], &mut img_buf);
                 }
 
             }
@@ -185,7 +193,7 @@ fn main() -> std::io::Result<()> {
 
     println!("{} {}{}{} {} {}",
         String::from("Wrote").bold(),
-        width.to_string().bold(), 
+        width.to_string().bold(),
         String::from("x").bold(),
         height.to_string().bold(),
         String::from("pixels to").bold(),
@@ -195,16 +203,19 @@ fn main() -> std::io::Result<()> {
 
 
 fn put_quantised(loc_x: u32, loc_y: u32, error: [i16; 3], numerator: i16,
-                             channels: [u8; 3], some_img: &mut DynamicImage) {
+                    channels: [u8; 3],
+                    img_buf: &mut image::ImageBuffer<Rgb<u8>, Vec<u8>>
+) {
     let mut new_r = channels[0] as i16 + error[0] * numerator / 16;
     let mut new_g = channels[1] as i16 + error[1] * numerator / 16;
     let mut new_b = channels[2] as i16 + error[2] * numerator / 16;
     flatten(&mut new_r);
     flatten(&mut new_g);
     flatten(&mut new_b);
-    some_img.put_pixel(loc_x, loc_y, Rgba([
-        new_r as u8, new_g as u8, new_b as u8, 255
-    ]));
+    // img_buf.put_pixel(loc_x, loc_y, Rgba([
+    //     new_r as u8, new_g as u8, new_b as u8, 255
+    // ]));
+    img_buf[(loc_x, loc_y)] = Rgb([new_r as u8, new_g as u8, new_b as u8]);
 }
 
 
@@ -219,7 +230,7 @@ fn flatten(n: &mut i16) {
     if *n < 0 {
         *n = 0;
     }
-}    
+}
 
 
 fn swap_luma(some_img: &mut DynamicImage) {
@@ -227,9 +238,9 @@ fn swap_luma(some_img: &mut DynamicImage) {
     for (x, y, pixel) in some_img.clone().pixels() {
         let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
                         .invert_luminescence();
-        some_img.put_pixel(x, y, 
+        some_img.put_pixel(x, y,
             Rgba([this_pix.red, this_pix.green, this_pix.blue, 255]));
-    } 
+    }
 }
 
 
