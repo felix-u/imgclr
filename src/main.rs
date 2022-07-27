@@ -4,7 +4,10 @@ use colored::*;
 use color_processing::Color as ClrpColor;
 use image::{GenericImageView, Rgb, RgbImage, Rgba, GenericImage, DynamicImage};
 use indicatif::{ProgressBar, ProgressStyle};
-use std::path::Path;
+use std::{
+    path::Path,
+    collections::HashMap,
+};
 
 mod dither;
 
@@ -14,6 +17,13 @@ fn main() -> std::io::Result<()> {
     let args = Command::new("imgclr")
         .about("Image colouriser")
         .args(&[
+            Arg::new("dithering algorithm")
+                .short('a')
+                .long("algorithm")
+                .required(false)
+                .takes_value(true)
+                .help("Specify dithering algorithm (case-insensitive). Valid algorithms are \"Floyd-Steinberg\" \
+                       (default) and \"Atkinson\""),
             Arg::new("disable dithering")
                 .short('n')
                 .long("no-dither")
@@ -47,6 +57,27 @@ fn main() -> std::io::Result<()> {
                 .help("Invert image brightness, preserving hue and saturation"),
         ]).get_matches();
 
+    // get dithering algorithm, with the default being Floyd-Steinberg if not user-specified
+    let mut quant_error: dither::QuantError = dither::init_error(dither::FLOYD_STEINBERG);
+    if args.is_present("dithering algorithm") && !args.is_present("disable dithering") {
+        let algorithm: &str = &args.value_of("dithering algorithm").unwrap().to_ascii_lowercase();
+        match algorithm {
+            "atkinson" => {
+                quant_error = dither::init_error(dither::ATKINSON);
+            }
+            "floyd-steinberg" => {
+                quant_error = dither::init_error(dither::FLOYD_STEINBERG);
+            }
+            &_ => {
+                eprintln!("{} {} {}",
+                    String::from("Error:").red().bold(),
+                    String::from("no such dithering algorithm:"),
+                    algorithm.italic());
+                std::process::exit(exitcode::USAGE);
+            }
+        }
+    }
+
     let input_file = args.value_of("input file").unwrap();
     let output_file = args.value_of("output file").unwrap();
 
@@ -75,18 +106,28 @@ fn main() -> std::io::Result<()> {
                             String::from("Error:").red().bold(),
                             String::from("could not open file as image."),
                             "Caught:"));
+
     let (width, height) = img_in.dimensions();
     let mut img_buf: image::ImageBuffer<Rgb<u8>, Vec<u8>> = img_in.to_rgb8();
     let mut img_out = RgbImage::new(width, height);
 
-    if args.is_present("swap luma") {
-        swap_luma(&mut img_in);
-    }
+    if args.is_present("swap luma") { swap_luma(&mut img_in); }
 
-    // conversion
+    // progress bar
     println!("{}", "Converting image...".green().bold());
     let conversion_bar = ProgressBar::new(height as u64);
     conversion_bar.set_style(bar_style());
+
+    // struct Pixel {
+    //     loc: (i16, i16),
+    //     clr: (u8, u8, u8),
+    //     palette_match: usize,
+    // }
+    // let mut pixels: Vec<Pixel> = Vec::with_capacity(std::mem::size_of::<Pixel>() * (width * height) as usize);
+
+    let mut matches: HashMap<(u8, u8, u8), usize> = HashMap::new();
+
+    // conversion
     for y in 0..height {
         for x in 0..width {
 
@@ -96,7 +137,7 @@ fn main() -> std::io::Result<()> {
             let this_b = img_buf[(x, y)][2];
 
             // find best match
-            let mut best_match = 0;
+            let mut best_match: usize = 0;
             let mut min_diff: u16 = 999;
             for i in 0..Vec::len(&palette) {
                 let comp_r = this_r.abs_diff(palette[i].red);
@@ -108,6 +149,7 @@ fn main() -> std::io::Result<()> {
                     best_match = i;
                 }
             }
+
             let clr_match = &palette[best_match];
             let best_r = clr_match.red;
             let best_g = clr_match.green;
@@ -117,7 +159,6 @@ fn main() -> std::io::Result<()> {
             img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
 
             // dithering
-            // https://en.wikipedia.org/wiki/Floyd-Steinberg_dithering
             if !args.is_present("disable dithering") {
 
                 let quant_error: [i16; 3] = [
@@ -166,7 +207,9 @@ fn main() -> std::io::Result<()> {
                     dither::put_quantised(&quant_error, 1, [that_r, that_g, that_b], &mut img_buf[(x+1, y+1)]);
                 }
             }
+
         }
+
         conversion_bar.inc(1);
     }
     conversion_bar.finish_with_message("Done!");
