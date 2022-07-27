@@ -116,7 +116,9 @@ fn main() -> std::io::Result<()> {
     // progress bar
     println!("{}", "Converting image...".green().bold());
     let conversion_bar = ProgressBar::new(height as u64);
-    conversion_bar.set_style(bar_style());
+    conversion_bar.set_style(ProgressStyle::default_bar()
+            .template("{eta:.cyan.bold} [{bar:27}] {percent}%  {msg:.blue.bold}")
+            .progress_chars("=> "));
 
     // struct Pixel {
     //     loc: (i16, i16),
@@ -124,8 +126,6 @@ fn main() -> std::io::Result<()> {
     //     palette_match: usize,
     // }
     // let mut pixels: Vec<Pixel> = Vec::with_capacity(std::mem::size_of::<Pixel>() * (width * height) as usize);
-
-    let mut matches: HashMap<(u8, u8, u8), usize> = HashMap::new();
 
     // conversion
     for y in 0..height {
@@ -136,8 +136,9 @@ fn main() -> std::io::Result<()> {
             let this_g = img_buf[(x, y)][1];
             let this_b = img_buf[(x, y)][2];
 
-            // find best match
             let mut best_match: usize = 0;
+
+            // calculate best match from palette
             let mut min_diff: u16 = 999;
             for i in 0..Vec::len(&palette) {
                 let comp_r = this_r.abs_diff(palette[i].red);
@@ -159,6 +160,7 @@ fn main() -> std::io::Result<()> {
             img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
 
             // dithering
+            // https://en.wikipedia.org/wiki/Floyd-Steinberg_dithering
             if !args.is_present("disable dithering") {
 
                 let quant_error: [i16; 3] = [
@@ -241,11 +243,4 @@ fn swap_luma(some_img: &mut DynamicImage) {
         some_img.put_pixel(x, y,
             Rgba([this_pix.red, this_pix.green, this_pix.blue, 255]));
     }
-}
-
-
-fn bar_style() -> ProgressStyle {
-    ProgressStyle::default_bar()
-        .template("{eta:.cyan.bold} [{bar:27}] {percent}%  {msg:.blue.bold}")
-        .progress_chars("=> ")
 }
