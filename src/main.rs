@@ -6,6 +6,8 @@ use image::{GenericImageView, Rgb, RgbImage, Rgba, GenericImage, DynamicImage};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::path::Path;
 
+mod dither;
+
 fn main() -> std::io::Result<()> {
 
     // parse command-line arguments
@@ -134,7 +136,7 @@ fn main() -> std::io::Result<()> {
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
-                    put_quantised(&quant_error, 7, [that_r, that_g, that_b], &mut img_buf[(x+1, y)]);
+                    dither::put_quantised(&quant_error, 7, [that_r, that_g, that_b], &mut img_buf[(x+1, y)]);
                 }
 
                 // 2
@@ -143,7 +145,7 @@ fn main() -> std::io::Result<()> {
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
-                    put_quantised(&quant_error, 3, [that_r, that_g, that_b], &mut img_buf[(x-1, y+1)]);
+                    dither::put_quantised(&quant_error, 3, [that_r, that_g, that_b], &mut img_buf[(x-1, y+1)]);
                 }
 
                 // 3
@@ -152,7 +154,7 @@ fn main() -> std::io::Result<()> {
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
-                    put_quantised(&quant_error, 5, [that_r, that_g, that_b], &mut img_buf[(x, y+1)]);
+                    dither::put_quantised(&quant_error, 5, [that_r, that_g, that_b], &mut img_buf[(x, y+1)]);
                 }
 
                 // 4
@@ -161,7 +163,7 @@ fn main() -> std::io::Result<()> {
                     let that_r = that_pix[0];
                     let that_g = that_pix[1];
                     let that_b = that_pix[2];
-                    put_quantised(&quant_error, 1, [that_r, that_g, that_b], &mut img_buf[(x+1, y+1)]);
+                    dither::put_quantised(&quant_error, 1, [that_r, that_g, that_b], &mut img_buf[(x+1, y+1)]);
                 }
             }
         }
@@ -185,31 +187,6 @@ fn main() -> std::io::Result<()> {
         String::from("pixels to").bold(),
         output_file.italic().bold());
     Ok(())
-}
-
-
-fn put_quantised(error: &[i16; 3], numerator: i16, channels: [u8; 3], loc: &mut Rgb<u8>) {
-    let mut new_r = channels[0] as i16 + error[0] * numerator / 16;
-    let mut new_g = channels[1] as i16 + error[1] * numerator / 16;
-    let mut new_b = channels[2] as i16 + error[2] * numerator / 16;
-    flatten(&mut new_r);
-    flatten(&mut new_g);
-    flatten(&mut new_b);
-    *loc = Rgb([new_r as u8, new_g as u8, new_b as u8]);
-}
-
-
-// TODO: abstract the dithering computation, incorporating this overflow
-//       checking into said abstraction directly
-// fixes any overflows caused by dithering computation making channel values
-// smaller than 0 or greater than 255
-fn flatten(n: &mut i16) {
-    if *n > 255 {
-        *n = 255;
-    }
-    if *n < 0 {
-        *n = 0;
-    }
 }
 
 
