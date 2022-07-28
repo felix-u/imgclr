@@ -4,10 +4,7 @@ use colored::*;
 use color_processing::Color as ClrpColor;
 use image::{GenericImageView, Rgb, RgbImage, Rgba, GenericImage, DynamicImage};
 use indicatif::{ProgressBar, ProgressStyle};
-use std::{
-    path::Path,
-    collections::HashMap,
-};
+use std::path::Path;
 
 mod dither;
 
@@ -18,7 +15,7 @@ fn main() -> std::io::Result<()> {
         .about("Image colouriser")
         .args(&[
             Arg::new("dithering algorithm")
-                .short('a')
+                .short('d')
                 .long("algorithm")
                 .required(false)
                 .takes_value(true)
@@ -58,21 +55,21 @@ fn main() -> std::io::Result<()> {
         ]).get_matches();
 
     // get dithering algorithm, with the default being Floyd-Steinberg if not user-specified
-    let mut quant_error: dither::QuantError = dither::init_error(dither::FLOYD_STEINBERG);
-    if args.is_present("dithering algorithm") && !args.is_present("disable dithering") {
-        let algorithm: &str = &args.value_of("dithering algorithm").unwrap().to_ascii_lowercase();
-        match algorithm {
-            "atkinson" => {
-                quant_error = dither::init_error(dither::ATKINSON);
-            }
-            "floyd-steinberg" => {
-                quant_error = dither::init_error(dither::FLOYD_STEINBERG);
-            }
-            &_ => {
+    let mut algorithm: dither::Algorithm = dither::FLOYD_STEINBERG;
+    if args.is_present("disable dithering") {
+        algorithm = dither::NONE;
+    }
+    else if args.is_present("dithering algorithm") {
+        let algorithm_argument: &str = &args.value_of("dithering algorithm").unwrap().to_ascii_lowercase();
+        match algorithm_argument {
+            "atkinson" => { algorithm = dither::ATKINSON; }
+            "floyd-steinberg" => { algorithm = dither::FLOYD_STEINBERG; }
+            "jjn" => { algorithm = dither::JARVIS_JUDICE_NINKE; }
+            &_ => { /* default */
                 eprintln!("{} {} {}",
                     String::from("Error:").red().bold(),
                     String::from("no such dithering algorithm:"),
-                    algorithm.italic());
+                    algorithm_argument.italic());
                 std::process::exit(exitcode::USAGE);
             }
         }
@@ -108,10 +105,9 @@ fn main() -> std::io::Result<()> {
                             "Caught:"));
 
     let (width, height) = img_in.dimensions();
+    if args.is_present("swap luma") { swap_luma(&mut img_in); }
     let mut img_buf: image::ImageBuffer<Rgb<u8>, Vec<u8>> = img_in.to_rgb8();
     let mut img_out = RgbImage::new(width, height);
-
-    if args.is_present("swap luma") { swap_luma(&mut img_in); }
 
     // progress bar
     println!("{}", "Converting image...".green().bold());
@@ -119,13 +115,6 @@ fn main() -> std::io::Result<()> {
     conversion_bar.set_style(ProgressStyle::default_bar()
             .template("{eta:.cyan.bold} [{bar:27}] {percent}%  {msg:.blue.bold}")
             .progress_chars("=> "));
-
-    // struct Pixel {
-    //     loc: (i16, i16),
-    //     clr: (u8, u8, u8),
-    //     palette_match: usize,
-    // }
-    // let mut pixels: Vec<Pixel> = Vec::with_capacity(std::mem::size_of::<Pixel>() * (width * height) as usize);
 
     // conversion
     for y in 0..height {
@@ -160,58 +149,27 @@ fn main() -> std::io::Result<()> {
             img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
 
             // dithering
-            // https://en.wikipedia.org/wiki/Floyd-Steinberg_dithering
-            if !args.is_present("disable dithering") {
-
-                let quant_error: [i16; 3] = [
-                    this_r as i16 - best_r as i16,
-                    this_g as i16 - best_g as i16,
-                    this_b as i16 - best_b as i16,
-                 ];
-
-                // operates on the following, where * is the current pixel
-                //   * 1
-                // 2 3 4
-
-                // 1
-                if x < (width - 1) {
-                    let that_pix = &img_buf[(x+1, y)];
-                    let that_r = that_pix[0];
-                    let that_g = that_pix[1];
-                    let that_b = that_pix[2];
-                    dither::put_quantised(&quant_error, 7, [that_r, that_g, that_b], &mut img_buf[(x+1, y)]);
-                }
-
-                // 2
-                if x > 0 && y < (height - 1) {
-                    let that_pix = &img_buf[(x-1, y+1)];
-                    let that_r = that_pix[0];
-                    let that_g = that_pix[1];
-                    let that_b = that_pix[2];
-                    dither::put_quantised(&quant_error, 3, [that_r, that_g, that_b], &mut img_buf[(x-1, y+1)]);
-                }
-
-                // 3
-                if y < (height - 1) {
-                    let that_pix = &img_buf[(x, y+1)];
-                    let that_r = that_pix[0];
-                    let that_g = that_pix[1];
-                    let that_b = that_pix[2];
-                    dither::put_quantised(&quant_error, 5, [that_r, that_g, that_b], &mut img_buf[(x, y+1)]);
-                }
-
-                // 4
-                if x < (width - 1) && y < (height - 1) {
-                    let that_pix = &img_buf[(x+1, y+1)];
-                    let that_r = that_pix[0];
-                    let that_g = that_pix[1];
-                    let that_b = that_pix[2];
-                    dither::put_quantised(&quant_error, 1, [that_r, that_g, that_b], &mut img_buf[(x+1, y+1)]);
+            let quant_error: [i16; 3] = [
+                this_r as i16 - best_r as i16,
+                this_g as i16 - best_g as i16,
+                this_b as i16 - best_b as i16,
+            ] ;
+            let x_i32 = x as i32;
+            let y_i32 = y as i32;
+            let width_i32 = width as i32;
+            let height_i32 = height as i32;
+            for (x_offset, y_offset, error_amount) in algorithm.error {
+                if x_i32 > (-1 - *x_offset) && x_i32 < (width_i32  - *x_offset) &&
+                   y_i32 > (-1 - *y_offset) && y_i32 < (height_i32 - *y_offset)
+                {
+                    dither::put_error(
+                        &mut img_buf[((x_i32 + *x_offset) as u32, (y_i32 + *y_offset) as u32)],
+                        &quant_error,
+                        error_amount);
                 }
             }
 
         }
-
         conversion_bar.inc(1);
     }
     conversion_bar.finish_with_message("Done!");
