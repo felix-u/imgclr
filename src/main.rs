@@ -65,6 +65,8 @@ fn main() -> std::io::Result<()> {
             "atkinson" => { algorithm = dither::ATKINSON; }
             "floyd-steinberg" => { algorithm = dither::FLOYD_STEINBERG; }
             "jjn" => { algorithm = dither::JARVIS_JUDICE_NINKE; }
+            "burkes" => { algorithm = dither::BURKES; }
+            "sierra-lite" => { algorithm = dither::SIERRA_LITE }
             &_ => { /* default */
                 eprintln!("{} {} {}",
                     String::from("Error:").red().bold(),

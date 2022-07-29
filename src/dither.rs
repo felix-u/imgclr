@@ -33,6 +33,20 @@ pub const JARVIS_JUDICE_NINKE: Algorithm = Algorithm {
         (-2, 2, 1.0/48.0), (-1, 2, 3.0/48.0), (0, 2, 5.0/48.0), (1, 2, 3.0/48.0), (2, 2, 1.0/48.0),
     ]
 };
+// https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html
+pub const BURKES: Algorithm = Algorithm {
+    error: &[
+                                            /* CURRENT PIXEL */ (1, 0, 8.0/32.0), (2, 0, 4.0/32.0),
+        (-2, 1, 2.0/32.0), (-1, 1, 4.0/32.0), (0, 1, 8.0/32.0), (1, 1, 4.0/32.0), (2, 1, 2.0/32.0),
+    ]
+};
+pub const SIERRA_LITE: Algorithm = Algorithm {
+    error: &[
+                        /* CURRENT PIXEL */ (1, 0, 2.0/4.0),
+        (-1, 1, 1.0/4.0), (0, 1, 1.0/4.0),
+    ]
+};
+// TODO: will possibly implement https://en.wikipedia.org/wiki/Ordered_dithering
 
 
 pub fn put_error(img_loc: &mut Rgb<u8>, quant_error: &[i16; 3], error_amount: &f32) {
