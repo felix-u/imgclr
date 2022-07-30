@@ -120,28 +120,59 @@ fn main() -> std::io::Result<()> {
 
     // establish edge-case control loops (when not all error can be diffused because some of the
     // neighbouring pixels targeted by the dithering algorithm are out of bounds)
-    let mut x_bound_left: i32 = 0;
-    let mut x_bound_right: i32 = width as i32;
-    let mut y_bound_bottom: i32 = height as i32;
+    let mut x_bound_left: u32 = 0;
+    let mut x_bound_right: u32 = width;
+    let mut y_bound_bottom: u32 = height;
     for (x_offset, y_offset, _) in algorithm.error {
-        if *x_offset < x_bound_left {
-            x_bound_left -= *x_offset;
+        if *x_offset < x_bound_left as i32 {
+            x_bound_left = (x_bound_left as i32 *x_offset) as u32;
         }
-        if (width as i32 - x_offset) < x_bound_right {
-            x_bound_right = width as i32 - *x_offset;
+        if (width as i32 - x_offset) < x_bound_right as i32 {
+            x_bound_right = (width as i32 - *x_offset) as u32;
         }
-        if (height as i32 - y_offset) < y_bound_bottom {
-            y_bound_bottom = height as i32 - *y_offset;
+        if (height as i32 - y_offset) < y_bound_bottom as i32 {
+            y_bound_bottom = (height as i32 - *y_offset) as u32;
         }
     }
 
     // conversion
-    for y in 0..height {
-        for x in 0..width {
-            apply_match_from_palette(&algorithm, &width, &height, &mut img_buf, &x, &y, &palette, &mut img_out);
+    for y in 0..y_bound_bottom {
+        for x in 0..x_bound_left {
+            match_from_palette(&algorithm, &width, &height, &mut img_buf, &x, &y, &palette, &mut img_out);
         }
         conversion_bar.inc(1);
     }
+    for y in 0..y_bound_bottom {
+        for x in x_bound_left..x_bound_right {
+            match_from_palette(&algorithm, &width, &height, &mut img_buf, &x, &y, &palette, &mut img_out);
+        }
+        conversion_bar.inc(1);
+    }
+    for y in 0..y_bound_bottom {
+        for x in x_bound_right..width {
+            match_from_palette(&algorithm, &width, &height, &mut img_buf, &x, &y, &palette, &mut img_out);
+        }
+        conversion_bar.inc(1);
+    }
+    for y in y_bound_bottom..height {
+        for x in 0..x_bound_left {
+            match_from_palette(&algorithm, &width, &height, &mut img_buf, &x, &y, &palette, &mut img_out);
+        }
+        conversion_bar.inc(1);
+    }
+    for y in y_bound_bottom..height {
+        for x in x_bound_left..x_bound_right {
+            match_from_palette(&algorithm, &width, &height, &mut img_buf, &x, &y, &palette, &mut img_out);
+        }
+        conversion_bar.inc(1);
+    }
+    for y in y_bound_bottom..height {
+        for x in x_bound_right..width {
+            match_from_palette(&algorithm, &width, &height, &mut img_buf, &x, &y, &palette, &mut img_out);
+        }
+        conversion_bar.inc(1);
+    }
+
     conversion_bar.finish_with_message("Done!");
 
     // save image to output path
@@ -163,7 +194,7 @@ fn main() -> std::io::Result<()> {
 }
 
 
-fn apply_match_from_palette(
+fn match_from_palette(
     algorithm: &dither::Algorithm,
     width: &u32,
     height: &u32,
@@ -171,7 +202,7 @@ fn apply_match_from_palette(
     x: &u32,
     y: &u32,
     palette: &Vec<ClrpColor>,
-    img_out: &mut image::ImageBuffer<Rgb<u8>, Vec<u8>>
+    img_out: &mut image::ImageBuffer<Rgb<u8>, Vec<u8>>,
 ) {
     // get current pixel
     let this_r = img_buf[(*x, *y)][0];
@@ -222,6 +253,20 @@ fn apply_match_from_palette(
         }
     }
 }
+
+
+// fn put_dither_errors_with_check() {
+//     for (x_offset, y_offset, error_amount) in algorithm.error {
+//         if x_i32 > (-1 - *x_offset) && x_i32 < (width_i32  - *x_offset) &&
+//            y_i32 > (-1 - *y_offset) && y_i32 < (height_i32 - *y_offset)
+//         {
+//             dither::put_error(
+//                 &mut img_buf[((x_i32 + *x_offset) as u32, (y_i32 + *y_offset) as u32)],
+//                 &quant_error,
+//                 error_amount);
+//         }
+//     }
+// }
 
 
 fn swap_luma(some_img: &mut DynamicImage) {
