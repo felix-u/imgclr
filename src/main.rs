@@ -72,7 +72,7 @@ fn main() -> std::io::Result<()> {
                     String::from("Error:").red().bold(),
                     String::from("no such dithering algorithm:"),
                     algorithm_argument.italic());
-                std::process::exit(exitcode::USAGE);
+                std::process::exit(64/*USAGE*/);
             }
         }
     }
@@ -96,7 +96,7 @@ fn main() -> std::io::Result<()> {
             String::from("Error:").red().bold(),
             String::from("could not find file"),
             input_file.italic());
-        std::process::exit(exitcode::NOINPUT);
+        std::process::exit(66/*NOINPUT*/);
     }
 
     // open input image
