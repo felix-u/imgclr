@@ -57,7 +57,7 @@ Input                                                | Result (dithered)
 
 #### Dithering
 
-You'll notice that the output looks suspiciously similar to the input, and perhaps slightly grainy. This is because 
+You'll notice that the output looks suspiciously similar to the input, and perhaps slightly grainy. This is because
 `imgclr` uses [Floyd-Steinberg dithering](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering) to smoothen
 the output, making it seem as if there is more colour fidelity than there really is. With dithering, a dark purple
 colour in the input image may be approximated using your supplied blue, red, and black, even if you specified no
@@ -109,7 +109,7 @@ imgclr is licensed under the terms of the MIT License, or alternatively under th
 case-by-case basis.
 
 The terms of each licence can be found in the root directory of the imgclr source repository:
- 
+
 - MIT Licence: [LICENSE-MIT](./LICENSE-MIT)
 - GPL3 Licence: [LICENSE-GPL3](./LICENSE-GPL3)
 
@@ -124,12 +124,10 @@ These dependencies are **not** re-distributed with this repository, but are down
 
 - [`clap`](https://crates.io/crates/clap) - Copyright (c) 2015-2022 Kevin B. Knapp and Clap Contributors.
   [MIT](https://github.com/clap-rs/clap/blob/master/LICENSE-MIT)
-- [`colored`](https://crates.io/crates/colored) - 
+- [`colored`](https://crates.io/crates/colored) -
   [MPL-2.0](https://github.com/mackwic/colored/blob/master/LICENSE)
-- [`color_processing`](https://crates.io/crates/color_processing) - 
+- [`color_processing`](https://crates.io/crates/color_processing) -
   [CC0-1.0](https://choosealicense.com/licenses/cc0-1.0/)
-- [`exitcode`](https://crates.io/crates/exitcode) -
-  [Apache-2.0](https://github.com/benwilber/exitcode/blob/master/LICENSE)
 - [`image`](https://crates.io/crates/image) - Copyright (c) 2014 PistonDevelopers.
   [MIT](https://github.com/image-rs/image/blob/master/LICENSE)
 - [`indicatif`](https://crates.io/crates/indicatif) - Copyright (c) 2017 Armin Ronacher <armin.ronacher@active-4.com>.

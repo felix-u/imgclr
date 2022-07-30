@@ -62,11 +62,11 @@ fn main() -> std::io::Result<()> {
     else if args.is_present("dithering algorithm") {
         let algorithm_argument: &str = &args.value_of("dithering algorithm").unwrap().to_ascii_lowercase();
         match algorithm_argument {
-            "atkinson" => { algorithm = dither::ATKINSON; }
-            "floyd-steinberg" => { algorithm = dither::FLOYD_STEINBERG; }
-            "jjn" => { algorithm = dither::JARVIS_JUDICE_NINKE; }
-            "burkes" => { algorithm = dither::BURKES; }
-            "sierra-lite" => { algorithm = dither::SIERRA_LITE }
+            "atkinson" =>           { algorithm = dither::ATKINSON; }
+            "floyd-steinberg" =>    { algorithm = dither::FLOYD_STEINBERG; }
+            "jjn" =>                { algorithm = dither::JARVIS_JUDICE_NINKE; }
+            "burkes" =>             { algorithm = dither::BURKES; }
+            "sierra-lite" =>        { algorithm = dither::SIERRA_LITE }
             &_ => { /* default */
                 eprintln!("{} {} {}",
                     String::from("Error:").red().bold(),
@@ -118,59 +118,27 @@ fn main() -> std::io::Result<()> {
             .template("{eta:.cyan.bold} [{bar:27}] {percent}%  {msg:.blue.bold}")
             .progress_chars("=> "));
 
+    // establish edge-case control loops (when not all error can be diffused because some of the
+    // neighbouring pixels targeted by the dithering algorithm are out of bounds)
+    let mut x_bound_left: i32 = 0;
+    let mut x_bound_right: i32 = width as i32;
+    let mut y_bound_bottom: i32 = height as i32;
+    for (x_offset, y_offset, _) in algorithm.error {
+        if *x_offset < x_bound_left {
+            x_bound_left -= *x_offset;
+        }
+        if (width as i32 - x_offset) < x_bound_right {
+            x_bound_right = width as i32 - *x_offset;
+        }
+        if (height as i32 - y_offset) < y_bound_bottom {
+            y_bound_bottom = height as i32 - *y_offset;
+        }
+    }
+
     // conversion
     for y in 0..height {
         for x in 0..width {
-
-            // get current pixel
-            let this_r = img_buf[(x, y)][0];
-            let this_g = img_buf[(x, y)][1];
-            let this_b = img_buf[(x, y)][2];
-
-            let mut best_match: usize = 0;
-
-            // calculate best match from palette
-            let mut min_diff: u16 = 999;
-            for i in 0..Vec::len(&palette) {
-                let comp_r = this_r.abs_diff(palette[i].red);
-                let comp_g = this_g.abs_diff(palette[i].green);
-                let comp_b = this_b.abs_diff(palette[i].blue);
-                let diff_total: u16 = comp_r as u16 + comp_g as u16 + comp_b as u16;
-                if diff_total < min_diff {
-                    min_diff = diff_total;
-                    best_match = i;
-                }
-            }
-
-            let clr_match = &palette[best_match];
-            let best_r = clr_match.red;
-            let best_g = clr_match.green;
-            let best_b = clr_match.blue;
-
-            // write pixel
-            img_out.put_pixel(x, y, Rgb([best_r, best_g, best_b]));
-
-            // dithering
-            let quant_error: [i16; 3] = [
-                this_r as i16 - best_r as i16,
-                this_g as i16 - best_g as i16,
-                this_b as i16 - best_b as i16,
-            ] ;
-            let x_i32 = x as i32;
-            let y_i32 = y as i32;
-            let width_i32 = width as i32;
-            let height_i32 = height as i32;
-            for (x_offset, y_offset, error_amount) in algorithm.error {
-                if x_i32 > (-1 - *x_offset) && x_i32 < (width_i32  - *x_offset) &&
-                   y_i32 > (-1 - *y_offset) && y_i32 < (height_i32 - *y_offset)
-                {
-                    dither::put_error(
-                        &mut img_buf[((x_i32 + *x_offset) as u32, (y_i32 + *y_offset) as u32)],
-                        &quant_error,
-                        error_amount);
-                }
-            }
-
+            apply_match_from_palette(&algorithm, &width, &height, &mut img_buf, &x, &y, &palette, &mut img_out);
         }
         conversion_bar.inc(1);
     }
@@ -192,6 +160,67 @@ fn main() -> std::io::Result<()> {
         String::from("pixels to").bold(),
         output_file.italic().bold());
     Ok(())
+}
+
+
+fn apply_match_from_palette(
+    algorithm: &dither::Algorithm,
+    width: &u32,
+    height: &u32,
+    img_buf: &mut image::ImageBuffer<Rgb<u8>, Vec<u8>>,
+    x: &u32,
+    y: &u32,
+    palette: &Vec<ClrpColor>,
+    img_out: &mut image::ImageBuffer<Rgb<u8>, Vec<u8>>
+) {
+    // get current pixel
+    let this_r = img_buf[(*x, *y)][0];
+    let this_g = img_buf[(*x, *y)][1];
+    let this_b = img_buf[(*x, *y)][2];
+
+    let mut best_match: usize = 0;
+
+    // calculate best match from palette
+    let mut min_diff: u16 = 999;
+    for i in 0..Vec::len(&palette) {
+        let comp_r = this_r.abs_diff(palette[i].red);
+        let comp_g = this_g.abs_diff(palette[i].green);
+        let comp_b = this_b.abs_diff(palette[i].blue);
+        let diff_total: u16 = comp_r as u16 + comp_g as u16 + comp_b as u16;
+        if diff_total < min_diff {
+            min_diff = diff_total;
+            best_match = i;
+        }
+    }
+
+    let clr_match = &palette[best_match];
+    let best_r = clr_match.red;
+    let best_g = clr_match.green;
+    let best_b = clr_match.blue;
+
+    // write pixel
+    img_out.put_pixel(*x, *y, Rgb([best_r, best_g, best_b]));
+
+    // dithering
+    let quant_error: [i16; 3] = [
+        this_r as i16 - best_r as i16,
+        this_g as i16 - best_g as i16,
+        this_b as i16 - best_b as i16,
+    ] ;
+    let x_i32 = *x as i32;
+    let y_i32 = *y as i32;
+    let width_i32 = *width as i32;
+    let height_i32 = *height as i32;
+    for (x_offset, y_offset, error_amount) in algorithm.error {
+        if x_i32 > (-1 - *x_offset) && x_i32 < (width_i32  - *x_offset) &&
+           y_i32 > (-1 - *y_offset) && y_i32 < (height_i32 - *y_offset)
+        {
+            dither::put_error(
+                &mut img_buf[((x_i32 + *x_offset) as u32, (y_i32 + *y_offset) as u32)],
+                &quant_error,
+                error_amount);
+        }
+    }
 }
 
 
