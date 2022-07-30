@@ -298,20 +298,6 @@ fn match_from_palette(
 }
 
 
-// fn put_dither_errors_with_check() {
-//     for (x_offset, y_offset, error_amount) in algorithm.error {
-//         if x_i32 > (-1 - *x_offset) && x_i32 < (width_i32  - *x_offset) &&
-//            y_i32 > (-1 - *y_offset) && y_i32 < (height_i32 - *y_offset)
-//         {
-//             dither::put_error(
-//                 &mut img_buf[((x_i32 + *x_offset) as u32, (y_i32 + *y_offset) as u32)],
-//                 &quant_error,
-//                 error_amount);
-//         }
-//     }
-// }
-
-
 fn swap_luma(some_img: &mut DynamicImage) {
     println!("{}", "Inverting image...".green().bold());
     for (x, y, pixel) in some_img.clone().pixels() {
