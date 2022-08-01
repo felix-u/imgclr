@@ -185,7 +185,7 @@ fn main() -> std::io::Result<()> {
 
     println!("{} {}{}{} {} {}",
         String::from("Wrote").bold(),
-        width.to_string().bold(), 
+        width.to_string().bold(),
         String::from("x").bold(),
         height.to_string().bold(),
         String::from("pixels to").bold(),
@@ -219,7 +219,7 @@ fn flatten(n: &mut i16) {
     if *n < 0 {
         *n = 0;
     }
-}    
+}
 
 
 fn swap_luma(some_img: &mut DynamicImage) {
@@ -227,9 +227,9 @@ fn swap_luma(some_img: &mut DynamicImage) {
     for (x, y, pixel) in some_img.clone().pixels() {
         let this_pix = ClrpColor::new_rgb(pixel[0], pixel[1], pixel[2])
                         .invert_luminescence();
-        some_img.put_pixel(x, y, 
+        some_img.put_pixel(x, y,
             Rgba([this_pix.red, this_pix.green, this_pix.blue, 255]));
-    } 
+    }
 }
 
 
