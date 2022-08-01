@@ -27,12 +27,27 @@ USAGE:
     imgclr [OPTIONS] --input <input file> --output <output file> --palette <palette>...
 
 OPTIONS:
-    -h, --help                    Print help information
-    -i, --input <input file>      Supply path to input file
-    -n, --no-dither               Disable Floyd-Steinberg dithering
-    -o, --output <output file>    Supply path to output file
-    -p, --palette <palette>...    Supply palette as whitespace-separated colours
-    -s, --swap                    Invert image brightness, preserving hue and saturation
+    -d, --algorithm <dithering algorithm>
+            Specify dithering algorithm (case-insensitive). Valid options are "floyd-steinberg"
+            (default), "atkinson", "jjn", "burkes", and "sierra-lite"
+
+    -h, --help
+            Print help information
+
+    -i, --input <input file>
+            Supply path to input file
+
+    -n, --no-dither
+            Disable Floyd-Steinberg dithering
+
+    -o, --output <output file>
+            Supply path to output file
+
+    -p, --palette <palette>...
+            Supply palette as whitespace-separated colours
+
+    -s, --swap
+            Invert image brightness, preserving hue and saturation
 ```
 Note that the `-i`/`--input` and `-o`/`--output` arguments are **required**.
 
@@ -79,7 +94,41 @@ Input                                                | Result (simple)
 ![Original image](examples/jacek-dylag/original.jpg) | ![Processed image (not dithered)](examples/jacek-dylag/output-nodither.jpg)
 
 Dithering is enabled by default due to its great improvement of results and low impact on speed (50% or less).  For
-more abstract or cartoonish images, disabling dithering will generally yield better-looking results.
+more abstract or cartoonish images, disabling dithering or using the "Atkinson" algorithm will generally yield
+better-looking results.
+
+#### Dithering algorithms
+
+Multiple dithering algorithms are supported by `imgclr`. The best way to decide on an algorithm is to just *try them!*
+But if that's not enough for you, below are descriptions of each algorithm, including example images. The "baseline"
+speed comparisons compares to running imgclr with dithering disabled and are approximations.
+***TODO: add images***
+
+* **Floyd-Steinberg** (`-d floyd-steinberg`) - 25% slower than baseline
+** Floyd-Steinberg dithering is common in a variety of use cases, popular for its balance of quality and speed. It is
+   the default for this reason.
+   ![Floyd-Steinberg](examples/algorithms/floyd-steinberg.jpg)
+
+* **Atkinson** (`-d atkinson`) - 35% slower than baseline
+** Developed for Apple in the 90s, Atkinson dithering propagates only some of the quantisation error, resulting in a
+   more contrasty look which better suits simpler or more abstract images.
+   ![Atkinson](examples/algorithms/atkinson.jpg)
+
+* **Jarvis-Judice-Ninke** (`-d jjn`) - 80% slower than baseline
+** Optimised for quality, and the slowest in the list.
+   ![Jarvis-Judice-Ninke](examples/algorithms/jjn.jpg)
+
+* **Burkes** (`-d burkes`) - 40% slower than baseline
+** Essentially a faster version of Jarvis-Judice-Ninke which achieves approximately the same look.
+   ![Burkes](examples/algorithms/burkes.jpg)
+
+* **Sierra Lite** (`-d sierra-lite`) - 20% slower than baseline
+** Faster approximation of Floyd-Steinberg dithering.
+   ![Sierra Lite](examples/algorithms/sierra-lite.jpg)
+
+* DITHERING DISABLED - reference
+  ![Dithering disabled](examples/algorithms/none.jpg)
+
 
 #### Inverting brightness
 

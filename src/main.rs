@@ -19,8 +19,8 @@ fn main() -> std::io::Result<()> {
                 .long("algorithm")
                 .required(false)
                 .takes_value(true)
-                .help("Specify dithering algorithm (case-insensitive). Valid algorithms are \"Floyd-Steinberg\" \
-                       (default) and \"Atkinson\""),
+                .help("Specify dithering algorithm (case-insensitive). Valid options are \"floyd-steinberg\" \
+                       (default), \"atkinson\", \"jjn\", \"burkes\", and \"sierra-lite\""),
             Arg::new("disable dithering")
                 .short('n')
                 .long("no-dither")
@@ -56,6 +56,7 @@ fn main() -> std::io::Result<()> {
 
     // get dithering algorithm, with the default being Floyd-Steinberg if not user-specified
     let mut algorithm: dither::Algorithm = dither::FLOYD_STEINBERG;
+    // FIXME: this produces very odd, slightly dithered results
     if args.is_present("disable dithering") {
         algorithm = dither::NONE;
     }
