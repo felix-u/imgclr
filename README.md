@@ -105,25 +105,25 @@ speed comparisons compares to running imgclr with dithering disabled and are app
 ***TODO: add images***
 
 * **Floyd-Steinberg** (`-d floyd-steinberg`) - 25% slower than baseline
-** Floyd-Steinberg dithering is common in a variety of use cases, popular for its balance of quality and speed. It is
+    - Floyd-Steinberg dithering is common in a variety of use cases, popular for its balance of quality and speed. It is
    the default for this reason.
    ![Floyd-Steinberg](examples/algorithms/floyd-steinberg.jpg)
 
 * **Atkinson** (`-d atkinson`) - 35% slower than baseline
-** Developed for Apple in the 90s, Atkinson dithering propagates only some of the quantisation error, resulting in a
+    - Developed for Apple in the 90s, Atkinson dithering propagates only some of the quantisation error, resulting in a
    more contrasty look which better suits simpler or more abstract images.
    ![Atkinson](examples/algorithms/atkinson.jpg)
 
 * **Jarvis-Judice-Ninke** (`-d jjn`) - 80% slower than baseline
-** Optimised for quality, and the slowest in the list.
+    - Optimised for quality, and the slowest in the list.
    ![Jarvis-Judice-Ninke](examples/algorithms/jjn.jpg)
 
 * **Burkes** (`-d burkes`) - 40% slower than baseline
-** Essentially a faster version of Jarvis-Judice-Ninke which achieves approximately the same look.
+    - Essentially a faster version of Jarvis-Judice-Ninke which achieves approximately the same look.
    ![Burkes](examples/algorithms/burkes.jpg)
 
 * **Sierra Lite** (`-d sierra-lite`) - 20% slower than baseline
-** Faster approximation of Floyd-Steinberg dithering.
+    - Faster approximation of Floyd-Steinberg dithering.
    ![Sierra Lite](examples/algorithms/sierra-lite.jpg)
 
 * DITHERING DISABLED - reference
