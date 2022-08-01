@@ -138,13 +138,11 @@ fn main() -> std::io::Result<()> {
 
     // conversion
     let mut quant_error: [i16; 3] = [0, 0, 0];
-    let mut palette_match: [u8; 3] = [0, 0, 0];
-    let mut pixel_diff_match: [i16; 3] = [0, 0, 0];
+    let mut prev_pixel: [u8; 3] = [0, 0, 0];
 
     for y in 0..y_bound_bottom {
         for x in 0..x_bound_left {
-            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut palette_match,
-                               &mut pixel_diff_match);
+            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut prev_pixel);
             for (x_offset, y_offset, error_amount) in algorithm.error {
                 if (x as i32) > (-1 - *x_offset) {
                     dither::put_error(
@@ -159,8 +157,7 @@ fn main() -> std::io::Result<()> {
 
     for y in 0..y_bound_bottom {
         for x in x_bound_left..x_bound_right {
-            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut palette_match,
-                               &mut pixel_diff_match);
+            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut prev_pixel);
             for (x_offset, y_offset, error_amount) in algorithm.error {
                 dither::put_error(
                     &mut img_buf[(((x as i32) + *x_offset) as u32, ((y as i32) + *y_offset) as u32)],
@@ -173,8 +170,7 @@ fn main() -> std::io::Result<()> {
 
     for y in 0..y_bound_bottom {
         for x in x_bound_right..width {
-            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut palette_match,
-                               &mut pixel_diff_match);
+            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut prev_pixel);
             for (x_offset, y_offset, error_amount) in algorithm.error {
                 if (x as i32) < ((width as i32)  - *x_offset) {
                     dither::put_error(
@@ -189,8 +185,7 @@ fn main() -> std::io::Result<()> {
 
     for y in y_bound_bottom..height {
         for x in 0..x_bound_left {
-            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut palette_match,
-                               &mut pixel_diff_match);
+            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut prev_pixel);
             for (x_offset, y_offset, error_amount) in algorithm.error {
                 if (x as i32) > (-1 - *x_offset) &&
                    (y as i32) < ((height as i32) - *y_offset)
@@ -207,8 +202,7 @@ fn main() -> std::io::Result<()> {
 
     for y in y_bound_bottom..height {
         for x in x_bound_left..x_bound_right {
-            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut palette_match,
-                               &mut pixel_diff_match);
+            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut prev_pixel);
             for (x_offset, y_offset, error_amount) in algorithm.error {
                 if (y as i32) < ((height as i32) - *y_offset) {
                     dither::put_error(
@@ -223,8 +217,7 @@ fn main() -> std::io::Result<()> {
 
     for y in y_bound_bottom..height {
         for x in x_bound_right..width {
-            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut palette_match,
-                               &mut pixel_diff_match);
+            match_from_palette(&mut img_buf, &x, &y, &palette, &mut img_out, &mut quant_error, &mut prev_pixel);
             for (x_offset, y_offset, error_amount) in algorithm.error {
                 if (x as i32) < ((width as i32)  - *x_offset) &&
                    (y as i32) < ((height as i32) - *y_offset)
@@ -268,32 +261,25 @@ fn match_from_palette(
     palette: &Vec<ClrpColor>,
     img_out: &mut image::ImageBuffer<Rgb<u8>, Vec<u8>>,
     quant_error: &mut[i16; 3],
-    palette_match: &mut[u8; 3],
-    pixel_diff_match: &mut[i16; 3],
+    prev_pixel: &mut[u8; 3],
 ) {
     // get current pixel
     let this_r = img_buf[(*x, *y)][0];
     let this_g = img_buf[(*x, *y)][1];
     let this_b = img_buf[(*x, *y)][2];
 
-    // if current pixel isn't within range of previous match, recompute match, quantisation error, etc.
-    if
-       (this_r as i16 - palette_match[0] as i16).abs() > pixel_diff_match[0] ||
-       (this_g as i16 - palette_match[1] as i16).abs() > pixel_diff_match[1] ||
-       (this_b as i16 - palette_match[2] as i16).abs() > pixel_diff_match[2]
-    {
+    // if current pixel isn't identical to previous pixel, recompute match, quantisation error, etc.
+    let mut best: &ClrpColor = &ClrpColor::new_rgb(0, 0, 0);
+    if *prev_pixel != [this_r, this_g, this_b] {
         let mut best_match: usize = 0;
 
         // calculate best match from palette
         let mut min_diff: u16 = 999;
-        for i in 0..Vec::len(&palette) {
-            pixel_diff_match[0] = this_r as i16 - palette[i].red as i16;
-            pixel_diff_match[1] = this_g as i16 - palette[i].green as i16;
-            pixel_diff_match[2] = this_b as i16 - palette[i].blue as i16;
+        for i in 0..Vec::len(palette) {
             let abs_diffs: [u16; 3] = [
-                pixel_diff_match[0].abs() as u16,
-                pixel_diff_match[1].abs() as u16,
-                pixel_diff_match[2].abs() as u16,
+                this_r.abs_diff(palette[i].red).into(),
+                this_g.abs_diff(palette[i].green).into(),
+                this_b.abs_diff(palette[i].blue).into(),
             ];
             let diff_total: u16 = abs_diffs[0] + abs_diffs[1] + abs_diffs[2];
             if diff_total < min_diff {
@@ -302,23 +288,20 @@ fn match_from_palette(
             }
         }
 
-        let matched = &palette[best_match];
-        *palette_match = [matched.red, matched.green, matched.blue];
-    println!("\n{this_r}, {this_g}, {this_b}");
-    println!("{palette_match:#?}");
-    println!("{pixel_diff_match:#?}");
+        best = &palette[best_match];
+        *prev_pixel = [this_r, this_g, this_b];
+
+        // dithering
+        *quant_error = [
+            this_r as i16 - best.red as i16,
+            this_g as i16 - best.green as i16,
+            this_b as i16 - best.blue as i16,
+        ];
 
     }
 
-    // dithering
-    *quant_error = [
-        this_r as i16 - palette_match[0] as i16,
-        this_g as i16 - palette_match[1] as i16,
-        this_b as i16 - palette_match[2] as i16,
-    ];
-
     // write pixel
-    img_out.put_pixel(*x, *y, Rgb(*palette_match));
+    img_out.put_pixel(*x, *y, Rgb([best.red, best.green, best.blue]));
 }
 
 
