@@ -68,7 +68,7 @@ fn main() -> std::io::Result<()> {
             "jjn" =>                { algorithm = dither::JARVIS_JUDICE_NINKE; }
             "burkes" =>             { algorithm = dither::BURKES; }
             "sierra-lite" =>        { algorithm = dither::SIERRA_LITE }
-            &_ => { /* default */
+            &_ => { /* no matching algorithm */
                 eprintln!("{} {} {}",
                     String::from("Error:").red().bold(),
                     String::from("no such dithering algorithm:"),
