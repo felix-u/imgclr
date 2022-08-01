@@ -1,5 +1,6 @@
 imgclr
 *.jpg
+*.png
 !examples/*/*.jpg
 *.ppm
 *.org
