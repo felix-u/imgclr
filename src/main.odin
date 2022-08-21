@@ -1,7 +1,7 @@
 package main
 
-import "core:fmt"
+import "args"
 
 main :: proc() {
-	fmt.println("Hellope!")
+    args.testproc();
 }
