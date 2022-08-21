@@ -1,7 +1,8 @@
 package main
 
 import "args"
+import "core:fmt"
 
 main :: proc() {
-    args.testproc();
+    fmt.println(args.is_present("something"));
 }
