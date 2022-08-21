@@ -2,3 +2,4 @@ imgclr
 *.jpg
 *.png
 *.ppm
+**/.bin
