@@ -1,6 +1,7 @@
 package main
 
 import "args"
+import "colour"
 import "core:fmt"
 import "core:os"
 
@@ -49,6 +50,13 @@ main :: proc() {
         os.exit(64); // EX_USAGE
     }
 
+    palette: [dynamic]colour.RGBA;
+    for str in palette_input {
+        if clr, ok := colour.hexStrToRGBA(str); ok {
+            append(&palette, clr);
+        }
+    }
+
     // Dithering algorithm (optional)
     dither, ok_arg_dither, ok_val_dither :=
         args.singleValueOf(argv, { "--dither", "-d" });
@@ -66,5 +74,7 @@ main :: proc() {
         fmt.println(HELP_TEXT);
         os.exit(0);
     }
+
+
 
 }
