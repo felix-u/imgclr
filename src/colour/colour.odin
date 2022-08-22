@@ -36,9 +36,9 @@ hexStrToRGBA :: proc(str: string) -> (RGBA, bool) {
 
     // Now we've got a valid hex string to parse.
     if hex_len == 3 {
-        single_r, _ := strconv.parse_u64_of_base(str[pos + 0], 16);
-        single_g, _ := strconv.parse_u64_of_base(str[pos + 1], 16);
-        single_b, _ := strconv.parse_u64_of_base(str[pos + 2], 16);
+        single_r, _ := strconv.parse_u64_of_base(str[pos + 0 : pos + 1], 16);
+        single_g, _ := strconv.parse_u64_of_base(str[pos + 1 : pos + 2], 16);
+        single_b, _ := strconv.parse_u64_of_base(str[pos + 2 : pos + 3], 16);
         r := u8(single_r * 16 + single_r);
         g := u8(single_g * 16 + single_g);
         b := u8(single_b * 16 + single_b);
