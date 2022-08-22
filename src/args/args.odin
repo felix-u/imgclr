@@ -1,7 +1,5 @@
 package args
 
-import "core:fmt"
-
 // `flag` is an array of two strings: the long flag (e.g. "--option") at
 // `flag[0]`, and the short flag (e.g. "-o") at `flag[1]`. We look for the long
 // version before the short one.
