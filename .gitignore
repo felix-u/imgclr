@@ -1,0 +1,13 @@
+imgclr
+*.jpg
+*.png
+*.ppm
+*.org
+log
+!examples/*/*.jpg
+target/
+**/.bin
+
+# zig stuff
+zig-cache/
+zig-out/
