@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv) {
 
-    printf("%d\n", args_isPresent(argc, argv, "-o").is_present);
+    printf("%s\n", args_singleValueOf(argc, argv, "-o"));
 
     return EXIT_SUCCESS;
 }

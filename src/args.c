@@ -29,19 +29,24 @@ BoolFlagReturn args_isPresent(int argc, char** argv, char* flag) {
 }
 
 
-// // Returns single value of flag
-// char* args_singleValueOf(int argc, char** argv, char* flag) {
-//
-//     // Check the flag has actually been passed
-//     BoolFlagReturn flag_check = args_isPresent(argc, argv, flag);
-//     if (flag_check.is_present) {
-//
-//         // If the arg after the flag doesn't start with '-', we return it as
-//         // the supplied option.
-//         if (argc > flag_check.index + 1 &&
-//             argv[flag_check.index + 1][0] != '-')
-//         {
-//
-//         }
-//     }
-// }
+// Returns single value of flag
+
+char* args_singleValueOf(int argc, char** argv, char* flag) {
+
+    // Check the flag has actually been passed
+    BoolFlagReturn flag_check = args_isPresent(argc, argv, flag);
+    if (flag_check.is_present) {
+
+        // If the arg after the flag doesn't start with '-', we return it as
+        // the supplied option.
+        if (argc > flag_check.index && argv[flag_check.index][0] != '-') {
+            return argv[flag_check.index];
+        }
+
+        // Otherwise, flag is present but no value supplied
+        return "";
+    }
+
+    // Flag not present
+    return "";
+}
