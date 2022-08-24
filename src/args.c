@@ -71,17 +71,17 @@ MultipleValReturn args_multipleValuesOf(int argc, char** argv, char* flag) {
         // If the arg after the flag doesn't start with '-', at least one
         // option was supplied and so there are things to return.
         if (argc > flag_check.index && argv[flag_check.index][0] != '-') {
-            int end_index;
+            int end_index = 0;
+
+            // Stop at first argument which begins with '-'
             for (int i = flag_check.index; i < argc; i++) {
                 if (argv[i][0] == '-') {
                     end_index = i;
-                    // printf("argc is %d, end_index is %d\n", argc, end_index);
-                }
-                else if (i == argc) {
-                    end_index = argc;
-                    // printf("argc is %d, end_index is %d\n", argc, end_index);
                 }
             }
+
+            // Or, if end_index is still 0, the values go to the end of argv
+            if (end_index == 0) end_index = argc;
 
             MultipleValReturn this_return = {flag_check.index, end_index};
             return this_return;
