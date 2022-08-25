@@ -15,9 +15,8 @@ typedef struct BoolFlagReturn {
 
 BoolFlagReturn args_isPresent(int argc, char** argv, char* flag) {
 
-    // Look for long flag first
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], flag)) {
+    for (int i = 0; i < argc; i++) {
+        if (strcasecmp(argv[i], flag)) {
             BoolFlagReturn this_return = {true, i};
             return this_return;
         }
