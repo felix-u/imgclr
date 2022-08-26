@@ -4,6 +4,7 @@ import "args"
 import "colour"
 import "core:fmt"
 import "core:os"
+// import "vendor:stb/image"
 
 HELP_TEXT ::
 `    -h, --help                Display this help information and exit.
@@ -29,6 +30,7 @@ main :: proc() {
         fmt.println("ERROR: Provide path to input file");
         os.exit(64); // EX_USAGE
     }
+    _ = input_path;
 
     // Path to output file (required)
     output_path, ok_arg_output, ok_val_output :=
@@ -37,6 +39,7 @@ main :: proc() {
         fmt.println("ERROR: Provide path to output file");
         os.exit(64); // EX_USAGE
     }
+    _ = output_path;
 
     // Palette colours (required)
     palette_input, ok_arg_palette, ok_val_palette :=
@@ -64,9 +67,11 @@ main :: proc() {
         fmt.println("ERROR: --dither/-d flag takes one argument");
         os.exit(64); // EX_USAGE
     }
+    _ = dither;
 
     // Swap brightness (optional)
     swap, _ := args.isPresent(argv, { "--swap", "-s" });
+    _ = swap;
 
     // Print help (optional)
     help, _ := args.isPresent(argv, { "--help", "-h" });

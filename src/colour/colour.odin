@@ -1,6 +1,5 @@
 package colour
 
-import "core:fmt"
 import "core:strconv"
 
 RGBA :: struct { r, g, b, a: u8 }
