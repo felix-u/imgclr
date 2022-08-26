@@ -2,6 +2,8 @@ imgclr
 *.jpg
 *.png
 *.ppm
+*.a
+*.gch
 **/.bin
 zig-cache
 zig-out

@@ -8,7 +8,7 @@ package args
 
 
 // Checks if a boolean flag exists
-isPresent :: proc(args: []string, flag: [2]string) -> (bool, int) {
+isPresent :: proc(args : []string, flag : [2]string) -> (bool, int) {
 
     // Check for long flag first
     for arg, index in args {
@@ -25,7 +25,8 @@ isPresent :: proc(args: []string, flag: [2]string) -> (bool, int) {
 
 
 // Returns single value of flag
-singleValueOf :: proc(args: []string, flag: [2]string) -> (string, bool, bool) {
+singleValueOf :: proc
+    (args : []string, flag : [2]string) -> (string, bool, bool) {
 
     // Check that the argument actually exists
     if ok, index := isPresent(args, flag); ok {
@@ -46,7 +47,8 @@ singleValueOf :: proc(args: []string, flag: [2]string) -> (string, bool, bool) {
 
 
 // Returns multiple values of flag
-multipleValuesOf :: proc(args: []string, flag: [2]string) -> ([]string, bool, bool) {
+multipleValuesOf :: proc
+    (args : []string, flag : [2]string) -> ([]string, bool, bool) {
 
     // Check that the argument actually exists
     if ok, index := isPresent(args, flag); ok {
@@ -54,7 +56,7 @@ multipleValuesOf :: proc(args: []string, flag: [2]string) -> ([]string, bool, bo
         // If the arg after the flag doesn't start with '-', at least one
         // option was supplied and we return it/them.
         if len(args) > index + 1 && args[index + 1][0] != '-' {
-            end_index: int;
+            end_index : int;
             for arg, i in args[index + 1 : ] {
                 if arg[0] == '-' {
                     end_index = index + i + 1;

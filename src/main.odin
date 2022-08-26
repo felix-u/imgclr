@@ -4,7 +4,9 @@ import "args"
 import "colour"
 import "core:fmt"
 import "core:os"
-// import "vendor:stb/image"
+import "core:strings"
+import image "../libs/wrappers/stb_image"
+/* import "vendor:stb/image" */
 
 HELP_TEXT ::
 `    -h, --help                Display this help information and exit.
@@ -20,6 +22,8 @@ HELP_TEXT ::
 
 main :: proc() {
 
+    // ARGUMENTS --------------------------------------------------------------
+
     // The first argument is the binary, so we don't need it.
     argv := os.args[1 : ];
 
@@ -30,7 +34,6 @@ main :: proc() {
         fmt.println("ERROR: Provide path to input file");
         os.exit(64); // EX_USAGE
     }
-    _ = input_path;
 
     // Path to output file (required)
     output_path, ok_arg_output, ok_val_output :=
@@ -80,6 +83,19 @@ main :: proc() {
         os.exit(0);
     }
 
+    // ------------------------------------------------------------------------
 
+
+    // Load image
+
+    input_cstring := strings.clone_to_cstring(input_path, context.temp_allocator);
+    width, height, channels : i32;
+    data := image.load(input_cstring, &width, &height, &channels, 3);
+    if data == nil {
+        fmt.println("Image loading failed");
+    } else {
+        fmt.println("Loaded image of size", width, "by", height);
+    }
+    defer image.image_free(data);
 
 }

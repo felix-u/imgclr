@@ -2,13 +2,13 @@ package colour
 
 import "core:strconv"
 
-RGBA :: struct { r, g, b, a: u8 }
+RGBA :: struct { r, g, b, a : u8 }
 
 
-hexStrToRGBA :: proc(str: string) -> (RGBA, bool) {
+hexStrToRGBA :: proc(str : string) -> (RGBA, bool) {
 
     pos := 0;
-    hex_len: int;
+    hex_len : int;
 
     // Work out format of hex string and ignore starting characters, such as a
     // hash symbol or anything else which isn't a-fA-F0-9.
@@ -54,7 +54,7 @@ hexStrToRGBA :: proc(str: string) -> (RGBA, bool) {
 }
 
 
-isValidHexChar :: proc(char: rune) -> bool {
+isValidHexChar :: proc(char : rune) -> bool {
     switch char {
     case 'a'..='f', 'A'..='F', '0'..='9':
         return true;
@@ -64,7 +64,7 @@ isValidHexChar :: proc(char: rune) -> bool {
 }
 
 
-strHasValidHexChars :: proc(str: string) -> bool {
+strHasValidHexChars :: proc(str : string) -> bool {
     for char in str {
         if !isValidHexChar(char) do return false;
     }
