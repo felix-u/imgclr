@@ -3,3 +3,5 @@ imgclr
 *.png
 *.ppm
 **/.bin
+zig-cache
+zig-out
