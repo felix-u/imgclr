@@ -6,7 +6,6 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 import image "../libs/wrappers/stb_image"
-/* import "vendor:stb/image" */
 
 HELP_TEXT ::
 `    -h, --help                Display this help information and exit.
@@ -91,11 +90,10 @@ main :: proc() {
     input_cstring := strings.clone_to_cstring(input_path, context.temp_allocator);
     width, height, channels : i32;
     data := image.load(input_cstring, &width, &height, &channels, 3);
+    defer image.image_free(data);
     if data == nil {
         fmt.println("Image loading failed");
-    } else {
-        fmt.println("Loaded image of size", width, "by", height);
+        os.exit(69); // EX_UNAVAILABLE
     }
-    defer image.image_free(data);
 
 }
