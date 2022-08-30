@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     if (palette_return.offset == 0 || palette_return.end == 0 ||
         palette_return.end - palette_return.offset < 2)
     {
-        printf("ERROR: Must provide at least two palette colours.\n");
+        printf("ERROR: Must provide at least two (2) palette colours.\n");
         exit(EX_USAGE);
     }
 
