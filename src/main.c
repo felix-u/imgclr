@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include "args.c"
+#include "colour.c"
 
 #define STB_DS_IMPLEMENTATION
 #include "../libs/stb_ds-v0.67/stb_ds.h"
@@ -65,8 +66,9 @@ int main(int argc, char **argv) {
 
     char **dither_arg = (char *[]){"-d", "--dither"};
     BoolFlagReturn dither_is_present = args_isPresent(argc, argv, dither_arg);
+    char *dither_alg = NULL;
     if (dither_is_present.is_present) {
-        char *dither_alg = args_singleValueOf(argc, argv, dither_arg);
+        dither_alg = args_singleValueOf(argc, argv, dither_arg);
         if (dither_alg == NULL) {
             printf("ERROR: `dither` flag requires argument.\n");
             exit(EX_USAGE);
@@ -75,6 +77,13 @@ int main(int argc, char **argv) {
 
     char **swap_arg = (char *[]){"-s", "--swap"};
     BoolFlagReturn swap = args_isPresent(argc, argv, swap_arg);
+
+    // @Test NOT WORKING @Test
+    RGBCheck rgb_get = hexStrToRGB("fff");
+    printf("%d, %d, %d, %d\n", rgb_get.r, rgb_get.g, rgb_get.b, rgb_get.valid);
+
+    // Convert palette hex strings to an array of RGB
+
 
 
     return EXIT_SUCCESS;
