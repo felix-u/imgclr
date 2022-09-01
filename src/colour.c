@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct {
     uint8_t r;
@@ -28,7 +29,7 @@ bool isValidHexChar(char c) {
 }
 
 bool strHasValidHexChars(char *str) {
-    for (int i = 0; i < strlen(str); i++) {
+    for (size_t i = 0; i < strlen(str); i++) {
         if (!isValidHexChar(str[i])) {
             return false;
         }
@@ -45,7 +46,7 @@ RGBCheck hexStrToRGB(char *str) {
     // Work out format of hex string and ignore starting characters, such as a
     // hash symbol or anything else which isn't a-fA-F0-9.
 
-    for (int i = 0; i < strlen(str); i++) {
+    for (size_t i = 0; i < strlen(str); i++) {
 
         if (isValidHexChar(str[i])) {
 
@@ -58,13 +59,14 @@ RGBCheck hexStrToRGB(char *str) {
             if (hex_len == 3 || hex_len == 6) {
                 // Correct length but invalid chars
                 if (!strHasValidHexChars(str + i)) {
-                    RGBCheck rgb_return = {0, 0, 0, false};
+                    RGBCheck rgb_return = {1, 1, 1, false};
                     return rgb_return;
                 }
             }
             // Invalid length
             else {
-                RGBCheck rgb_return = {0, 0, 0, false};
+                printf("start_pos: %d\nhex_len: %d\n", start_pos, hex_len);
+                RGBCheck rgb_return = {2, 2, 2, false};
                 return rgb_return;
             }
 

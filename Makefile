@@ -1,7 +1,7 @@
 CFLAGS=-Wextra -Wall -O3
 DEBUGFLAGS=-g
 
-imgclr: src/main.c src/args.c
+imgclr: src/main.c src/args.c src/colour.c
 	$(CC) $(CFLAGS) -o imgclr src/main.c
 
 debug: src/
