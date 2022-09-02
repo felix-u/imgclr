@@ -78,12 +78,24 @@ int main(int argc, char **argv) {
     char **swap_arg = (char *[]){"-s", "--swap"};
     BoolFlagReturn swap = args_isPresent(argc, argv, swap_arg);
 
-    // @Test NOT WORKING @Test
-    RGBCheck rgb_get = hexStrToRGB("#002b36");
-    printf("%d, %d, %d, %d\n", rgb_get.r, rgb_get.g, rgb_get.b, rgb_get.valid);
 
     // Convert palette hex strings to an array of RGB
 
+    int palette_len = palette_return.end - palette_return.offset;
+    RGB palette[palette_len];
+
+    for (int i = 0; i < palette_len; i++) {
+        RGBCheck rgb_get = hexStrToRGB(argv[i + palette_return.offset]);
+        if (rgb_get.valid == true) {
+            RGB rgb_put = {rgb_get.r, rgb_get.g, rgb_get.b};
+            palette[i] = rgb_put;
+        }
+        else {
+            printf("ERROR: \"%s\" is not a valid hex colour.\n",
+                   argv[i + palette_return.offset]);
+            exit(EX_USAGE);
+        }
+    }
 
 
     return EXIT_SUCCESS;

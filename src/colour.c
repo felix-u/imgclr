@@ -65,7 +65,6 @@ RGBCheck hexStrToRGB(char *str) {
             }
             // Invalid length
             else {
-                printf("start_pos: %d\nhex_len: %d\n", start_pos, hex_len);
                 RGBCheck rgb_return = {2, 2, 2, false};
                 return rgb_return;
             }
