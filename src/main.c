@@ -118,6 +118,47 @@ int main(int argc, char **argv) {
         exit(EX_NOINPUT);
     }
 
+    // @Missing Dithering @Missing
+
+    // Convert image to palette
+
+    int data_len = width * height * channels;
+    for (int i = 0; i < data_len; i += 3) {
+        int min_diff = 999;
+        int best_match;
+        for (int j = 0; j < palette_len; j++) {
+            int diff_r = abs(data[i + 0] - palette[j].r);
+            int diff_g = abs(data[i + 1] - palette[j].g);
+            int diff_b = abs(data[i + 2] - palette[j].b);
+            int diff_total = diff_r + diff_g + diff_b;
+            if (diff_total < min_diff) {
+                min_diff = diff_total;
+                best_match = j;
+            }
+        }
+
+        data[i + 0] = palette[best_match].r;
+        data[i + 1] = palette[best_match].g;
+        data[i + 2] = palette[best_match].b;
+    }
+
+    // @Missing Write correct format based on extension of output path @Missing
+
+    // Write to output path
+
+    int write_success =
+        stbi_write_jpg(output_path, width, height, channels, data, 100);
+    if (write_success) {
+        printf("Wrote JPG image of size %dx%d to %s.\n",
+               width, height, output_path);
+    }
+    else {
+        printf("ERROR: Unable to write image to %s.\n", output_path);
+        exit(EX_UNAVAILABLE);
+    }
+
+
+
     stbi_image_free(data);
     return EXIT_SUCCESS;
 }
