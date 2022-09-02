@@ -88,9 +88,23 @@ RGBCheck hexStrToRGB(char *str) {
         RGBCheck rgb_return = {r, g, b, true};
         return rgb_return;
     }
-    // @Missing Process hex string of length 6 @Missing
     else if (hex_len == 6) {
-        RGBCheck rgb_return = {0, 0, 0, true};
+        char r1_as_str[] = { str[start_pos + 0], '\0' };
+        char r2_as_str[] = { str[start_pos + 1], '\0' };
+        char g1_as_str[] = { str[start_pos + 2], '\0' };
+        char g2_as_str[] = { str[start_pos + 3], '\0' };
+        char b1_as_str[] = { str[start_pos + 4], '\0' };
+        char b2_as_str[] = { str[start_pos + 5], '\0' };
+        uint8_t single_r1 = strtol(r1_as_str, NULL, 16);
+        uint8_t single_r2 = strtol(r2_as_str, NULL, 16);
+        uint8_t single_g1 = strtol(g1_as_str, NULL, 16);
+        uint8_t single_g2 = strtol(g2_as_str, NULL, 16);
+        uint8_t single_b1 = strtol(b1_as_str, NULL, 16);
+        uint8_t single_b2 = strtol(b2_as_str, NULL, 16);
+        uint8_t r = single_r1 * 16 + single_r2;
+        uint8_t g = single_g1 * 16 + single_g2;
+        uint8_t b = single_b1 * 16 + single_b2;
+        RGBCheck rgb_return = {r, g, b, true};
         return rgb_return;
     }
 
