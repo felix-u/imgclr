@@ -1,6 +1,7 @@
 imgclr
 *.jpg
 *.png
+*.bmp
 *.ppm
 *.org
 *.a

@@ -7,6 +7,7 @@
 
 #include "args.c"
 #include "colour.c"
+#include "strings.h"
 
 // @Feature stb_image can read PNM but stb_image_write cannot write it. PPM is
 // quite simple, so maybe I should implement my own writer. @Feature
@@ -31,6 +32,8 @@ const char *HELP_TEXT =
 "                              saturation.\n"
 "    -p, --palette <STR>...    Supply palette as whitespace-separated colours.\n";
 
+
+char * extensionFromStr(char *str);
 
 int main(int argc, char **argv) {
 
@@ -57,6 +60,20 @@ int main(int argc, char **argv) {
     char *output_path = args_singleValueOf(argc, argv, output_arg);
     if (output_path == NULL) {
         printf("ERROR: Must provide output location.\n");
+        exit(EX_USAGE);
+    }
+    char *ext = extensionFromStr(output_path);
+    if (ext == NULL) {
+        printf("ERROR: Unable to infer output image format.\n");
+        exit(EX_USAGE);
+    }
+    else if (
+        strcasecmp(ext, "jpg") && strcasecmp(ext, "jpeg") &&
+        strcasecmp(ext, "png") &&
+        strcasecmp(ext, "bmp") &&  strcasecmp(ext, "dib"))
+    {
+        printf("ERROR: Cannot infer image format from extension ");
+        printf("\"%s\".\n", ext);
         exit(EX_USAGE);
     }
 
@@ -107,7 +124,7 @@ int main(int argc, char **argv) {
     }
 
 
-    // @Missing Load image and do cool stuff @Missing
+    // Load image and do cool stuff
 
     int width = 0, height = 0, channels = 0;
     unsigned char *data = stbi_load(input_path, &width, &height, &channels, 3);
@@ -123,7 +140,9 @@ int main(int argc, char **argv) {
     // Convert image to palette
 
     int data_len = width * height * channels;
+
     for (int i = 0; i < data_len; i += 3) {
+
         int min_diff = 999;
         int best_match;
         for (int j = 0; j < palette_len; j++) {
@@ -142,14 +161,23 @@ int main(int argc, char **argv) {
         data[i + 2] = palette[best_match].b;
     }
 
-    // @Missing Write correct format based on extension of output path @Missing
 
-    // Write to output path
+    // Write to output path, with correct format based on extension
 
-    int write_success =
-        stbi_write_jpg(output_path, width, height, channels, data, 100);
+    int write_success;
+    if (!strcasecmp(ext, "jpg") || !strcasecmp(ext, "jpeg")) {
+        write_success = stbi_write_jpg(output_path, width, height, channels, data, 100);
+    }
+    else if (!strcasecmp(ext, "png")) {
+        int stride_in_bytes = width * channels;
+        write_success = stbi_write_png(output_path, width, height, channels, data, stride_in_bytes);
+    }
+    else if (!strcasecmp(ext, "bmp") || !strcasecmp(ext, "dib")) {
+        write_success = stbi_write_bmp(output_path, width, height, channels, data);
+    }
+
     if (write_success) {
-        printf("Wrote JPG image of size %dx%d to %s.\n",
+        printf("Wrote image of size %dx%d to %s.\n",
                width, height, output_path);
     }
     else {
@@ -158,7 +186,28 @@ int main(int argc, char **argv) {
     }
 
 
-
     stbi_image_free(data);
     return EXIT_SUCCESS;
+}
+
+
+// Get file extension from string
+
+char * extensionFromStr(char *str) {
+
+    int str_len = strlen(str);
+    int ext_pos = 0;
+
+    for (int i = 0; i < str_len; i++) {
+        if (str[i] == '.') {
+            ext_pos = i;
+            break;
+        }
+    }
+
+    if (ext_pos != 0 && ext_pos < str_len - 1) {
+        return str + ext_pos + 1;
+    }
+
+    return NULL;
 }
