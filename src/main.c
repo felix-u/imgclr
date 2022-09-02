@@ -112,6 +112,11 @@ int main(int argc, char **argv) {
     int width = 0, height = 0, channels = 0;
     unsigned char *data = stbi_load(input_path, &width, &height, &channels, 3);
     printf("%d x %d with %d channels\n", width, height, channels);
+    if (data == NULL) {
+        const char *reason = stbi_failure_reason();
+        printf("ERROR: Could not load \"%s\":\n%s\n", input_path, reason);
+        exit(EX_NOINPUT);
+    }
 
     stbi_image_free(data);
     return EXIT_SUCCESS;
