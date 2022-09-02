@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
     BoolFlagReturn swap = args_isPresent(argc, argv, swap_arg);
 
     // @Test NOT WORKING @Test
-    RGBCheck rgb_get = hexStrToRGB("#fff");
+    RGBCheck rgb_get = hexStrToRGB("fff");
     printf("%d, %d, %d, %d\n", rgb_get.r, rgb_get.g, rgb_get.b, rgb_get.valid);
 
     // Convert palette hex strings to an array of RGB

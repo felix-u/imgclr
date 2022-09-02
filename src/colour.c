@@ -70,6 +70,7 @@ RGBCheck hexStrToRGB(char *str) {
                 return rgb_return;
             }
 
+            break;
         }
     }
 
