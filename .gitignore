@@ -3,6 +3,7 @@ imgclr
 *.png
 *.ppm
 *.org
+*.a
 log
 !examples/*/*.jpg
 target/
