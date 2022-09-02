@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
 
     // Write to output path, with correct format based on extension
 
-    int write_success;
+    int write_success = false;
     if (!strcasecmp(ext, "jpg") || !strcasecmp(ext, "jpeg")) {
         write_success = stbi_write_jpg(output_path, width, height, channels, data, 100);
     }
