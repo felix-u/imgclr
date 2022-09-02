@@ -8,9 +8,6 @@
 #include "args.c"
 #include "colour.c"
 
-#define STB_DS_IMPLEMENTATION
-#include "../libs/stb_ds-v0.67/stb_ds.h"
-
 
 const char *HELP_TEXT =
 "    -h, --help                Display this help information and exit.\n"
@@ -96,6 +93,8 @@ int main(int argc, char **argv) {
             exit(EX_USAGE);
         }
     }
+
+    // @Missing Load image and do cool stuff @Missing
 
 
     return EXIT_SUCCESS;
