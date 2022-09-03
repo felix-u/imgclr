@@ -7,7 +7,7 @@
 
 #include "args.c"
 #include "colour.c"
-#include "strings.h"
+#include "dither.c"
 
 // @Feature stb_image can read PNM but stb_image_write cannot write it. PPM is
 // quite simple, so maybe I should implement my own writer. @Feature
