@@ -122,9 +122,8 @@ int main(int argc, char **argv) {
     }
 
 
-    // // @Missing Handle `swap` flag @Missing
-    // char **swap_arg = (char *[]){"-s", "--swap"};
-    // BoolFlagReturn swap = args_isPresent(argc, argv, swap_arg);
+    char **swap_arg = (char *[]){"-s", "--swap"};
+    BoolFlagReturn swap = args_isPresent(argc, argv, swap_arg);
 
 
     // Convert palette hex strings to an array of RGB
@@ -157,13 +156,33 @@ int main(int argc, char **argv) {
         exit(EX_NOINPUT);
     }
 
+    int data_len = width * height * channels;
 
-    // // DEBUG
-    // printf("Picked %s\n", algorithm->name);
-    // printf("offsets error to %d other pixels\n", algorithm->offset_num);
-    // for (int i = 0; i < algorithm->offset_num; i++) {
-    //     printf("x: %d, y: %d, ratio: %0.2f\n", algorithm->offsets[i].x, algorithm->offsets[i].y, algorithm->offsets[i].ratio);
-    // }
+
+    // Invert brightness, if applicable
+    if (swap.is_present) {
+        for (int i = 0; i < data_len; i += 3) {
+
+            int brightness = (data[i + 0] + data[i + 1] + data[i + 2]) / 3;
+            int r_relative = data[i + 0] - brightness;
+            int g_relative = data[i + 1] - brightness;
+            int b_relative = data[i + 2] - brightness;
+
+            int new_r = (255 - brightness) + r_relative;
+            int new_g = (255 - brightness) + g_relative;
+            int new_b = (255 - brightness) + b_relative;
+
+            // Clamp to 0 - 255
+            if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
+            if (new_g < 0) new_g = 0; else if (new_g > 255) new_g = 255;
+            if (new_b < 0) new_b = 0; else if (new_b > 255) new_b = 255;
+
+            data[i + 0] = (char)new_r;
+            data[i + 1] = (char)new_g;
+            data[i + 2] = (char)new_b;
+        }
+    }
+
 
     // Establish bounds for edge-case control loops, when not all error can be
     // diffused because some of the neighbouring pixels targeted by the
@@ -185,12 +204,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    printf("DEBUG: Fixing bounds at x: %d to %d, y: %d\n", x_bound_left, x_bound_right, y_bound_bottom); // DEBUG
-
 
     // Convert image to palette
-
-    int data_len = width * height * channels;
 
     for (int i = 0; i < data_len; i += 3) {
 
