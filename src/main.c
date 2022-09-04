@@ -149,7 +149,6 @@ int main(int argc, char **argv) {
 
     int width = 0, height = 0, channels = 0;
     unsigned char *data = stbi_load(input_path, &width, &height, &channels, 3);
-    // printf("%d x %d with %d channels\n", width, height, channels); // DEBUG
     if (data == NULL) {
         const char *reason = stbi_failure_reason();
         printf("ERROR: Could not load \"%s\":\n%s\n", input_path, reason);
@@ -183,26 +182,31 @@ int main(int argc, char **argv) {
         }
     }
 
+    // NOTE: I no longer think this is worth the effort, since a few int
+    // comparisons per pixel don't seem necessarily more expensive than a few
+    // additions and divisions to calculate the target index from an x and y
+    // coordinate. It might even be cheaper the way it's done now. But I'm
+    // leaving this here in case I want to come back to it.
 
-    // Establish bounds for edge-case control loops, when not all error can be
-    // diffused because some of the neighbouring pixels targeted by the
-    // dithering algorithm are out of bounds.
-
-    int x_bound_left = 0;
-    int x_bound_right = width;
-    int y_bound_bottom = height;
-
-    for (int i = 0; i < algorithm->offset_num; i++) {
-        if (x_bound_left + algorithm->offsets[i].x < 0) {
-            x_bound_left = 0 - algorithm->offsets[i].x;
-        }
-        if (width - algorithm->offsets[i].x < x_bound_right) {
-            x_bound_right = width - algorithm->offsets[i].x;
-        }
-        if (height - algorithm->offsets[i].y < y_bound_bottom) {
-            y_bound_bottom = height - algorithm->offsets[i].y;
-        }
-    }
+    // // Establish bounds for edge-case control loops, when not all error can be
+    // // diffused because some of the neighbouring pixels targeted by the
+    // // dithering algorithm are out of bounds.
+    //
+    // int x_bound_left = 0;
+    // int x_bound_right = width;
+    // int y_bound_bottom = height;
+    //
+    // for (int i = 0; i < algorithm->offset_num; i++) {
+    //     if (x_bound_left + algorithm->offsets[i].x < 0) {
+    //         x_bound_left = 0 - algorithm->offsets[i].x;
+    //     }
+    //     if (width - algorithm->offsets[i].x < x_bound_right) {
+    //         x_bound_right = width - algorithm->offsets[i].x;
+    //     }
+    //     if (height - algorithm->offsets[i].y < y_bound_bottom) {
+    //         y_bound_bottom = height - algorithm->offsets[i].y;
+    //     }
+    // }
 
 
     // Convert image to palette
@@ -245,8 +249,8 @@ int main(int argc, char **argv) {
             int target_y = current_y + algorithm->offsets[j].y;
 
             // @Speed We have the information to avoid doing bounds checking
-            // on the majority of the image, so this is low-hanging fruit.
-            // @Speed
+            // on the majority of the image, so this is low-hanging fruit. But
+            // this is probably not worth it (see NOTE above). @Speed
 
             if (target_x >= 0 && target_x < width &&
                 target_y >= 0 && target_y < height)
