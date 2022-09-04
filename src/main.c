@@ -93,13 +93,34 @@ int main(int argc, char **argv) {
     char **dither_arg = (char *[]){"-d", "--dither"};
     BoolFlagReturn dither_is_present = args_isPresent(argc, argv, dither_arg);
     char *dither_alg = NULL;
+
+    // Algorithm is floyd-steinberg unless user specifies otherwise
+    Algorithm algorithm = floyd_steinberg;
+
     if (dither_is_present.is_present) {
         dither_alg = args_singleValueOf(argc, argv, dither_arg);
         if (dither_alg == NULL) {
             printf("ERROR: `dither` flag requires argument.\n");
             exit(EX_USAGE);
         }
+        else {
+            bool found_algorithm = false;
+            for (int i = 0; i < NUM_OF_ALGORITHMS; i++) {
+                if (!strcasecmp(dither_alg, ALGORITHMS[i]->name)) {
+                    algorithm = *ALGORITHMS[i];
+                    found_algorithm = true;
+                    break;
+                }
+            }
+
+            if (!found_algorithm) {
+                printf("ERROR: Unsupported algorithm \"%s\".\n", dither_alg);
+                exit(EX_USAGE);
+            }
+
+        }
     }
+
 
     char **swap_arg = (char *[]){"-s", "--swap"};
     BoolFlagReturn swap = args_isPresent(argc, argv, swap_arg);
@@ -184,7 +205,6 @@ int main(int argc, char **argv) {
         printf("ERROR: Unable to write image to %s.\n", output_path);
         exit(EX_UNAVAILABLE);
     }
-
 
     stbi_image_free(data);
     return EXIT_SUCCESS;

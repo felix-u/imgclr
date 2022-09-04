@@ -46,9 +46,11 @@ const Algorithm atkinson = {
     }
 };
 
+#define NUM_OF_ALGORITHMS 3
+
 // @Missing The other algorithms @Missing
 
-const Algorithm *ALGORITHMS[] = {
+const Algorithm *ALGORITHMS[NUM_OF_ALGORITHMS] = {
     &floyd_steinberg,
     &none,
     &atkinson
