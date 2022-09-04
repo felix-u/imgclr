@@ -1,3 +1,8 @@
+#include <stdint.h>
+
+#define MAX_OFFSETS 8
+#define NUM_OF_ALGORITHMS 3
+
 typedef struct {
     int x; // x offset
     int y; // y offset
@@ -5,9 +10,9 @@ typedef struct {
 } ErrorSet;
 
 typedef struct {
-    char *name;
-    int len;
-    ErrorSet offsets[];
+    char name[32];
+    int offset_num;
+    ErrorSet offsets[MAX_OFFSETS];
 } Algorithm;
 
 
@@ -17,10 +22,10 @@ const Algorithm floyd_steinberg = {
     "floyd-steinberg",
     4,
     {
-        { 1, 0, 7.0/16.0},
-        {-1, 1, 3.0/16.0},
-        { 0, 1, 5.0/16.0},
-        { 1, 1, 1.0/16.0},
+        { 1, 0, (7.0/16.0)},
+        {-1, 1, (3.0/16.0)},
+        { 0, 1, (5.0/16.0)},
+        { 1, 1, (1.0/16.0)},
     }
 };
 
@@ -29,7 +34,9 @@ const Algorithm floyd_steinberg = {
 const Algorithm none = {
     "none",
     0,
-    {{0, 0, 0}}
+    {
+        {0, 0, 0}
+    }
 };
 
 // https://gaz.github.io/canvas-atkinson-dither
@@ -46,7 +53,6 @@ const Algorithm atkinson = {
     }
 };
 
-#define NUM_OF_ALGORITHMS 3
 
 // @Missing The other algorithms @Missing
 

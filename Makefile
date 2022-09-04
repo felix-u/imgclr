@@ -4,7 +4,7 @@ LIBS=-lm
 DEBUGFLAGS=-O1 -g
 RELEASEFLAGS=-O3
 
-imgclr: src/main.c src/args.c src/colour.c
+imgclr: src/main.c src/args.c src/colour.c src/dither.c
 	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(LIBS) -o imgclr src/main.c
 
 release: src/
