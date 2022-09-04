@@ -7,6 +7,7 @@ import "core:os"
 import "core:strings"
 import image "../libs/wrappers/stb_image"
 
+
 HELP_TEXT ::
 `    -h, --help                Display this help information and exit.
     -i, --input <FILE>        Supply input file.
@@ -21,12 +22,13 @@ HELP_TEXT ::
 
 main :: proc() {
 
-    // ARGUMENTS --------------------------------------------------------------
-
     // The first argument is the binary, so we don't need it.
     argv := os.args[1 : ];
 
-    // Path to input file (required)
+
+    // Required arguments
+
+    // Path to input file
     input_path, ok_arg_input, ok_val_input :=
         args.singleValueOf(argv, { "--input", "-i" });
     if !ok_arg_input || !ok_val_input {
@@ -34,7 +36,7 @@ main :: proc() {
         os.exit(64); // EX_USAGE
     }
 
-    // Path to output file (required)
+    // Path to output file
     output_path, ok_arg_output, ok_val_output :=
         args.singleValueOf(argv, { "--output", "-o" });
     if !ok_arg_output || !ok_val_output {
@@ -43,7 +45,7 @@ main :: proc() {
     }
     _ = output_path;
 
-    // Palette colours (required)
+    // Palette colours
     palette_input, ok_arg_palette, ok_val_palette :=
         args.multipleValuesOf(argv, { "--palette", "-p" });
     if !ok_arg_palette || !ok_val_palette {
@@ -62,7 +64,10 @@ main :: proc() {
         }
     }
 
-    // Dithering algorithm (optional)
+
+    // Optional arguments
+
+    // Dithering algorithm
     dither, ok_arg_dither, ok_val_dither :=
         args.singleValueOf(argv, { "--dither", "-d" });
     if ok_arg_dither && !ok_val_dither {
@@ -71,18 +76,16 @@ main :: proc() {
     }
     _ = dither;
 
-    // Swap brightness (optional)
+    // Swap brightness
     swap, _ := args.isPresent(argv, { "--swap", "-s" });
     _ = swap;
 
-    // Print help (optional)
+    // Print help
     help, _ := args.isPresent(argv, { "--help", "-h" });
     if help {
         fmt.println(HELP_TEXT);
         os.exit(0);
     }
-
-    // ------------------------------------------------------------------------
 
 
     // Load image
