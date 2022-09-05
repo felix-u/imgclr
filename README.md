@@ -15,9 +15,8 @@ Dual-licensed under [GPL-3.0](./LICENSE-GPL3) or [MIT](./LICENSE-MIT).
 
 ### Building
 
-First, download and install the latest *master version* of [the zig compiler](https://ziglang.org/download/). Then,
-compile `imgclr` by running `git submodule update --init` and then `make` in the project directory. The compiled binary
-will be copied to the repo's root directory.
+With a C99 compiler such as `gcc` or `clang` available, run `make release` in the project directory. The compiled
+binary will be located at `./imgclr`.
 
 
 ### Usage
@@ -47,8 +46,8 @@ OPTIONS:
 ```
 Note that the `-i`/`--input` and `-o`/`--output` arguments are **required**.
 
-`imgclr` uses the [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) and
-[lodepng](https://github.com/lvandeve/lodepng), allowing it to support JPG, PNG, and BMP.
+`imgclr` uses [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h), allowing it to support JPG, PNG,
+and BMP.
 
 Palette colours are supplied as hex values with the `-p` or `--palette` flag. For example, you could represent perfect
 red as `#ff0000` or `f00`. Depending on your shell and whether you choose to include hash symbols, they may have to be
