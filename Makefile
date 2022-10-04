@@ -1,8 +1,8 @@
 CFLAGS=-std=c99 -pedantic -Wshadow -Wstrict-aliasing -Wstrict-overflow \
 	   -Wextra -Wall -Wno-unused-but-set-variable
 LIBS=-lm
-DEBUGFLAGS=-O1 -g
-RELEASEFLAGS=-O3
+DEBUGFLAGS=-Og -g
+RELEASEFLAGS=-O3 -s
 
 imgclr: src/main.c src/args.c src/colour.c src/dither.c
 	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(LIBS) -o imgclr src/main.c
