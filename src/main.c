@@ -1,16 +1,21 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <sysexits.h>
-#include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
 
-#include "args.c"
+#define ARGS_IMPLEMENTATION
+#define ARGS_BINARY_NAME "imgclr"
+#define ARGS_BINARY_VERSION "0.1-dev"
+#include "args.h"
+#include "int_types.h"
+
 #include "colour.c"
 #include "dither.c"
 
-// @Feature stb_image can read PNM but stb_image_write cannot write it. PPM is
-// quite simple, so maybe I should implement my own writer. @Feature
+
+/* @Feature { stb_image can read PNM but stb_image_write cannot write it. PPM is
+              quite simple, so maybe I should implement my own writer.
+} */
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
 #define STBI_ONLY_BMP
@@ -21,105 +26,115 @@
 #include "../libs/stb_image-v2.27/stb_image.h"
 #include "../libs/stb_image_write-v1.16/stb_image_write.h"
 
+#define EX_USAGE 64
+#define EX_NOINPUT 66
+#define EX_UNAVAILABLE 69
 
-const char *HELP_TEXT =
-"    -h, --help                Display this help information and exit.\n"
-"    -i, --input <FILE>        Supply input file.\n"
-"    -o, --output <FILE>       Supply output location.\n"
-"    -d, --dither <STR>        Specify dithering algorithm, or \"none\" to disable\n"
-"                                  (default is \"floyd-steinberg\").\n"
-"    -s, --swap                Invert image brightness, preserving hue and\n"
-"                              saturation.\n"
-"    -p, --palette <STR>...    Supply palette as whitespace-separated colours.\n";
+
+// const char *HELP_TEXT =
+// "    -h, --help                Display this help information and exit.\n"
+// "    -i, --input <FILE>        Supply input file.\n"
+// "    -o, --output <FILE>       Supply output location.\n"
+// "    -d, --dither <STR>        Specify dithering algorithm, or \"none\" to disable\n"
+// "                                  (default is \"floyd-steinberg\").\n"
+// "    -s, --swap                Invert image brightness, preserving hue and\n"
+// "                              saturation.\n"
+// "    -p, --palette <STR>...    Supply palette as whitespace-separated colours.\n";
 
 
 char * extensionFromStr(char *str);
 
 int main(int argc, char **argv) {
 
-    // Help flag
+    args_Flag dither_flag = {
+        'd', "dither",
+        "specify dithering algorithm, or \"none\" to disable. Default\n"
+            "is \"floyd-steinberg\"",
+        ARGS_OPTIONAL,
+        false, NULL, 0,
+        ARGS_SINGLE_OPT, ARGS_EXPECTS_STRING
+    };
+    args_Flag palette_flag = {
+        'p', "palette",
+        "supply palette as whitespace-separated hex colours",
+        ARGS_REQUIRED,
+        false, NULL, 0,
+        ARGS_MULTI_OPT, ARGS_EXPECTS_STRING
+    };
+    args_Flag swap_flag = {
+        's', "swap",
+        "invert image brightness, preserving hue and saturation",
+        ARGS_OPTIONAL,
+        false, NULL, 0,
+        ARGS_BOOLEAN, ARGS_EXPECTS_NONE
+    };
 
-    char **help_arg = (char *[]){"-h", "--help"};
-    BoolFlagReturn help = args_isPresent(argc, argv, help_arg);
-    if (help.is_present) {
-        printf("%s\n", HELP_TEXT);
-        return(EXIT_SUCCESS);
+    args_Flag *flags[] = {
+        &dither_flag,
+        &palette_flag,
+        &swap_flag,
+        &ARGS_HELP_FLAG,
+        &ARGS_VERSION_FLAG,
+    };
+
+    const usize flags_count = sizeof(flags) / sizeof(flags[0]);
+    usize positional_num = 0;
+    const usize positional_cap = 256;
+    char *positional_args[positional_cap];
+    int args_return = args_process(argc, argv, "image colouriser", flags_count, flags,
+                                   &positional_num, positional_args, ARGS_EXPECTS_FILE, ARGS_POSITIONAL_MULTI,
+                                   positional_cap);
+    if (args_return != ARGS_RETURN_CONTINUE) return args_return;
+
+    if (positional_num < 2) {
+        printf("%s: expected output file as positional argument\n", ARGS_BINARY_NAME);
+        args_helpHint();
+        return EX_USAGE;
     }
 
 
-    // Required arguments
-
-    char **input_arg = (char *[]){"-i", "--input"};
-    char *input_path = args_singleValueOf(argc, argv, input_arg);
-    if (input_path == NULL) {
-        printf("ERROR: Must provide path to input file.\n");
-        exit(EX_USAGE);
-    }
-
-    char **output_arg = (char *[]){"-o", "--output"};
-    char *output_path = args_singleValueOf(argc, argv, output_arg);
-    if (output_path == NULL) {
-        printf("ERROR: Must provide output location.\n");
-        exit(EX_USAGE);
-    }
+    char *input_path = positional_args[0];
+    char *output_path = positional_args[1];
     char *ext = extensionFromStr(output_path);
     if (ext == NULL) {
-        printf("ERROR: Unable to infer output image format.\n");
-        exit(EX_USAGE);
+        printf("%s: unable to infer output image format\n", ARGS_BINARY_NAME);
+        args_helpHint();
+        return EX_USAGE;
     }
-    else if (
+
+    if (
         strcasecmp(ext, "jpg") && strcasecmp(ext, "jpeg") &&
         strcasecmp(ext, "png") &&
         strcasecmp(ext, "bmp") &&  strcasecmp(ext, "dib"))
     {
-        printf("ERROR: Cannot infer image format from extension ");
-        printf("\"%s\".\n", ext);
-        exit(EX_USAGE);
+        printf("%s: cannot infer image format from extension '%s'\n", ARGS_BINARY_NAME, ext);
+        args_helpHint();
+        return EX_USAGE;
     }
 
-    char **palette_arg = (char *[]){"-p", "--palette"};
-    MultipleValReturn palette_return =
-        args_multipleValuesOf(argc, argv, palette_arg);
-    if (palette_return.offset == 0 || palette_return.end == 0 ||
-        palette_return.end - palette_return.offset < 2)
-    {
-        printf("ERROR: Must provide at least two (2) palette colours.\n");
-        exit(EX_USAGE);
+    if (palette_flag.opts_num < 2) {
+        printf("%s: must provide at least two (2) palette colours\n", ARGS_BINARY_NAME);
+        args_helpHint();
+        return EX_USAGE;
     }
 
 
-    // Optional arguments
-
-    char **dither_arg = (char *[]){"-d", "--dither"};
-    BoolFlagReturn dither_is_present = args_isPresent(argc, argv, dither_arg);
-    char *dither_alg = NULL;
-
-    // Algorithm is floyd-steinberg unless user specifies otherwise
-    const Algorithm *algorithm = &floyd_steinberg;
-
-    if (dither_is_present.is_present) {
-        dither_alg = args_singleValueOf(argc, argv, dither_arg);
-        if (dither_alg == NULL) {
-            printf("ERROR: `dither` flag requires argument.\n");
-            exit(EX_USAGE);
-        }
-        else {
-            bool found_algorithm = false;
-            for (int i = 0; i < NUM_OF_ALGORITHMS; i++) {
-                if (!strcasecmp(dither_alg, ALGORITHMS[i]->name)) {
-                    algorithm = ALGORITHMS[i];
-                    found_algorithm = true;
-                    break;
-                }
-            }
-
-            if (!found_algorithm) {
-                printf("ERROR: Unsupported algorithm \"%s\".\n", dither_alg);
-                exit(EX_USAGE);
-            }
-
+    Algorithm algorithm = floyd_steinberg;
+    char *dither_alg = dither_flag.is_present ? dither_flag.opts[0] : "floyd_steinberg";
+    bool found_algorithm = false;
+    for (usize i = 0; i < NUM_OF_ALGORITHMS; i++) {
+        if (!strncasecmp(dither_alg, ALGORITHMS[i]->name, strlen(dither_alg))) {
+            found_algorithm = true;
+            algorithm = *ALGORITHMS[i];
+            break;
         }
     }
+
+    if (!found_algorithm) {
+        printf("%s: invalid dithering algorithm '%s'\n", ARGS_BINARY_NAME, dither_alg);
+        return EX_USAGE;
+    }
+
 
 
     char **swap_arg = (char *[]){"-s", "--swap"};
@@ -140,7 +155,7 @@ int main(int argc, char **argv) {
         else {
             printf("ERROR: \"%s\" is not a valid hex colour.\n",
                    argv[i + palette_return.offset]);
-            exit(EX_USAGE);
+            return EX_USAGE;
         }
     }
 
@@ -152,7 +167,7 @@ int main(int argc, char **argv) {
     if (data == NULL) {
         const char *reason = stbi_failure_reason();
         printf("ERROR: Could not load \"%s\":\n%s\n", input_path, reason);
-        exit(EX_NOINPUT);
+        return EX_NOINPUT;
     }
 
     int data_len = width * height * channels;
@@ -302,7 +317,7 @@ int main(int argc, char **argv) {
     }
     else {
         printf("ERROR: Unable to write image to %s.\n", output_path);
-        exit(EX_UNAVAILABLE);
+        return EX_UNAVAILABLE;
     }
 
     stbi_image_free(data);
