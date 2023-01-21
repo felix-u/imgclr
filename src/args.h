@@ -327,7 +327,6 @@ const ARGS_BINARY_POSITIONAL_TYPE positional_type, const size_t positional_cap)
 
     // Immediately show help if binary was expecting positional arguments but got none.
     #ifndef ARGS_HELP_FLAG_DISABLED
-    int help_return = EX_USAGE;
     if ((positional_type == ARGS_POSITIONAL_SINGLE || positional_type == ARGS_POSITIONAL_MULTI) && argc == 1) {
         if (help_flag != NULL) help_flag->is_present = true;
         help_implied = true;
@@ -408,7 +407,6 @@ const ARGS_BINARY_POSITIONAL_TYPE positional_type, const size_t positional_cap)
         // Go up to last character
         for (size_t j = 1; j < arg_len - 1; j++) {
             bool found_match = false;
-            char invalid_short_arg = 0;
             for (size_t k = 0; k < flags_count; k++) {
                 if (arg[j] == flags[k]->name_short) {
                     flags[k]->is_present = true;

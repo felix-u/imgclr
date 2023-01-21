@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 
 #define MAX_OFFSETS 12
 #define NUM_OF_ALGORITHMS 6
@@ -11,7 +12,7 @@ typedef struct {
 
 typedef struct {
     char name[32];
-    int offset_num;
+    size_t offset_num;
     ErrorSet offsets[MAX_OFFSETS];
 } Algorithm;
 
