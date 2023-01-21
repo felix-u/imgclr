@@ -12,7 +12,6 @@
 #include "colour.c"
 #include "dither.c"
 
-
 /* @Feature { stb_image can read PNM but stb_image_write cannot write it. PPM is
               quite simple, so maybe I should implement my own writer.
 } */
@@ -26,23 +25,14 @@
 #include "../libs/stb_image-v2.27/stb_image.h"
 #include "../libs/stb_image_write-v1.16/stb_image_write.h"
 
+
 #define EX_USAGE 64
 #define EX_NOINPUT 66
 #define EX_UNAVAILABLE 69
 
 
-// const char *HELP_TEXT =
-// "    -h, --help                Display this help information and exit.\n"
-// "    -i, --input <FILE>        Supply input file.\n"
-// "    -o, --output <FILE>       Supply output location.\n"
-// "    -d, --dither <STR>        Specify dithering algorithm, or \"none\" to disable\n"
-// "                                  (default is \"floyd-steinberg\").\n"
-// "    -s, --swap                Invert image brightness, preserving hue and\n"
-// "                              saturation.\n"
-// "    -p, --palette <STR>...    Supply palette as whitespace-separated colours.\n";
-
-
 char * extensionFromStr(char *str);
+
 
 int main(int argc, char **argv) {
 
@@ -119,13 +109,13 @@ int main(int argc, char **argv) {
     }
 
 
-    Algorithm algorithm = floyd_steinberg;
-    char *dither_alg = dither_flag.is_present ? dither_flag.opts[0] : "floyd_steinberg";
+    const Algorithm *algorithm = &floyd_steinberg;
+    char *dither_alg = dither_flag.is_present ? dither_flag.opts[0] : "floyd-steinberg";
     bool found_algorithm = false;
     for (usize i = 0; i < NUM_OF_ALGORITHMS; i++) {
         if (!strncasecmp(dither_alg, ALGORITHMS[i]->name, strlen(dither_alg))) {
             found_algorithm = true;
-            algorithm = *ALGORITHMS[i];
+            algorithm = ALGORITHMS[i];
             break;
         }
     }
@@ -136,27 +126,19 @@ int main(int argc, char **argv) {
     }
 
 
-
-    char **swap_arg = (char *[]){"-s", "--swap"};
-    BoolFlagReturn swap = args_isPresent(argc, argv, swap_arg);
-
-
     // Convert palette hex strings to an array of RGB
 
-    int palette_len = palette_return.end - palette_return.offset;
-    RGB palette[palette_len];
+    RGB palette[palette_flag.opts_num];
 
-    for (int i = 0; i < palette_len; i++) {
-        RGBCheck rgb_get = hexStrToRGB(argv[i + palette_return.offset]);
-        if (rgb_get.valid == true) {
-            RGB rgb_put = {rgb_get.r, rgb_get.g, rgb_get.b};
-            palette[i] = rgb_put;
-        }
-        else {
-            printf("ERROR: \"%s\" is not a valid hex colour.\n",
-                   argv[i + palette_return.offset]);
+    for (int i = 0; i < palette_flag.opts_num; i++) {
+        RGBCheck rgb_get = hexStrToRGB(palette_flag.opts[i]);
+        if (!rgb_get.valid) {
+            printf("%s: '%s' is not a valid hex colour\n", ARGS_BINARY_VERSION, palette_flag.opts[i]);
+            args_helpHint();
             return EX_USAGE;
         }
+        RGB rgb_put = {rgb_get.r, rgb_get.g, rgb_get.b};
+        palette[i] = rgb_put;
     }
 
 
@@ -174,7 +156,7 @@ int main(int argc, char **argv) {
 
 
     // Invert brightness, if applicable
-    if (swap.is_present) {
+    if (swap_flag.is_present) {
         for (int i = 0; i < data_len; i += 3) {
 
             int brightness = (data[i + 0] + data[i + 1] + data[i + 2]) / 3;
@@ -230,7 +212,7 @@ int main(int argc, char **argv) {
 
         int min_diff = 999;
         int best_match;
-        for (int j = 0; j < palette_len; j++) {
+        for (int j = 0; j < palette_flag.opts_num; j++) {
             int diff_r = abs(data[i + 0] - palette[j].r);
             int diff_g = abs(data[i + 1] - palette[j].g);
             int diff_b = abs(data[i + 2] - palette[j].b);
