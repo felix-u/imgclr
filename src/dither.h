@@ -1,20 +1,25 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define MAX_OFFSETS 12
-#define NUM_OF_ALGORITHMS 6
+#ifndef DITHER_TYPE
+#define DITHER_TYPE
 
-typedef struct {
-    int x; // x offset
-    int y; // y offset
-    float ratio; // what to multiply error by
-} ErrorSet;
+#define DITHER_ALGORITHM_NUM  6
+#define DITHER_MAX_OFFSET_NUM 12
 
-typedef struct {
-    char name[32];
-    size_t offset_num;
-    ErrorSet offsets[MAX_OFFSETS];
-} Algorithm;
+typedef struct dither_Error {
+    const int32_t x;   // x offset
+    const int32_t y;   // y offset
+    const float ratio; // what to multiply error by
+} dither_Error;
+
+typedef struct dither_Algorithm {
+    const char name[32];
+    const size_t offset_num;
+    const dither_Error offsets[12];
+} dither_Algorithm;
+
+#endif // DITHER_TYPE
 
 
 // Default
@@ -23,7 +28,7 @@ typedef struct {
 // 3 5 1
 // multiplier: 1/16
 
-const Algorithm floyd_steinberg = {
+const dither_Algorithm floyd_steinberg = {
     "floyd-steinberg",
     4,
     {
@@ -38,7 +43,7 @@ const Algorithm floyd_steinberg = {
 // Used to disable dithering without having to add more logic when iterating
 // over every pixel
 
-const Algorithm none = {
+const dither_Algorithm none = {
     "none",
     0,
     {{0, 0, 0}}
@@ -51,7 +56,7 @@ const Algorithm none = {
 //   1
 // multiplier: 1/8
 
-const Algorithm atkinson = {
+const dither_Algorithm atkinson = {
     "atkinson",
     6,
     {
@@ -71,7 +76,7 @@ const Algorithm atkinson = {
 // 1 3 5 3 1
 // multiplier = 1/48
 
-const Algorithm jjn = {
+const dither_Algorithm jjn = {
     "jjn",
     12,
     {
@@ -96,7 +101,7 @@ const Algorithm jjn = {
 // 2 4 8 4 2
 // multiplier = 1/32
 
-const Algorithm burkes = {
+const dither_Algorithm burkes = {
     "burkes",
     7,
     {
@@ -114,7 +119,7 @@ const Algorithm burkes = {
 // Perhaps this should be default? Results are VERY similar to
 // Floyd-Steinberg, and execution speed is slightly faster.
 
-const Algorithm sierra_lite = {
+const dither_Algorithm sierra_lite = {
     "sierra-lite",
     3,
     {
@@ -129,7 +134,7 @@ const Algorithm sierra_lite = {
 // https://en.wikipedia.org/wiki/Ordered_dithering @Feature
 
 
-const Algorithm *ALGORITHMS[NUM_OF_ALGORITHMS] = {
+const dither_Algorithm *DITHER_ALGORITHMS[DITHER_ALGORITHM_NUM] = {
     &floyd_steinberg,
     &none,
     &atkinson,

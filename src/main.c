@@ -10,8 +10,8 @@
 #define CLR_IMPLEMENTATION
 #include "clr.h"
 #include "int_types.h"
-
-#include "dither.c"
+#define DITHER_IMPLEMENTATION
+#include "dither.h"
 
 /* @Feature { stb_image can read PNM but stb_image_write cannot write it. PPM is
               quite simple, so maybe I should implement my own writer.
@@ -110,13 +110,13 @@ int main(int argc, char **argv) {
     }
 
 
-    const Algorithm *algorithm = &floyd_steinberg;
+    const dither_Algorithm *algorithm = &floyd_steinberg;
     char *dither_alg = dither_flag.is_present ? dither_flag.opts[0] : "floyd-steinberg";
     bool found_algorithm = false;
-    for (usize i = 0; i < NUM_OF_ALGORITHMS; i++) {
-        if (!strncasecmp(dither_alg, ALGORITHMS[i]->name, strlen(dither_alg))) {
+    for (usize i = 0; i < DITHER_ALGORITHM_NUM; i++) {
+        if (!strncasecmp(dither_alg, DITHER_ALGORITHMS[i]->name, strlen(dither_alg))) {
             found_algorithm = true;
-            algorithm = ALGORITHMS[i];
+            algorithm = DITHER_ALGORITHMS[i];
             break;
         }
     }
