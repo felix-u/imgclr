@@ -39,7 +39,7 @@ Input                                                | Result (simple): each pix
 With dithering disabled, `imgclr` simply goes through each pixel, choosing the closest match from your input palette.
 Let's retry our example in colour, this time disabling dithering by passing `--dither/-d none`:
 ```sh
-imgclr -i input.jpg -o output.jpg -p 000 fff f00 0f0 00f --dither none
+imgclr input.jpg output.jpg -p 000 fff f00 0f0 00f --dither none
 ```
 Input                                                | Result (simple)
 :---------------------------------------------------:|:---------------------------------------------------------------------------:
@@ -52,8 +52,8 @@ better-looking results. You could experiment with the other algorithms to find y
 #### Dithering algorithms
 
 Multiple dithering algorithms are supported by `imgclr`. The best way to decide on an algorithm is to just *try them!*
-But if that's not enough for you, below are descriptions of each algorithm, including example images. The "baseline"
-speed comparisons compares to running imgclr with dithering disabled and are approximations.
+But if that's not enough for you, below are descriptions of each algorithm, including example images. "Baseline" speed
+is measured by running `imgclr` with dithering disabled. These percentages are approximations.
 
 * **Floyd-Steinberg** (`-d floyd-steinberg`) - 25% slower than baseline
     - Floyd-Steinberg dithering is common in a variety of use cases, popular for its balance of quality and speed. It is
@@ -96,10 +96,10 @@ Notice that the bottom-most line keeps its colour. Usually, red would invert to 
 #### Using Xresources
 
 You may wish to automatically pass in your Xresources theme colours. The `xres.sh` script is included for this very
-purpose: at the top of the script, just set the path to your Xresources file (by default `~/.Xresources`) and the
-path to the `imgclr` binary (by default `./imgclr`), and run the script, passing in the
-same arguments you would use with `imgclr`. The script simply *parses* a file in the Xresources format, which means
-it'll also work on Wayland, in the TTY, or on any operating system with a shell that can run it.
+purpose: at the top of the script, just set the path to your Xresources file (by default `~/.Xresources`) and the path
+to the `imgclr` binary (by default `./imgclr`), and run the script, passing in the same arguments you would use with
+`imgclr`. The script simply *parses* a file in the Xresources format, which means it'll also work on Wayland, in the
+TTY, or on any operating system with a shell that can run it.
 
 
 ### Usage
