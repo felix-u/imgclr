@@ -4,61 +4,21 @@
 
 ![Banner image](examples/planet-volumes/planet-volumes-dither.jpg)
 
-Dual-licensed under [GPL-3.0](./LICENSE-GPL3) or [MIT](./LICENSE-MIT).
+Dual-licensed under [GPL-3.0](./LICENSE-GPL3) or [MIT](./LICENSE-MIT). To get `imgclr`,
+[download the latest release](https://github.com/felix-u/imgclr/releases) or follow the
+[compilation instructions](#building).
 
-### Features
-- [x] Change palette of images
-- [x] Support JPG and PNG (at least)
-- [x] Use dithering to generate smoother results
-- [x] Allow the inversion of image brightness levels (convert dark images to light and vice versa)
+### Summary
+
+`imgclr`:
+
+- Changes the palette of images
+- Supports JPG and PNG (as well as others)
+- Uses dithering for smoother results
+- Enables the inversion of image brightness levels (converting dark images to light and vice versa)
 
 
-### Building
-
-With a C99 compiler such as `gcc` or `clang` available, run `make release` in the project directory. The compiled
-binary will be located at `./imgclr`.
-
-
-### Usage
-
-```
-USAGE:
-    imgclr [OPTIONS] --input <input file> --output <output file> --palette <palette>...
-
-OPTIONS:
-    -h, --help
-            Display this help information and exit.
-
-    -i, --input <FILE>
-            Supply input file.
-
-    -o, --output <FILE>
-            Supply output location.
-
-    -d, --dither <STR>
-            Specify dithering algorithm, or "none" to disable (default is "floyd-steinberg").
-
-    -p, --palette <STR>...
-            Supply palette as whitespace-separated colours.
-
-    -s, --swap
-            Invert image brightness, preserving hue and saturation.
-```
-Note that the `-i`/`--input` and `-o`/`--output` arguments are **required**.
-
-`imgclr` uses [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h), allowing it to support JPG, PNG,
-and BMP.
-
-Palette colours are supplied as hex values with the `-p` or `--palette` flag. For example, you could represent perfect
-red as `#ff0000` or `f00`. Depending on your shell and whether you choose to include hash symbols, they may have to be
-quoted.
-* `#ff0000`
-* `f00`
-
-Here's what an `imglcr` command using black, white, red, green, and blue might look like:
-```sh
-imgclr -i input.jpg -o output.jpg -p 000 fff f00 0f0 00f
-```
+### Examples
 
 Input                                                | Result (dithered)
 :---------------------------------------------------:|:---------------------------------------------------------------------:
@@ -78,11 +38,9 @@ Input                                                | Result (simple): each pix
 
 With dithering disabled, `imgclr` simply goes through each pixel, choosing the closest match from your input palette.
 Let's retry our example in colour, this time disabling dithering by passing `--dither/-d none`:
-
 ```sh
 imgclr -i input.jpg -o output.jpg -p 000 fff f00 0f0 00f --dither none
 ```
-
 Input                                                | Result (simple)
 :---------------------------------------------------:|:---------------------------------------------------------------------------:
 ![Original image](examples/jacek-dylag/original.jpg) | ![Processed image (not dithered)](examples/jacek-dylag/output-nodither.jpg)
@@ -122,7 +80,6 @@ speed comparisons compares to running imgclr with dithering disabled and are app
 * **DITHERING DISABLED** (`-d none`) - baseline
   ![Dithering disabled](examples/algorithms/none.jpg)
 
-
 #### Inverting brightness
 
 The `-s` or `--swap` flag inverts luminance whilst preserving hue and saturation. For example, perfect grey will remain
@@ -144,6 +101,54 @@ path to the `imgclr` binary (by default `./imgclr`), and run the script, passing
 same arguments you would use with `imgclr`. The script simply *parses* a file in the Xresources format, which means
 it'll also work on Wayland, in the TTY, or on any operating system with a shell that can run it.
 
+
+### Usage
+```
+imgclr <OPTION>... <FILE>...
+Options marked with '*' are mandatory.
+
+OPTIONS:
+  -d, --dither <STR>
+	specify dithering algorithm, or 'none' to disable. Default
+	is 'floyd-steinberg'. Other options are: 'atkinson', 'jjn',
+	'burkes', and 'sierra-lite'
+* -p, --palette <STR>...
+	supply palette as whitespace-separated hex colours
+  -s, --swap
+	invert image brightness, preserving hue and saturation
+  -h, --help
+	display this help and exit
+      --version
+	output version information and exit
+```
+
+
+### Building
+
+These dependencies are likely already present on any UNIX-like OS:
+
+- `git`
+- a C99 compiler, such as `gcc` or `clang`
+- a `make` implementation, such as `gnumake`
+
+Using `git`, clone the source code and navigate to the desired release, where `X.X` is the version number. Building
+from the `master` branch is highly discouraged.
+```sh
+$ git clone https://github.com/felix-u/imgclr
+$ git checkout vX.X
+```
+
+To compile an optimised binary at `./imgclr` relative to this repository's root directory, run:
+```sh
+$ make release
+```
+
+To compile this binary *and* copy it to `~/.local/bin`, run:
+```sh
+$ make install
+```
+
+
 ### Licence
 
 imgclr is licensed under the terms of the MIT License, or alternatively under the terms of the General Public License
@@ -156,4 +161,3 @@ The terms of each licence can be found in the root directory of the imgclr sourc
 - GPL3 Licence: [LICENSE-GPL3](./LICENSE-GPL3)
 
 `SPDX-License-Identifier: MIT OR GPL-3.0-or-later`
-

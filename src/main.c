@@ -5,7 +5,7 @@
 
 #define ARGS_IMPLEMENTATION
 #define ARGS_BINARY_NAME "imgclr"
-#define ARGS_BINARY_VERSION "0.1-dev"
+#define ARGS_BINARY_VERSION "0.1"
 #include "args.h"
 #define CLR_IMPLEMENTATION
 #include "clr.h"
