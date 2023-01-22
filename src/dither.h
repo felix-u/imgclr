@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+
 #ifndef DITHER_TYPE
 #define DITHER_TYPE
 
@@ -22,12 +23,12 @@ typedef struct dither_Algorithm {
 #endif // DITHER_TYPE
 
 
-// Default
+#ifdef DITHER_IMPLEMENTATION
+
 // https://en.wikipedia.org/wiki/Floyd–Steinberg_dithering
 //   * 7
 // 3 5 1
 // multiplier: 1/16
-
 const dither_Algorithm floyd_steinberg = {
     "floyd-steinberg",
     4,
@@ -40,9 +41,7 @@ const dither_Algorithm floyd_steinberg = {
 };
 
 
-// Used to disable dithering without having to add more logic when iterating
-// over every pixel
-
+// Used to disable dithering without having to add more logic to handle the disabled case.
 const dither_Algorithm none = {
     "none",
     0,
@@ -55,7 +54,6 @@ const dither_Algorithm none = {
 // 1 1 1
 //   1
 // multiplier: 1/8
-
 const dither_Algorithm atkinson = {
     "atkinson",
     6,
@@ -75,7 +73,6 @@ const dither_Algorithm atkinson = {
 // 3 5 7 5 3
 // 1 3 5 3 1
 // multiplier = 1/48
-
 const dither_Algorithm jjn = {
     "jjn",
     12,
@@ -100,7 +97,6 @@ const dither_Algorithm jjn = {
 //     * 8 4
 // 2 4 8 4 2
 // multiplier = 1/32
-
 const dither_Algorithm burkes = {
     "burkes",
     7,
@@ -116,9 +112,7 @@ const dither_Algorithm burkes = {
 };
 
 
-// Perhaps this should be default? Results are VERY similar to
-// Floyd-Steinberg, and execution speed is slightly faster.
-
+// Results are VERY similar to Floyd-Steinberg, and execution speed is slightly faster.
 const dither_Algorithm sierra_lite = {
     "sierra-lite",
     3,
@@ -129,11 +123,6 @@ const dither_Algorithm sierra_lite = {
     }
 };
 
-
-// @Feature Implement ordered dithering, maybe?
-// https://en.wikipedia.org/wiki/Ordered_dithering @Feature
-
-
 const dither_Algorithm *DITHER_ALGORITHMS[DITHER_ALGORITHM_NUM] = {
     &floyd_steinberg,
     &none,
@@ -142,3 +131,5 @@ const dither_Algorithm *DITHER_ALGORITHMS[DITHER_ALGORITHM_NUM] = {
     &burkes,
     &sierra_lite
 };
+
+#endif // DITHER_IMPLEMENTATION
