@@ -247,34 +247,31 @@ int main(int argc, char **argv) {
             isize target_x = current_x + algorithm->offsets[j].x;
             isize target_y = current_y + algorithm->offsets[j].y;
 
-            // @Speed We have the information to avoid doing bounds checking
+            // @Speed { We have the information to avoid doing bounds checking
             // on the majority of the image, so this is low-hanging fruit. But
-            // this is probably not worth it (see NOTE above). @Speed
+            // this is probably not worth it (see NOTE above). }
 
-            if (target_x >= 0 && target_x < width &&
-                target_y >= 0 && target_y < height)
-            {
-                usize target_index = channels * (target_y * width + target_x);
-                i16 new_r =
-                    (i16)data[target_index + 0] +
-                    (float)quant_error[0] * algorithm->offsets[j].ratio;
-                i16 new_g =
-                    (i16)data[target_index + 1] +
-                    (float)quant_error[1] * algorithm->offsets[j].ratio;
-                i16 new_b =
-                    (i16)data[target_index + 2] +
-                    (float)quant_error[2] * algorithm->offsets[j].ratio;
+            if (target_x < 0 || target_x >= width || target_y < 0 || target_y >= height) continue;
 
-                // Clamp to 0 - 255
-                if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
-                if (new_g < 0) new_g = 0; else if (new_g > 255) new_g = 255;
-                if (new_b < 0) new_b = 0; else if (new_b > 255) new_b = 255;
+            usize target_index = channels * (target_y * width + target_x);
+            i16 new_r =
+                (i16)data[target_index + 0] +
+                (float)quant_error[0] * algorithm->offsets[j].ratio;
+            i16 new_g =
+                (i16)data[target_index + 1] +
+                (float)quant_error[1] * algorithm->offsets[j].ratio;
+            i16 new_b =
+                (i16)data[target_index + 2] +
+                (float)quant_error[2] * algorithm->offsets[j].ratio;
 
-                data[target_index + 0] = (u8)new_r;
-                data[target_index + 1] = (u8)new_g;
-                data[target_index + 2] = (u8)new_b;
+            // Clamp to 0 - 255
+            if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
+            if (new_g < 0) new_g = 0; else if (new_g > 255) new_g = 255;
+            if (new_b < 0) new_b = 0; else if (new_b > 255) new_b = 255;
 
-            }
+            data[target_index + 0] = (u8)new_r;
+            data[target_index + 1] = (u8)new_g;
+            data[target_index + 2] = (u8)new_b;
 
         }
 
