@@ -1,4 +1,4 @@
-VERSION=0.1
+VERSION=0.2-dev
 
 CFLAGS=-std=c99 -pedantic -Wshadow -Wstrict-aliasing -Wstrict-overflow \
 	   -Wextra -Wall -Wno-unused-but-set-variable
@@ -9,7 +9,7 @@ LIBS=-lm
 imgclr: src/*
 	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(LIBS) -o imgclr src/main.c
 
-release: src/
+release: src/*
 	$(CC) $(CFLAGS) $(RELEASEFLAGS) $(LIBS) -o imgclr src/main.c -march=native
 
 cross: src/*

@@ -5,7 +5,7 @@
 
 #define ARGS_IMPLEMENTATION
 #define ARGS_BINARY_NAME "imgclr"
-#define ARGS_BINARY_VERSION "0.1"
+#define ARGS_BINARY_VERSION "0.2-dev"
 #include "args.h"
 #define CLR_IMPLEMENTATION
 #include "clr.h"
@@ -297,6 +297,7 @@ int main(int argc, char **argv) {
 
     if (!write_success) {
         printf("%s: unable to write image to '%s'\n", ARGS_BINARY_NAME, output_path);
+        stbi_image_free(data);
         return EX_UNAVAILABLE;
     }
 
