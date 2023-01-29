@@ -7,7 +7,7 @@ RELEASEFLAGS=-O3 -s
 LIBS=-lm
 
 imgclr: src/*
-	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(LIBS) -o imgclr src/main.c
+	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(LIBS) -o imgclr src/main.c -pg
 
 release: src/*
 	$(CC) $(CFLAGS) $(RELEASEFLAGS) $(LIBS) -o imgclr src/main.c -march=native

@@ -5,6 +5,7 @@ imgclr
 *.ppm
 *.org
 *.a
+*.out
 log
 !examples/*/*.jpg
 target/
