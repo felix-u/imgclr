@@ -41,6 +41,8 @@ pub fn build(b: *std.Build) !void {
     });
     // exe.addCSourceFile("src/main.c", &cc_shared_flags);
     exe.linkLibC();
+    exe.addIncludePath("src/");
+    exe.addIncludePath("libs/");
     exe.install();
 
 
@@ -53,6 +55,8 @@ pub fn build(b: *std.Build) !void {
     });
     // debug_exe.addCSourceFile("src/main.c", &cc_debug_flags);
     debug_exe.linkLibC();
+    debug_exe.addIncludePath("src/");
+    debug_exe.addIncludePath("libs/");
     debug_step.dependOn(&b.addInstallArtifact(debug_exe).step);
 
     const run_cmd = debug_exe.run();
@@ -73,6 +77,8 @@ pub fn build(b: *std.Build) !void {
     });
     // release_exe.addCSourceFile("src/main.c", &cc_release_flags);
     release_exe.linkLibC();
+    release_exe.addIncludePath("src/");
+    release_exe.addIncludePath("libs/");
     release_exe.disable_sanitize_c = true;
     release_exe.strip = true;
     release_step.dependOn(&b.addInstallArtifact(release_exe).step);
@@ -99,6 +105,8 @@ pub fn build(b: *std.Build) !void {
             cross_exe.disable_sanitize_c = true;
             cross_exe.strip = true;
             cross_exe.linkLibC();
+            cross_exe.addIncludePath("src/");
+            cross_exe.addIncludePath("libs/");
             cross_step.dependOn(&b.addInstallArtifact(cross_exe).step);
         }
     }
