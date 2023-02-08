@@ -1,9 +1,4 @@
-const std = @import("std");
 const c = @cImport({
-    @cDefine("ARGS_IMPLEMENTATION", "");
-    @cDefine("ARGS_BINARY_NAME", "\"imgclr\"");
-    @cDefine("ARGS_BINARY_VERSION", "\"0.2-dev\"");
-    @cInclude("args.h");
     @cDefine("CLR_IMPLEMENATION", "");
     @cInclude("clr.h");
     // Issues with translate-c, but I was going to rewrite this anyway.
@@ -19,24 +14,42 @@ const c = @cImport({
     @cInclude("stb_image-v2.27/stb_image.h");
     @cInclude("stb_image_write-v1.16/stb_image_write.h");
 });
+const clap = @import("clap");
+const std = @import("std");
+
+const debug = std.debug;
+
 
 pub fn main() !void {
 
-    var dither_flag = c.args_Flag {
-        .name_short = 'd',
-        .name_long = "dither",
-        .help_text = "specify dithering algorithm, or 'none' to disable. Default\n" ++
-                     "is 'floyd-steinberg'. Other options are: 'atkinson', 'jjn',\n" ++
-                     "'burkes', and 'sierra-lite'",
-        .required = false,
-        .is_present = false,
-        .opts = null,
-        .opts_num = 0,
-        .type = c.ARGS_MULTI_OPT,
-        .expects = c.ARGS_EXPECTS_STRING,
-    };
-    _ = dither_flag;
+    const params = comptime clap.parseParamsComptime(
+        \\-d, --dither <str>        specify dithering algorithm
+        \\-i, --invert              invert image brightness, preserving hue and saturation
+        \\-p, --palette <str>...    supply palette in hex form
+        \\-h, --help                display this help and exit
+        \\    --version             display version information and exit
+        \\<str>...
+        \\
+    );
 
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    var diag = clap.Diagnostic{};
+    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+        .diagnostic = &diag,
+    }) catch |err| {
+        diag.report(std.io.getStdErr().writer(), err) catch {};
+        return err;
+    };
+    defer res.deinit();
+
+    if (res.args.help) {
+        try clap.usage(std.io.getStdErr().writer(), clap.Help, &params);
+        debug.print("\n", .{});
+        return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
+    }
+    if (res.args.version) {
+        debug.print("imgclr 0.2-dev\n", .{});
+        return;
+    }
+
 }
 
