@@ -9,37 +9,36 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
 
-    // const cc_shared_flags = [_][]const u8 {
-    //     "-std=c99",
-    //     "-Wall",
-    //     "-Wextra",
-    //     "-pedantic",
-    //     "-Wshadow",
-    //     "-Wstrict-overflow",
-    //     "-Wstrict-aliasing",
-    //     // libs
-    //     // "-lm",
-    // };
-    // const cc_debug_flags = cc_shared_flags ++ .{
-    //     "-g",
-    //     "-Og",
-    //     "-ggdb",
-    // };
-    // const cc_release_flags = cc_shared_flags ++ .{
-    //     "-O3",
-    //     "-s",
-    //     "-static",
-    //     "-march=native",
-    // };
+    const cc_shared_flags = [_][]const u8 {
+        "-std=c99",
+        "-Wall",
+        "-Wextra",
+        "-pedantic",
+        "-Wshadow",
+        "-Wstrict-overflow",
+        "-Wstrict-aliasing",
+        // libs
+        // "-lm",
+    };
+    const cc_debug_flags = cc_shared_flags ++ .{
+        "-g",
+        "-Og",
+        "-ggdb",
+    };
+    const cc_release_flags = cc_shared_flags ++ .{
+        "-O3",
+        "-s",
+        "-static",
+        "-march=native",
+    };
 
 
     const exe = b.addExecutable(.{
         .name = exe_name,
-        .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
     });
-    // exe.addCSourceFile("src/main.c", &cc_shared_flags);
+    exe.addCSourceFile("src/main.c", &cc_shared_flags);
     exe.linkLibC();
     exe.addIncludePath("src/");
     exe.addIncludePath("libs/");
@@ -49,11 +48,10 @@ pub fn build(b: *std.Build) !void {
     const debug_step = b.step("debug", "build debug exe");
     const debug_exe = b.addExecutable(.{
         .name = exe_name,
-        .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = .Debug,
     });
-    // debug_exe.addCSourceFile("src/main.c", &cc_debug_flags);
+    debug_exe.addCSourceFile("src/main.c", &cc_debug_flags);
     debug_exe.linkLibC();
     debug_exe.addIncludePath("src/");
     debug_exe.addIncludePath("libs/");
@@ -71,11 +69,10 @@ pub fn build(b: *std.Build) !void {
     const release_step = b.step("release", "build release exe");
     const release_exe = b.addExecutable(.{
         .name = exe_name,
-        .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = .ReleaseFast,
     });
-    // release_exe.addCSourceFile("src/main.c", &cc_release_flags);
+    release_exe.addCSourceFile("src/main.c", &cc_release_flags);
     release_exe.linkLibC();
     release_exe.addIncludePath("src/");
     release_exe.addIncludePath("libs/");
@@ -97,11 +94,10 @@ pub fn build(b: *std.Build) !void {
             const cross_target = std.zig.CrossTarget.parse(.{ .arch_os_abi = triple }) catch unreachable;
             const cross_exe = b.addExecutable(.{
                 .name = b.fmt("{s}-v{s}-{s}", .{exe_name, exe_version, triple}),
-                .root_source_file = .{ .path = "src/main.zig" },
                 .target = cross_target,
                 .optimize = .ReleaseSafe,
             });
-            // cross_exe.addCSourceFile("src/main.c", &(cc_shared_flags ++ .{ "-static" }));
+            cross_exe.addCSourceFile("src/main.c", &(cc_shared_flags ++ .{ "-static" }));
             cross_exe.disable_sanitize_c = true;
             cross_exe.strip = true;
             cross_exe.linkLibC();
