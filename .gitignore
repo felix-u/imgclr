@@ -14,5 +14,6 @@ target/
 # zig stuff
 zig-cache/
 zig-out/
+zig-clap/
 
 release/
