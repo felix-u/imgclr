@@ -12,29 +12,6 @@ pub fn build(b: *std.Build) !void {
         .source_file = .{ .path = "zig-clap/clap.zig" }
     });
 
-    // const cc_shared_flags = [_][]const u8 {
-    //     "-std=c99",
-    //     "-Wall",
-    //     "-Wextra",
-    //     "-pedantic",
-    //     "-Wshadow",
-    //     "-Wstrict-overflow",
-    //     "-Wstrict-aliasing",
-    //     // libs
-    //     // "-lm",
-    // };
-    // const cc_debug_flags = cc_shared_flags ++ .{
-    //     "-g",
-    //     "-Og",
-    //     "-ggdb",
-    // };
-    // const cc_release_flags = cc_shared_flags ++ .{
-    //     "-O3",
-    //     "-s",
-    //     "-static",
-    //     "-march=native",
-    // };
-
 
     const exe = b.addExecutable(.{
         .name = exe_name,
@@ -42,8 +19,6 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    // exe.addCSourceFile("src/main.c", &cc_shared_flags);
-    exe.linkLibC();
     exe.addModule("clap", zig_clap_module);
     exe.addIncludePath("src/");
     exe.addIncludePath("libs/");
@@ -57,8 +32,6 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = .Debug,
     });
-    // debug_exe.addCSourceFile("src/main.c", &cc_debug_flags);
-    debug_exe.linkLibC();
     debug_exe.addModule("clap", zig_clap_module);
     debug_exe.addIncludePath("src/");
     debug_exe.addIncludePath("libs/");
@@ -80,13 +53,11 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = .ReleaseFast,
     });
-    // release_exe.addCSourceFile("src/main.c", &cc_release_flags);
-    release_exe.linkLibC();
     release_exe.addModule("clap", zig_clap_module);
     release_exe.addIncludePath("src/");
     release_exe.addIncludePath("libs/");
-    release_exe.disable_sanitize_c = true;
     release_exe.strip = true;
+    release_exe.linkage = .static;
     release_step.dependOn(&b.addInstallArtifact(release_exe).step);
 
 
@@ -107,10 +78,8 @@ pub fn build(b: *std.Build) !void {
                 .target = cross_target,
                 .optimize = .ReleaseSafe,
             });
-            // cross_exe.addCSourceFile("src/main.c", &(cc_shared_flags ++ .{ "-static" }));
-            cross_exe.disable_sanitize_c = true;
             cross_exe.strip = true;
-            cross_exe.linkLibC();
+            cross_exe.linkage = .static;
             cross_exe.addModule("clap", zig_clap_module);
             cross_exe.addIncludePath("src/");
             cross_exe.addIncludePath("libs/");
