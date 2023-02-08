@@ -77,21 +77,21 @@
 *           args_Flag boolean_flag = {
 *               'b', "boolean",
 *               "an example boolean flag",
-*               ARGS_OPTIONAL,
+*               false,
 *               false, NULL, 0,
 *               ARGS_BOOLEAN, ARGS_EXPECTS_NONE
 *           };
 *           args_Flag single_flag = {
 *               's', "single",
 *               "an example of a flag which takes one argument",
-*               ARGS_REQUIRED,
+*               true,
 *               false, NULL, 0,
 *               ARGS_SINGLE_OPT, ARGS_EXPECTS_STRING
 *           };
 *           args_Flag multi_flag = {
 *               'm', "multi",
 *               "an example of a flag which takes multiple arguments",
-*               ARGS_REQUIRED,
+*               true,
 *               false, NULL, 0,
 *               ARGS_MULTI_OPT, ARGS_EXPECTS_FILE
 *           };
@@ -149,11 +149,6 @@ typedef enum ARGS_FLAG_EXPECTS {
     ARGS_EXPECTS_STRING,
     ARGS_EXPECTS_FILE,
 } ARGS_FLAG_EXPECTS;
-
-typedef enum ARGS_FLAG_REQUIRED {
-    ARGS_REQUIRED = true,
-    ARGS_OPTIONAL = false
-} ARGS_FLAG_REQUIRED;
 
 typedef struct args_Flag {
     const char name_short;
@@ -234,7 +229,7 @@ const ARGS_BINARY_POSITIONAL_TYPE positional_type, const size_t positional_cap);
         ARGS_HELP_FLAG_NAME_SHORT,              \
         ARGS_HELP_FLAG_NAME_LONG,               \
         ARGS_HELP_FLAG_HELP_TEXT,               \
-        ARGS_OPTIONAL,                          \
+        false,                          \
         false, NULL, 0,                         \
         ARGS_BOOLEAN, ARGS_EXPECTS_NONE         \
     }
@@ -263,7 +258,7 @@ const ARGS_BINARY_POSITIONAL_TYPE positional_type, const size_t positional_cap);
         ARGS_VERSION_FLAG_NAME_SHORT,              \
         ARGS_VERSION_FLAG_NAME_LONG,               \
         ARGS_VERSION_FLAG_HELP_TEXT,               \
-        ARGS_OPTIONAL,                             \
+        false,                                     \
         false, NULL, 0,                            \
         ARGS_BOOLEAN, ARGS_EXPECTS_NONE            \
     }
@@ -317,7 +312,7 @@ const ARGS_BINARY_POSITIONAL_TYPE positional_type, const size_t positional_cap)
     bool any_mandatory = false;
     for (size_t i = 0; i < flags_count; i++) {
         assert(flags[i]->name_long != NULL && "One flag has a NULL name_long");
-        if (flags[i]->required == ARGS_REQUIRED) any_mandatory = true;
+        if (flags[i]->required == true) any_mandatory = true;
     }
 
     #ifndef ARGS_HELP_FLAG_DISABLED

@@ -38,27 +38,30 @@ char *extensionFromStr(char *str);
 int main(int argc, char **argv) {
 
     args_Flag dither_flag = {
-        'd', "dither",
-        "specify dithering algorithm, or 'none' to disable. Default\n"
-        "is 'floyd-steinberg'. Other options are: 'atkinson', 'jjn',\n"
-        "'burkes', and 'sierra-lite'",
-        ARGS_OPTIONAL,
-        false, NULL, 0,
-        ARGS_SINGLE_OPT, ARGS_EXPECTS_STRING
+        .name_short = 'd',
+        .name_long = "dither",
+        .help_text = "specify dithering algorithm, or 'none' to disable. Default\n"
+                     "is 'floyd-steinberg'. Other options are: 'atkinson', 'jjn',\n"
+                     "'burkes', and 'sierra-lite'",
+        .required = false,
+        .type = ARGS_SINGLE_OPT,
+        .expects = ARGS_EXPECTS_STRING,
     };
     args_Flag palette_flag = {
-        'p', "palette",
-        "supply palette as whitespace-separated hex colours",
-        ARGS_REQUIRED,
-        false, NULL, 0,
-        ARGS_MULTI_OPT, ARGS_EXPECTS_STRING
+        .name_short = 'p',
+        .name_long = "palette",
+        .help_text = "supply palette as whitespace-separated hex colours",
+        .required = true,
+        .type = ARGS_MULTI_OPT,
+        .expects = ARGS_EXPECTS_STRING,
     };
     args_Flag swap_flag = {
-        's', "swap",
-        "invert image brightness, preserving hue and saturation",
-        ARGS_OPTIONAL,
-        false, NULL, 0,
-        ARGS_BOOLEAN, ARGS_EXPECTS_NONE
+        .name_short = 's',
+        .name_long = "swap",
+        .help_text = "invert image brightness, preserving hue and saturation",
+        .required = false,
+        .type = ARGS_BOOLEAN,
+        .expects = ARGS_EXPECTS_NONE,
     };
 
     args_Flag *flags[] = {
