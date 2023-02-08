@@ -55,6 +55,7 @@ pub fn build(b: *std.Build) !void {
     debug_exe.linkLibC();
     debug_exe.addIncludePath("src/");
     debug_exe.addIncludePath("libs/");
+    debug_exe.disable_sanitize_c = true;
     debug_step.dependOn(&b.addInstallArtifact(debug_exe).step);
 
     const run_cmd = debug_exe.run();
