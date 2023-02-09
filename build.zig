@@ -12,6 +12,14 @@ pub fn build(b: *std.Build) !void {
         .source_file = .{ .path = "zig-clap/clap.zig" }
     });
 
+    // const stb_image = b.addStaticLibrary(.{
+    //     .name = "stb_image",
+    //     .root_source_file = .{ .path = "libs/stb_image.c" },
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // stb_image.linkLibC();
+
 
     const exe = b.addExecutable(.{
         .name = exe_name,
@@ -19,6 +27,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+    // exe.linkLibrary(stb_image);
     exe.addModule("clap", zig_clap_module);
     exe.addIncludePath("src/");
     exe.addIncludePath("libs/");

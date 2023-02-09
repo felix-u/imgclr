@@ -1,3 +1,12 @@
+// const c = @cImport({
+//     @cDefine ( "STBI_ONLY_JPEG", "" );
+//     @cDefine ( "STBI_ONLY_PNG", "" );
+//     @cDefine ( "STBI_ONLY_BMP", "" );
+//     @cDefine ( "STBI_ONLY_PNM", "" );
+//     @cDefine ( "STBI_FAILURE_USERMSG", "" );
+//     @cInclude ("stb_image-v2.27/stb_image.h");
+//     @cInclude ("stb_image_write-v1.16/stb_image_write.h");
+// });
 const clap = @import("clap"); // @Enhancement { Replace clap };
 const std = @import("std");
 
@@ -54,6 +63,14 @@ pub fn main() !void {
         std.os.exit(@enumToInt(errors.noinput));
     }
 
+    // var width: i32 = undefined;
+    // var height: i32 = undefined;
+    // var channels: i32 = undefined;
+    // var data: [*]u8 = c.stbi_load(res.positionals[0].ptr, &width, &height, &channels, 3) orelse {
+    //     print("{s}: could not load image '{s}'\n", .{binary_name, res.positionals[0]});
+    //     std.os.exit(@enumToInt(errors.noinput));
+    // };
+    // defer c.stbi_image_free(data);
 
     print("Loaded image {s}\n", .{res.positionals[0]});
 
