@@ -9,9 +9,9 @@
 #define DITHER_MAX_OFFSET_NUM 12
 
 typedef struct dither_Error {
-    const int32_t x;   // x offset
-    const int32_t y;   // y offset
-    const float ratio; // what to multiply error by
+    const int8_t x;   // x offset
+    const int8_t y;   // y offset
+    const double ratio; // what to multiply error by
 } dither_Error;
 
 typedef struct dither_Algorithm {

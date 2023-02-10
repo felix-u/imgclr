@@ -229,13 +229,13 @@ int main(int argc, char **argv) {
             usize target_index = channels * (target_y * width + target_x);
             i16 new_r =
                 (i16)data[target_index + 0] +
-                (float)quant_error[0] * algorithm->offsets[j].ratio;
+                (double)quant_error[0] * algorithm->offsets[j].ratio;
             i16 new_g =
                 (i16)data[target_index + 1] +
-                (float)quant_error[1] * algorithm->offsets[j].ratio;
+                (double)quant_error[1] * algorithm->offsets[j].ratio;
             i16 new_b =
                 (i16)data[target_index + 2] +
-                (float)quant_error[2] * algorithm->offsets[j].ratio;
+                (double)quant_error[2] * algorithm->offsets[j].ratio;
 
             // Clamp to 0 - 255
             if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
