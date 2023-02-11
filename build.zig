@@ -67,7 +67,7 @@ pub fn build(b: *std.Build) !void {
     release_exe.addIncludePath("src/");
     release_exe.addIncludePath("libs/");
     release_exe.strip = true;
-    release_exe.linkage = .static;
+    // release_exe.linkage = .static;
     release_step.dependOn(&b.addInstallArtifact(release_exe).step);
 
 
