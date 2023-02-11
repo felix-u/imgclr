@@ -99,41 +99,19 @@ pub fn main() !void {
     }
 
     // Invert brightness, if applicable
-    // @Fixme { Very bright areas stay bright. (???) }
     if (res.args.invert) {
         var idx: usize = 0;
         while (idx < image.data.len) : (idx += image.num_components) {
-            // var row = (idx / 3 / image.width) + 1;
-            // var col = (idx / 3 % image.width) + 1;
-            // print("{}x{}: {} {} {}\n", .{col, row, image.data[idx + 0], image.data[idx + 1], image.data[idx + 2]});
-            var brightness: i16 = (image.data[idx + 0] +| image.data[idx + 1] +| image.data[idx + 2]) / 3;
-            var r_relative: i16 = image.data[idx + 0] - brightness;
-            var g_relative: i16 = image.data[idx + 1] - brightness;
-            var b_relative: i16 = image.data[idx + 2] - brightness;
-            var r_new: i16 = 255 - brightness + r_relative;
-            var g_new: i16 = 255 - brightness + g_relative;
-            var b_new: i16 = 255 - brightness + b_relative;
-            if (r_new > 255) {
-                r_new = 255;
-            }
-            else if (r_new < 0) {
-                r_new = 0;
-            }
-            if (g_new > 255) {
-                g_new = 255;
-            }
-            else if (g_new < 0) {
-                g_new = 0;
-            }
-            if (b_new > 255) {
-                b_new = 255;
-            }
-            else if (b_new < 0) {
-                b_new = 0;
-            }
-            image.data[idx + 0] = @intCast(u8, r_new);
-            image.data[idx + 1] = @intCast(u8, g_new);
-            image.data[idx + 2] = @intCast(u8, b_new);
+            const r = image.data[idx + 0];
+            const g = image.data[idx + 1];
+            const b = image.data[idx + 2];
+            const brightness: u8 = @intCast(u8, @divFloor(@as(i16, r) + @as(i16, g) + @as(i16, b), 3));
+            const r_rel: i16 = @as(i16, r) - brightness;
+            const g_rel: i16 = @as(i16, g) - brightness;
+            const b_rel: i16 = @as(i16, b) - brightness;
+            image.data[idx + 0] = std.math.lossyCast(u8, 255 - brightness +| r_rel);
+            image.data[idx + 1] = std.math.lossyCast(u8, 255 - brightness +| g_rel);
+            image.data[idx + 2] = std.math.lossyCast(u8, 255 - brightness +| b_rel);
         }
     }
 
