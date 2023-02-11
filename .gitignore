@@ -14,6 +14,9 @@ target/
 # zig stuff
 zig-cache/
 zig-out/
-zig-clap/
+
+libs/zstbi/*
+!libs/zstbi/LICENSE
+libs/zig-clap/*
 
 release/

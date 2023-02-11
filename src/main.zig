@@ -7,6 +7,7 @@
 //     @cInclude ("stb_image-v2.27/stb_image.h");
 //     @cInclude ("stb_image_write-v1.16/stb_image_write.h");
 // });
+const zstbi = @import("zstbi");
 const clap = @import("clap"); // @Enhancement { Replace clap };
 const std = @import("std");
 
@@ -63,6 +64,17 @@ pub fn main() !void {
         std.os.exit(@enumToInt(errors.noinput));
     }
 
+    const infile = @ptrCast([:0]const u8, res.positionals[0]);
+
+    zstbi.init(std.heap.page_allocator);
+    defer zstbi.deinit();
+
+    const channels = 3;
+    var image = try zstbi.Image.init(infile, channels);
+    defer image.deinit();
+
+    print("width: {}\theight:{}\n", .{image.width, image.height});
+
     // var width: i32 = undefined;
     // var height: i32 = undefined;
     // var channels: i32 = undefined;
@@ -72,7 +84,7 @@ pub fn main() !void {
     // };
     // defer c.stbi_image_free(data);
 
-    print("Loaded image {s}\n", .{res.positionals[0]});
+    print("Loaded image {s}\n", .{infile});
 
 }
 

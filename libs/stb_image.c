@@ -1,9 +1,0 @@
-#define STBI_ONLY_JPEG
-#define STBI_ONLY_PNG
-#define STBI_ONLY_BMP
-#define STBI_ONLY_PNM
-#define STBI_IMAGE_IMPLEMENTATION
-#define STBI_IMAGE_WRITE_IMPLEMENTATION
-#define STBI_FAILURE_USERMSG
-#include "stb_image-v2.27/stb_image.h"
-#include "stb_image_write-v1.16/stb_image_write.h"

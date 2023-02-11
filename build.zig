@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const zstbi = @import("libs/zstbi/build.zig");
+
 pub fn build(b: *std.Build) !void {
 
     const exe_name = "imgclr";
@@ -9,7 +11,7 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
     const zig_clap_module = b.createModule(.{
-        .source_file = .{ .path = "zig-clap/clap.zig" }
+        .source_file = .{ .path = "libs/zig-clap/clap.zig" }
     });
 
     // const stb_image = b.addStaticLibrary(.{
@@ -20,6 +22,8 @@ pub fn build(b: *std.Build) !void {
     // });
     // stb_image.linkLibC();
 
+    const zstbi_pkg = zstbi.package(b, .{});
+
 
     const exe = b.addExecutable(.{
         .name = exe_name,
@@ -27,8 +31,9 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    // exe.linkLibrary(stb_image);
     exe.addModule("clap", zig_clap_module);
+    exe.addModule("zstbi", zstbi_pkg.module);
+    zstbi.link(exe);
     exe.addIncludePath("src/");
     exe.addIncludePath("libs/");
     exe.install();
@@ -42,6 +47,8 @@ pub fn build(b: *std.Build) !void {
         .optimize = .Debug,
     });
     debug_exe.addModule("clap", zig_clap_module);
+    debug_exe.addModule("zstbi", zstbi_pkg.module);
+    zstbi.link(debug_exe);
     debug_exe.addIncludePath("src/");
     debug_exe.addIncludePath("libs/");
     debug_step.dependOn(&b.addInstallArtifact(debug_exe).step);
@@ -63,6 +70,8 @@ pub fn build(b: *std.Build) !void {
         .optimize = .ReleaseFast,
     });
     release_exe.addModule("clap", zig_clap_module);
+    release_exe.addModule("zstbi", zstbi_pkg.module);
+    zstbi.link(release_exe);
     release_exe.addIncludePath("src/");
     release_exe.addIncludePath("libs/");
     release_exe.strip = true;
@@ -90,6 +99,8 @@ pub fn build(b: *std.Build) !void {
             cross_exe.strip = true;
             cross_exe.linkage = .static;
             cross_exe.addModule("clap", zig_clap_module);
+            cross_exe.addModule("zstbi", zstbi_pkg.module);
+            zstbi.link(cross_exe);
             cross_exe.addIncludePath("src/");
             cross_exe.addIncludePath("libs/");
             cross_step.dependOn(&b.addInstallArtifact(cross_exe).step);
