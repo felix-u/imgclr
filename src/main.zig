@@ -99,6 +99,7 @@ pub fn main() !void {
     }
 
     // Invert brightness, if applicable
+    print("Start\n", .{}); // DEBUG
     if (res.args.invert) {
         var idx: usize = 0;
         while (idx < image.data.len) : (idx += image.num_components) {
@@ -114,6 +115,7 @@ pub fn main() !void {
             image.data[idx + 2] = std.math.lossyCast(u8, 255 - brightness +| b_rel);
         }
     }
+    print("End\n", .{}); // DEBUG
 
     // Write to file
     // @Missing { Handle format - don't just use PNG no matter what }
