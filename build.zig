@@ -22,7 +22,7 @@ pub fn build(b: *std.Build) !void {
     // });
     // stb_image.linkLibC();
 
-    const zstbi_pkg = zstbi.package(b, .{});
+    const zstbi_pkg = zstbi.Package.build(b, .{}, optimize, .{});
 
 
     const exe = b.addExecutable(.{
@@ -32,8 +32,8 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     exe.addModule("clap", zig_clap_module);
-    exe.addModule("zstbi", zstbi_pkg.module);
-    zstbi.link(exe);
+    exe.addModule("zstbi", zstbi_pkg.zstbi);
+    zstbi_pkg.link(exe);
     exe.addIncludePath("src/");
     exe.addIncludePath("libs/");
     exe.install();
@@ -47,8 +47,8 @@ pub fn build(b: *std.Build) !void {
         .optimize = .Debug,
     });
     debug_exe.addModule("clap", zig_clap_module);
-    debug_exe.addModule("zstbi", zstbi_pkg.module);
-    zstbi.link(debug_exe);
+    debug_exe.addModule("zstbi", zstbi_pkg.zstbi);
+    zstbi_pkg.link(debug_exe);
     debug_exe.addIncludePath("src/");
     debug_exe.addIncludePath("libs/");
     debug_step.dependOn(&b.addInstallArtifact(debug_exe).step);
@@ -70,8 +70,8 @@ pub fn build(b: *std.Build) !void {
         .optimize = .ReleaseFast,
     });
     release_exe.addModule("clap", zig_clap_module);
-    release_exe.addModule("zstbi", zstbi_pkg.module);
-    zstbi.link(release_exe);
+    release_exe.addModule("zstbi", zstbi_pkg.zstbi);
+    zstbi_pkg.link(release_exe);
     release_exe.addIncludePath("src/");
     release_exe.addIncludePath("libs/");
     release_exe.strip = true;
@@ -99,8 +99,8 @@ pub fn build(b: *std.Build) !void {
             cross_exe.strip = true;
             cross_exe.linkage = .static;
             cross_exe.addModule("clap", zig_clap_module);
-            cross_exe.addModule("zstbi", zstbi_pkg.module);
-            zstbi.link(cross_exe);
+            cross_exe.addModule("zstbi", zstbi_pkg.zstbi);
+            zstbi_pkg.link(cross_exe);
             cross_exe.addIncludePath("src/");
             cross_exe.addIncludePath("libs/");
             cross_step.dependOn(&b.addInstallArtifact(cross_exe).step);
