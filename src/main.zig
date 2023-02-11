@@ -15,6 +15,7 @@ const zstbi = @import("zstbi");
 
 const debug = std.debug;
 const print = std.debug.print;
+const Soa = std.MultiArrayList;
 
 const binary_name = "imgclr";
 const binary_vers = "0.2-dev";
@@ -82,10 +83,11 @@ pub fn main() !void {
     };
     defer image.deinit();
 
-    var palette: []clr.Rgb = try allocator.alloc(clr.Rgb, res.args.palette.len);
-    for (res.args.palette) |arg, idx| {
+    var palette = Soa(clr.Rgb) { };
+    try palette.ensureTotalCapacity(allocator, res.args.palette.len);
+    for (res.args.palette) |arg| {
         if (clr.hexToRgb(arg)) |rgb| {
-            palette[idx] = rgb;
+            palette.appendAssumeCapacity(rgb);
         }
         else {
             print("{s}: '{s}' is not a valid hex colour\n", .{binary_name, arg});
@@ -94,9 +96,7 @@ pub fn main() !void {
     }
 
 
-    print("{}x{}\n", .{image.width, image.height});
-
-    print("Loaded image {s}\n", .{infile});
+    print("Loaded image {s}\ninfo: {}x{} pixels; {} bytes\n", .{infile, image.width, image.height, image.data.len});
 }
 
 
