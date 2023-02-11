@@ -72,18 +72,21 @@ pub fn main() !void {
     }
 
     const infile = @ptrCast([:0]const u8, res.positionals[0]);
+    const outfile = @ptrCast([:0]const u8, res.positionals[1]);
 
     zstbi.init(allocator);
     defer zstbi.deinit();
 
     const desired_channels = 3;
-    var image = zstbi.Image.init(infile, desired_channels) catch {
+    var image = zstbi.Image.init(infile, desired_channels) catch |err| {
         print("{s}: error loading image '{s}'\n", .{binary_name, infile});
+        print("{}\n", .{err});
         std.os.exit(@enumToInt(errors.unavailable));
     };
     defer image.deinit();
+    print("Loaded image '{s}'\n", .{infile});
 
-    var palette = Soa(clr.Rgb) { };
+    var palette = Soa(clr.Rgb) {};
     try palette.ensureTotalCapacity(allocator, res.args.palette.len);
     for (res.args.palette) |arg| {
         if (clr.hexToRgb(arg)) |rgb| {
@@ -95,8 +98,54 @@ pub fn main() !void {
         }
     }
 
+    // Invert brightness, if applicable
+    // @Fixme { Very bright areas stay bright. (???) }
+    if (res.args.invert) {
+        var idx: usize = 0;
+        while (idx < image.data.len) : (idx += image.num_components) {
+            // var row = (idx / 3 / image.width) + 1;
+            // var col = (idx / 3 % image.width) + 1;
+            // print("{}x{}: {} {} {}\n", .{col, row, image.data[idx + 0], image.data[idx + 1], image.data[idx + 2]});
+            var brightness: i16 = (image.data[idx + 0] +| image.data[idx + 1] +| image.data[idx + 2]) / 3;
+            var r_relative: i16 = image.data[idx + 0] - brightness;
+            var g_relative: i16 = image.data[idx + 1] - brightness;
+            var b_relative: i16 = image.data[idx + 2] - brightness;
+            var r_new: i16 = 255 - brightness + r_relative;
+            var g_new: i16 = 255 - brightness + g_relative;
+            var b_new: i16 = 255 - brightness + b_relative;
+            if (r_new > 255) {
+                r_new = 255;
+            }
+            else if (r_new < 0) {
+                r_new = 0;
+            }
+            if (g_new > 255) {
+                g_new = 255;
+            }
+            else if (g_new < 0) {
+                g_new = 0;
+            }
+            if (b_new > 255) {
+                b_new = 255;
+            }
+            else if (b_new < 0) {
+                b_new = 0;
+            }
+            image.data[idx + 0] = @intCast(u8, r_new);
+            image.data[idx + 1] = @intCast(u8, g_new);
+            image.data[idx + 2] = @intCast(u8, b_new);
+        }
+    }
 
-    print("Loaded image {s}\ninfo: {}x{} pixels; {} bytes\n", .{infile, image.width, image.height, image.data.len});
+    // Write to file
+    // @Missing { Handle format - don't just use PNG no matter what }
+    zstbi.Image.writeToFile(&image, outfile, .png) catch |err| {
+        print("{s}: error writing image to file '{s}'\n", .{binary_name, outfile});
+        print("{}\n", .{err});
+        std.os.exit(@enumToInt(errors.unavailable));
+    };
+
+    print("Wrote {}x{} pixels ({} bytes) to {s}\n", .{image.width, image.height, image.data.len, outfile});
 }
 
 
