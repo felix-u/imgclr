@@ -14,14 +14,6 @@ pub fn build(b: *std.Build) !void {
         .source_file = .{ .path = "libs/zig-clap/clap.zig" }
     });
 
-    // const stb_image = b.addStaticLibrary(.{
-    //     .name = "stb_image",
-    //     .root_source_file = .{ .path = "libs/stb_image.c" },
-    //     .target = target,
-    //     .optimize = optimize,
-    // });
-    // stb_image.linkLibC();
-
     const zstbi_pkg = zstbi.Package.build(b, .{}, optimize, .{});
 
 

@@ -7,9 +7,11 @@
 //     @cInclude ("stb_image-v2.27/stb_image.h");
 //     @cInclude ("stb_image_write-v1.16/stb_image_write.h");
 // });
-const zstbi = @import("zstbi");
+
 const clap = @import("clap"); // @Enhancement { Replace clap };
+const clr = @import("./colour.zig");
 const std = @import("std");
+const zstbi = @import("zstbi");
 
 const debug = std.debug;
 const print = std.debug.print;
@@ -25,6 +27,10 @@ const errors = enum(u8) {
 
 
 pub fn main() !void {
+
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
 
     const params = comptime clap.parseParamsComptime(
         \\-d, --dither <str>        specify dithering algorithm
@@ -66,26 +72,31 @@ pub fn main() !void {
 
     const infile = @ptrCast([:0]const u8, res.positionals[0]);
 
-    zstbi.init(std.heap.page_allocator);
+    zstbi.init(allocator);
     defer zstbi.deinit();
 
-    const channels = 3;
-    var image = try zstbi.Image.init(infile, channels);
+    const desired_channels = 3;
+    var image = zstbi.Image.init(infile, desired_channels) catch {
+        print("{s}: error loading image '{s}'\n", .{binary_name, infile});
+        std.os.exit(@enumToInt(errors.unavailable));
+    };
     defer image.deinit();
 
-    print("width: {}\theight:{}\n", .{image.width, image.height});
+    var palette: []clr.Rgb = try allocator.alloc(clr.Rgb, res.args.palette.len);
+    for (res.args.palette) |arg, idx| {
+        if (clr.hexToRgb(arg)) |rgb| {
+            palette[idx] = rgb;
+        }
+        else {
+            print("{s}: '{s}' is not a valid hex colour\n", .{binary_name, arg});
+            std.os.exit(@enumToInt(errors.usage));
+        }
+    }
 
-    // var width: i32 = undefined;
-    // var height: i32 = undefined;
-    // var channels: i32 = undefined;
-    // var data: [*]u8 = c.stbi_load(res.positionals[0].ptr, &width, &height, &channels, 3) orelse {
-    //     print("{s}: could not load image '{s}'\n", .{binary_name, res.positionals[0]});
-    //     std.os.exit(@enumToInt(errors.noinput));
-    // };
-    // defer c.stbi_image_free(data);
+
+    print("{}x{}\n", .{image.width, image.height});
 
     print("Loaded image {s}\n", .{infile});
-
 }
 
 
