@@ -99,6 +99,8 @@ pub fn main() !void {
     }
 
     // Invert brightness, if applicable
+
+    // @Note { Should this be done after or before dithering? This does in fact alter the end result. }
     if (res.args.invert) {
         print("Inverting brightness... ", .{});
         var idx: usize = 0;
@@ -106,7 +108,7 @@ pub fn main() !void {
             const r = image.data[idx + 0];
             const g = image.data[idx + 1];
             const b = image.data[idx + 2];
-            const brightness: u8 = @intCast(u8, @divFloor(@as(i16, r) + @as(i16, g) + @as(i16, b), 3));
+            const brightness: u8 = @intCast(u8, (@as(u16, r) + @as(u16, g) + @as(u16, b)) / 3);
             const r_rel: i16 = @as(i16, r) - brightness;
             const g_rel: i16 = @as(i16, g) - brightness;
             const b_rel: i16 = @as(i16, b) - brightness;
@@ -116,6 +118,39 @@ pub fn main() !void {
         }
         print("Done!\n", .{});
     }
+
+    // Palette conversion
+
+    print("Matching to palette... ", .{});
+    const palette_channels = palette.slice();
+    const palette_rs = palette_channels.items(.r);
+    const palette_gs = palette_channels.items(.g);
+    const palette_bs = palette_channels.items(.b);
+    var idx: usize = 0;
+    while (idx < image.data.len) : (idx += image.num_components) {
+        const image_r: u8 = image.data[idx + 0];
+        const image_g: u8 = image.data[idx + 1];
+        const image_b: u8 = image.data[idx + 2];
+
+        var min_diff: u16 = std.math.maxInt(u16);
+        var best_match: usize = undefined;
+        var palette_idx: usize = 0;
+        while (palette_idx < palette.len) : (palette_idx += 1) {
+            const diff_r: u8 = std.math.lossyCast(u8, std.math.absCast(@as(i9, image_r) - @as(i9, palette_rs[palette_idx])));
+            const diff_g: u8 = std.math.lossyCast(u8, std.math.absCast(@as(i9, image_g) - @as(i9, palette_gs[palette_idx])));
+            const diff_b: u8 = std.math.lossyCast(u8, std.math.absCast(@as(i9, image_b) - @as(i9, palette_bs[palette_idx])));
+            const diff_total: u16 = @as(u16, diff_r) + @as(u16, diff_g) + @as(u16, diff_b);
+            if (diff_total < min_diff) {
+                min_diff = diff_total;
+                best_match = palette_idx;
+            }
+        }
+
+        image.data[idx + 0] = palette_rs[best_match];
+        image.data[idx + 1] = palette_gs[best_match];
+        image.data[idx + 2] = palette_bs[best_match];
+    }
+    print("Done!\n", .{});
 
     // Write to file
     // @Missing { Handle format - don't just use PNG no matter what }
