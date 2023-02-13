@@ -100,7 +100,6 @@ pub fn main() !void {
 
     // Invert brightness, if applicable
 
-    // @Note { Should this be done after or before dithering? This does in fact alter the end result. }
     if (res.args.invert) {
         print("Inverting brightness... ", .{});
         var idx: usize = 0;
@@ -136,9 +135,12 @@ pub fn main() !void {
         var best_match: usize = undefined;
         var palette_idx: usize = 0;
         while (palette_idx < palette.len) : (palette_idx += 1) {
-            const diff_r: u8 = std.math.lossyCast(u8, std.math.absCast(@as(i9, image_r) - @as(i9, palette_rs[palette_idx])));
-            const diff_g: u8 = std.math.lossyCast(u8, std.math.absCast(@as(i9, image_g) - @as(i9, palette_gs[palette_idx])));
-            const diff_b: u8 = std.math.lossyCast(u8, std.math.absCast(@as(i9, image_b) - @as(i9, palette_bs[palette_idx])));
+            const diff_r: u8 =
+                std.math.lossyCast(u8, std.math.absCast(@as(i9, image_r) - @as(i9, palette_rs[palette_idx])));
+            const diff_g: u8 =
+                std.math.lossyCast(u8, std.math.absCast(@as(i9, image_g) - @as(i9, palette_gs[palette_idx])));
+            const diff_b: u8 =
+                std.math.lossyCast(u8, std.math.absCast(@as(i9, image_b) - @as(i9, palette_bs[palette_idx])));
             const diff_total: u16 = @as(u16, diff_r) + @as(u16, diff_g) + @as(u16, diff_b);
             if (diff_total < min_diff) {
                 min_diff = diff_total;
