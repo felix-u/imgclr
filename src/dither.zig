@@ -16,7 +16,7 @@ pub const default_algorithms = struct {
     jjn:             Algorithm = jjn,
     burkes:          Algorithm = burkes,
     sierra_lite:     Algorithm = sierra_lite,
-};
+} {};
 
 
 // https://en.wikipedia.org/wiki/Floyd–Steinberg_dithering

@@ -10,6 +10,7 @@
 
 const clap = @import("clap"); // @Enhancement { Replace clap };
 const clr = @import("./colour.zig");
+const dither = @import("./dither.zig");
 const std = @import("std");
 const zstbi = @import("zstbi");
 
@@ -70,6 +71,16 @@ pub fn main() !void {
         printHelpHint();
         std.os.exit(@enumToInt(errors.noinput));
     }
+
+    // const dither_algorithm = switch (res.args.dither) {
+    //     null => dither.floyd_steinberg,
+    //     else => {
+    //         inline for (dither.default_algorithms) |alg| {
+    //             if (std.mem.eql(res.args.dither, alg.name)) alg;
+    //         }
+    //     },
+    // };
+    // print("{any}\n", .{dither_algorithm});
 
     const infile = @ptrCast([:0]const u8, res.positionals[0]);
     const outfile = @ptrCast([:0]const u8, res.positionals[1]);
