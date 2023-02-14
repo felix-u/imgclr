@@ -230,6 +230,7 @@ int main(int argc, char **argv) {
             (i16)data[i + 1] - palette[best_match].g,
             (i16)data[i + 2] - palette[best_match].b
         };
+        _ = quant_error;
 
         // Set current pixel to best match
 
