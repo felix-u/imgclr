@@ -176,10 +176,12 @@ pub fn main() !void {
             @as(i16, image_g) - palette_gs[best_match],
             @as(i16, image_b) - palette_bs[best_match],
         };
+        _ = quant_error;
 
         image.data[idx + 0] = palette_rs[best_match];
         image.data[idx + 1] = palette_gs[best_match];
         image.data[idx + 2] = palette_bs[best_match];
+
     }
     print("Done!\n", .{});
 
