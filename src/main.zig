@@ -14,6 +14,7 @@ const dither = @import("./dither.zig");
 const std = @import("std");
 const zstbi = @import("zstbi");
 
+const ascii = std.ascii;
 const debug = std.debug;
 const print = std.debug.print;
 const Soa = std.MultiArrayList;
@@ -74,9 +75,13 @@ pub fn main() !void {
 
     var dither_algorithm = dither.floyd_steinberg;
     if (res.args.dither) |user_str| {
+        if (ascii.eqlIgnoreCase(user_str, "none")) {
+            print("{s}: disabling dithering is not implemented!\n", .{binary_name});
+            std.os.exit(@enumToInt(errors.unavailable));
+        }
         var found_match = false;
         for (dither.default_algorithms) |algorithm| {
-            if (std.mem.eql(u8, user_str, algorithm.name)) {
+            if (ascii.eqlIgnoreCase(user_str, algorithm.name)) {
                 dither_algorithm = algorithm;
                 found_match = true;
                 break;
