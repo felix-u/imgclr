@@ -72,15 +72,22 @@ pub fn main() !void {
         std.os.exit(@enumToInt(errors.noinput));
     }
 
-    // const dither_algorithm = switch (res.args.dither) {
-    //     null => dither.floyd_steinberg,
-    //     else => {
-    //         inline for (dither.default_algorithms) |alg| {
-    //             if (std.mem.eql(res.args.dither, alg.name)) alg;
-    //         }
-    //     },
-    // };
-    // print("{any}\n", .{dither_algorithm});
+    var dither_algorithm = dither.floyd_steinberg;
+    if (res.args.dither) |user_str| {
+        var found_match = false;
+        for (dither.default_algorithms) |algorithm| {
+            if (std.mem.eql(u8, user_str, algorithm.name)) {
+                dither_algorithm = algorithm;
+                found_match = true;
+                break;
+            }
+        }
+        if (!found_match) {
+            print("{s}: '{s}' isn't a recognised dithering algorithm\n", .{binary_name, user_str});
+            printHelpHint();
+            std.os.exit(@enumToInt(errors.usage));
+        }
+    }
 
     const infile = @ptrCast([:0]const u8, res.positionals[0]);
     const outfile = @ptrCast([:0]const u8, res.positionals[1]);

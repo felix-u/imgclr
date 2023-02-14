@@ -10,13 +10,13 @@ pub const Algorithm = struct {
 };
 
 
-pub const default_algorithms = struct {
-    floyd_steinberg: Algorithm = floyd_steinberg,
-    atkinson:        Algorithm = atkinson,
-    jjn:             Algorithm = jjn,
-    burkes:          Algorithm = burkes,
-    sierra_lite:     Algorithm = sierra_lite,
-} {};
+pub const default_algorithms: []const Algorithm = &.{
+    floyd_steinberg,
+    atkinson,
+    jjn,
+    burkes,
+    sierra_lite,
+};
 
 
 // https://en.wikipedia.org/wiki/Floyd–Steinberg_dithering
@@ -25,7 +25,7 @@ pub const default_algorithms = struct {
 // multiplier: 1/16
 pub const floyd_steinberg: Algorithm = .{
     .name = "floyd-steinberg",
-    .errors = .{
+    .errors = &.{
         .{ .x_offset =  1, .y_offset = 0, .ratio = 7/16 },
         .{ .x_offset = -1, .y_offset = 1, .ratio = 3/16 },
         .{ .x_offset =  0, .y_offset = 1, .ratio = 5/16 },
@@ -40,7 +40,7 @@ pub const floyd_steinberg: Algorithm = .{
 // multiplier: 1/8
 pub const atkinson: Algorithm = .{
     .name = "atkinson",
-    .errors = .{
+    .errors = &.{
         .{ .x_offset =  1, .y_offset = 0, .ratio = 1/8},
         .{ .x_offset =  2, .y_offset = 0, .ratio = 1/8},
         .{ .x_offset = -1, .y_offset = 1, .ratio = 1/8},
@@ -57,7 +57,7 @@ pub const atkinson: Algorithm = .{
 // multiplier = 1/48
 pub const jjn: Algorithm = .{
     .name = "jjn",
-    .errors = .{
+    .errors = &.{
         .{ .x_offset =  1, .y_offset = 0, .ratio = 7/48},
         .{ .x_offset =  2, .y_offset = 0, .ratio = 5/48},
         .{ .x_offset = -2, .y_offset = 1, .ratio = 3/48},
@@ -79,7 +79,7 @@ pub const jjn: Algorithm = .{
 // multiplier = 1/32
 pub const burkes: Algorithm = .{
     .name = "burkes",
-    .errors = .{
+    .errors = &.{
         .{ .x_offset =  1, .y_offset = 0, .ratio = 8/32},
         .{ .x_offset =  2, .y_offset = 0, .ratio = 4/32},
         .{ .x_offset = -2, .y_offset = 1, .ratio = 2/32},
@@ -93,7 +93,7 @@ pub const burkes: Algorithm = .{
 // Very similar to Floyd-Steinberg, and execution speed is *slightly* faster.
 pub const sierra_lite: Algorithm = .{
     .name = "sierra-lite",
-    .errors = .{
+    .errors = &.{
         .{ .x_offset =  1, .y_offset = 0, .ratio = 2/4},
         .{ .x_offset = -1, .y_offset = 1, .ratio = 1/4},
         .{ .x_offset =  0, .y_offset = 1, .ratio = 1/4}
