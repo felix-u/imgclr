@@ -172,16 +172,28 @@ pub fn main() !void {
         }
 
         const quant_error: [3]i16 = .{
-            @as(i16, image_r) - palette_rs[best_match],
-            @as(i16, image_g) - palette_gs[best_match],
-            @as(i16, image_b) - palette_bs[best_match],
+            @as(i9, image_r) - palette_rs[best_match],
+            @as(i9, image_g) - palette_gs[best_match],
+            @as(i9, image_b) - palette_bs[best_match],
         };
-        _ = quant_error;
+        const current_x: isize = @intCast(isize, (idx / image.num_components) % image.width);
+        const current_y: isize = @intCast(isize, (idx / image.num_components) / image.width);
+        for (dither_algorithm.errors) |d_error| {
+            const target_x: isize = current_x + d_error.x_offset;
+            const target_y: isize = current_y + d_error.y_offset;
+
+            if (target_x < 0 or target_x >= image.width or target_y < 0 or target_y >= image.height) continue;
+
+            const target_idx: usize = image.num_components * (@intCast(usize, target_y) * image.width + @intCast(usize, target_x));
+            @setFloatMode(.Optimized);
+            image.data[target_idx + 0] +|= @floatToInt(u8, @intToFloat(f64, quant_error[0]) * d_error.ratio);
+            image.data[target_idx + 1] +|= @floatToInt(u8, @intToFloat(f64, quant_error[1]) * d_error.ratio);
+            image.data[target_idx + 2] +|= @floatToInt(u8, @intToFloat(f64, quant_error[2]) * d_error.ratio);
+        }
 
         image.data[idx + 0] = palette_rs[best_match];
         image.data[idx + 1] = palette_gs[best_match];
         image.data[idx + 2] = palette_bs[best_match];
-
     }
     print("Done!\n", .{});
 
