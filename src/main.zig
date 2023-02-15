@@ -8,6 +8,8 @@
 //     @cInclude ("stb_image_write-v1.16/stb_image_write.h");
 // });
 
+const args = @import("./args.zig");
+// _ = args;
 const clap = @import("clap"); // @Enhancement { Replace clap };
 const clr = @import("./colour.zig");
 const dither = @import("./dither.zig");
