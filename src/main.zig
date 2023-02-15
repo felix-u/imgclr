@@ -16,6 +16,7 @@ const zstbi = @import("zstbi");
 
 const ascii = std.ascii;
 const debug = std.debug;
+const maths = std.math;
 const print = std.debug.print;
 const Soa = std.MultiArrayList;
 
@@ -130,9 +131,9 @@ pub fn main() !void {
             const r_rel: i16 = @as(i16, r) - brightness;
             const g_rel: i16 = @as(i16, g) - brightness;
             const b_rel: i16 = @as(i16, b) - brightness;
-            image.data[idx + 0] = std.math.lossyCast(u8, 255 - brightness +| r_rel);
-            image.data[idx + 1] = std.math.lossyCast(u8, 255 - brightness +| g_rel);
-            image.data[idx + 2] = std.math.lossyCast(u8, 255 - brightness +| b_rel);
+            image.data[idx + 0] = maths.lossyCast(u8, 255 - brightness +| r_rel);
+            image.data[idx + 1] = maths.lossyCast(u8, 255 - brightness +| g_rel);
+            image.data[idx + 2] = maths.lossyCast(u8, 255 - brightness +| b_rel);
         }
         print("Done!\n", .{});
     }
@@ -150,16 +151,16 @@ pub fn main() !void {
         const image_g: u8 = image.data[idx + 1];
         const image_b: u8 = image.data[idx + 2];
 
-        var min_diff: u16 = std.math.maxInt(u16);
+        var min_diff: u16 = maths.maxInt(u16);
         var best_match: usize = undefined;
         var palette_idx: usize = 0;
         while (palette_idx < palette.len) : (palette_idx += 1) {
             const diff_r: u8 =
-                std.math.lossyCast(u8, std.math.absCast(@as(i16, image_r) - @as(i16, palette_rs[palette_idx])));
+                maths.lossyCast(u8, maths.absCast(@as(i16, image_r) - @as(i16, palette_rs[palette_idx])));
             const diff_g: u8 =
-                std.math.lossyCast(u8, std.math.absCast(@as(i16, image_g) - @as(i16, palette_gs[palette_idx])));
+                maths.lossyCast(u8, maths.absCast(@as(i16, image_g) - @as(i16, palette_gs[palette_idx])));
             const diff_b: u8 =
-                std.math.lossyCast(u8, std.math.absCast(@as(i16, image_b) - @as(i16, palette_bs[palette_idx])));
+                maths.lossyCast(u8, maths.absCast(@as(i16, image_b) - @as(i16, palette_bs[palette_idx])));
             const diff_total: u16 = @as(u16, diff_r) + @as(u16, diff_g) + @as(u16, diff_b);
             if (diff_total < min_diff) {
                 min_diff = diff_total;
@@ -189,12 +190,9 @@ pub fn main() !void {
                                 @floatToInt(i16, @intToFloat(f64, quant_error[1]) * d_error.ratio);
             var new_b: i16 = @as(i16, image.data[target_idx + 2]) +
                                 @floatToInt(i16, @intToFloat(f64, quant_error[2]) * d_error.ratio);
-            if (new_r > 255) { new_r = 255; } else if (new_r < 0) { new_r = 0; }
-            if (new_g > 255) { new_g = 255; } else if (new_g < 0) { new_g = 0; }
-            if (new_b > 255) { new_b = 255; } else if (new_b < 0) { new_b = 0; }
-            image.data[target_idx + 0] = @intCast(u8, new_r);
-            image.data[target_idx + 1] = @intCast(u8, new_g);
-            image.data[target_idx + 2] = @intCast(u8, new_b);
+            image.data[target_idx + 0] = maths.lossyCast(u8, new_r);
+            image.data[target_idx + 1] = maths.lossyCast(u8, new_g);
+            image.data[target_idx + 2] = maths.lossyCast(u8, new_b);
         }
 
         image.data[idx + 0] = palette_rs[best_match];
