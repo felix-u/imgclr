@@ -75,10 +75,6 @@ pub fn main() !void {
 
     var dither_algorithm = dither.floyd_steinberg;
     if (res.args.dither) |user_str| {
-        if (ascii.eqlIgnoreCase(user_str, "none")) {
-            print("{s}: disabling dithering is not implemented!\n", .{binary_name});
-            std.os.exit(@enumToInt(errors.unavailable));
-        }
         var found_match = false;
         for (dither.default_algorithms) |algorithm| {
             if (ascii.eqlIgnoreCase(user_str, algorithm.name)) {

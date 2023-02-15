@@ -11,6 +11,7 @@ pub const Algorithm = struct {
 
 
 pub const default_algorithms: []const Algorithm = &.{
+    none,
     floyd_steinberg,
     atkinson,
     jjn,
@@ -18,6 +19,11 @@ pub const default_algorithms: []const Algorithm = &.{
     sierra_lite,
 };
 
+
+pub const none: Algorithm = .{
+    .name = "none",
+    .errors = &.{},
+};
 
 // https://en.wikipedia.org/wiki/Floyd–Steinberg_dithering
 //   * 7
