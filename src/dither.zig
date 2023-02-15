@@ -26,10 +26,10 @@ pub const default_algorithms: []const Algorithm = &.{
 pub const floyd_steinberg: Algorithm = .{
     .name = "floyd-steinberg",
     .errors = &.{
-        .{ .x_offset =  1, .y_offset = 0, .ratio = 7/16 },
-        .{ .x_offset = -1, .y_offset = 1, .ratio = 3/16 },
-        .{ .x_offset =  0, .y_offset = 1, .ratio = 5/16 },
-        .{ .x_offset =  1, .y_offset = 1, .ratio = 1/16 },
+        .{ .x_offset =  1, .y_offset = 0, .ratio = 7.0/16.0 },
+        .{ .x_offset = -1, .y_offset = 1, .ratio = 3.0/16.0 },
+        .{ .x_offset =  0, .y_offset = 1, .ratio = 5.0/16.0 },
+        .{ .x_offset =  1, .y_offset = 1, .ratio = 1.0/16.0 },
     },
 };
 
@@ -41,12 +41,12 @@ pub const floyd_steinberg: Algorithm = .{
 pub const atkinson: Algorithm = .{
     .name = "atkinson",
     .errors = &.{
-        .{ .x_offset =  1, .y_offset = 0, .ratio = 1/8},
-        .{ .x_offset =  2, .y_offset = 0, .ratio = 1/8},
-        .{ .x_offset = -1, .y_offset = 1, .ratio = 1/8},
-        .{ .x_offset =  0, .y_offset = 1, .ratio = 1/8},
-        .{ .x_offset =  1, .y_offset = 1, .ratio = 1/8},
-        .{ .x_offset =  1, .y_offset = 2, .ratio = 1/8}
+        .{ .x_offset =  1, .y_offset = 0, .ratio = 1.0/8.0 },
+        .{ .x_offset =  2, .y_offset = 0, .ratio = 1.0/8.0 },
+        .{ .x_offset = -1, .y_offset = 1, .ratio = 1.0/8.0 },
+        .{ .x_offset =  0, .y_offset = 1, .ratio = 1.0/8.0 },
+        .{ .x_offset =  1, .y_offset = 1, .ratio = 1.0/8.0 },
+        .{ .x_offset =  1, .y_offset = 2, .ratio = 1.0/8.0 }
     },
 };
 
@@ -58,18 +58,18 @@ pub const atkinson: Algorithm = .{
 pub const jjn: Algorithm = .{
     .name = "jjn",
     .errors = &.{
-        .{ .x_offset =  1, .y_offset = 0, .ratio = 7/48},
-        .{ .x_offset =  2, .y_offset = 0, .ratio = 5/48},
-        .{ .x_offset = -2, .y_offset = 1, .ratio = 3/48},
-        .{ .x_offset = -1, .y_offset = 1, .ratio = 5/48},
-        .{ .x_offset =  0, .y_offset = 1, .ratio = 7/48},
-        .{ .x_offset =  1, .y_offset = 1, .ratio = 5/48},
-        .{ .x_offset =  2, .y_offset = 1, .ratio = 3/48},
-        .{ .x_offset = -2, .y_offset = 2, .ratio = 1/48},
-        .{ .x_offset = -1, .y_offset = 2, .ratio = 3/48},
-        .{ .x_offset =  0, .y_offset = 2, .ratio = 5/48},
-        .{ .x_offset =  1, .y_offset = 2, .ratio = 3/48},
-        .{ .x_offset =  2, .y_offset = 2, .ratio = 1/48}
+        .{ .x_offset =  1, .y_offset = 0, .ratio = 7.0/48.0 },
+        .{ .x_offset =  2, .y_offset = 0, .ratio = 5.0/48.0 },
+        .{ .x_offset = -2, .y_offset = 1, .ratio = 3.0/48.0 },
+        .{ .x_offset = -1, .y_offset = 1, .ratio = 5.0/48.0 },
+        .{ .x_offset =  0, .y_offset = 1, .ratio = 7.0/48.0 },
+        .{ .x_offset =  1, .y_offset = 1, .ratio = 5.0/48.0 },
+        .{ .x_offset =  2, .y_offset = 1, .ratio = 3.0/48.0 },
+        .{ .x_offset = -2, .y_offset = 2, .ratio = 1.0/48.0 },
+        .{ .x_offset = -1, .y_offset = 2, .ratio = 3.0/48.0 },
+        .{ .x_offset =  0, .y_offset = 2, .ratio = 5.0/48.0 },
+        .{ .x_offset =  1, .y_offset = 2, .ratio = 3.0/48.0 },
+        .{ .x_offset =  2, .y_offset = 2, .ratio = 1.0/48.0 }
     },
 };
 
@@ -80,13 +80,13 @@ pub const jjn: Algorithm = .{
 pub const burkes: Algorithm = .{
     .name = "burkes",
     .errors = &.{
-        .{ .x_offset =  1, .y_offset = 0, .ratio = 8/32},
-        .{ .x_offset =  2, .y_offset = 0, .ratio = 4/32},
-        .{ .x_offset = -2, .y_offset = 1, .ratio = 2/32},
-        .{ .x_offset = -1, .y_offset = 1, .ratio = 4/32},
-        .{ .x_offset =  0, .y_offset = 1, .ratio = 8/32},
-        .{ .x_offset =  1, .y_offset = 1, .ratio = 4/32},
-        .{ .x_offset =  2, .y_offset = 1, .ratio = 2/32}
+        .{ .x_offset =  1, .y_offset = 0, .ratio = 8.0/32.0 },
+        .{ .x_offset =  2, .y_offset = 0, .ratio = 4.0/32.0 },
+        .{ .x_offset = -2, .y_offset = 1, .ratio = 2.0/32.0 },
+        .{ .x_offset = -1, .y_offset = 1, .ratio = 4.0/32.0 },
+        .{ .x_offset =  0, .y_offset = 1, .ratio = 8.0/32.0 },
+        .{ .x_offset =  1, .y_offset = 1, .ratio = 4.0/32.0 },
+        .{ .x_offset =  2, .y_offset = 1, .ratio = 2.0/32.0 }
     },
 };
 
@@ -94,8 +94,8 @@ pub const burkes: Algorithm = .{
 pub const sierra_lite: Algorithm = .{
     .name = "sierra-lite",
     .errors = &.{
-        .{ .x_offset =  1, .y_offset = 0, .ratio = 2/4},
-        .{ .x_offset = -1, .y_offset = 1, .ratio = 1/4},
-        .{ .x_offset =  0, .y_offset = 1, .ratio = 1/4}
+        .{ .x_offset =  1, .y_offset = 0, .ratio = 2.0/4.0 },
+        .{ .x_offset = -1, .y_offset = 1, .ratio = 1.0/4.0 },
+        .{ .x_offset =  0, .y_offset = 1, .ratio = 1.0/4.0 }
     },
 };

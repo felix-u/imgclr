@@ -159,11 +159,11 @@ pub fn main() !void {
         var palette_idx: usize = 0;
         while (palette_idx < palette.len) : (palette_idx += 1) {
             const diff_r: u8 =
-                std.math.lossyCast(u8, std.math.absCast(@as(i9, image_r) - @as(i9, palette_rs[palette_idx])));
+                std.math.lossyCast(u8, std.math.absCast(@as(i16, image_r) - @as(i16, palette_rs[palette_idx])));
             const diff_g: u8 =
-                std.math.lossyCast(u8, std.math.absCast(@as(i9, image_g) - @as(i9, palette_gs[palette_idx])));
+                std.math.lossyCast(u8, std.math.absCast(@as(i16, image_g) - @as(i16, palette_gs[palette_idx])));
             const diff_b: u8 =
-                std.math.lossyCast(u8, std.math.absCast(@as(i9, image_b) - @as(i9, palette_bs[palette_idx])));
+                std.math.lossyCast(u8, std.math.absCast(@as(i16, image_b) - @as(i16, palette_bs[palette_idx])));
             const diff_total: u16 = @as(u16, diff_r) + @as(u16, diff_g) + @as(u16, diff_b);
             if (diff_total < min_diff) {
                 min_diff = diff_total;
@@ -172,9 +172,9 @@ pub fn main() !void {
         }
 
         const quant_error: [3]i16 = .{
-            @as(i9, image_r) - palette_rs[best_match],
-            @as(i9, image_g) - palette_gs[best_match],
-            @as(i9, image_b) - palette_bs[best_match],
+            @as(i16, image_r) - palette_rs[best_match],
+            @as(i16, image_g) - palette_gs[best_match],
+            @as(i16, image_b) - palette_bs[best_match],
         };
         const current_x: isize = @intCast(isize, (idx / image.num_components) % image.width);
         const current_y: isize = @intCast(isize, (idx / image.num_components) / image.width);
@@ -184,11 +184,21 @@ pub fn main() !void {
 
             if (target_x < 0 or target_x >= image.width or target_y < 0 or target_y >= image.height) continue;
 
-            const target_idx: usize = image.num_components * (@intCast(usize, target_y) * image.width + @intCast(usize, target_x));
+            const target_idx: usize =
+                image.num_components * (@intCast(usize, target_y) * image.width + @intCast(usize, target_x));
             @setFloatMode(.Optimized);
-            image.data[target_idx + 0] +|= @floatToInt(u8, @intToFloat(f64, quant_error[0]) * d_error.ratio);
-            image.data[target_idx + 1] +|= @floatToInt(u8, @intToFloat(f64, quant_error[1]) * d_error.ratio);
-            image.data[target_idx + 2] +|= @floatToInt(u8, @intToFloat(f64, quant_error[2]) * d_error.ratio);
+            var new_r: i16 = @as(i16, image.data[target_idx + 0]) +
+                                @floatToInt(i16, @intToFloat(f64, quant_error[0]) * d_error.ratio);
+            var new_g: i16 = @as(i16, image.data[target_idx + 1]) +
+                                @floatToInt(i16, @intToFloat(f64, quant_error[1]) * d_error.ratio);
+            var new_b: i16 = @as(i16, image.data[target_idx + 2]) +
+                                @floatToInt(i16, @intToFloat(f64, quant_error[2]) * d_error.ratio);
+            if (new_r > 255) { new_r = 255; } else if (new_r < 0) { new_r = 0; }
+            if (new_g > 255) { new_g = 255; } else if (new_g < 0) { new_g = 0; }
+            if (new_b > 255) { new_b = 255; } else if (new_b < 0) { new_b = 0; }
+            image.data[target_idx + 0] = @intCast(u8, new_r);
+            image.data[target_idx + 1] = @intCast(u8, new_g);
+            image.data[target_idx + 2] = @intCast(u8, new_b);
         }
 
         image.data[idx + 0] = palette_rs[best_match];
@@ -199,13 +209,13 @@ pub fn main() !void {
 
     // Write to file
     // @Missing { Handle format - don't just use PNG no matter what }
+    print("Writing {}x{} px image to {s}... ", .{image.width, image.height, outfile});
     zstbi.Image.writeToFile(&image, outfile, .png) catch |err| {
         print("{s}: error writing image to file '{s}'\n", .{binary_name, outfile});
         print("{}\n", .{err});
         std.os.exit(@enumToInt(errors.unavailable));
     };
-
-    print("Wrote {}x{} pixels ({} bytes) to {s}\n", .{image.width, image.height, image.data.len, outfile});
+    print("Done!\n", .{});
 }
 
 
