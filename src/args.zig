@@ -1,3 +1,8 @@
+const std = @import("std");
+
+const print = std.debug.print;
+
+
 const FlagExpectsWhat = enum {
     none,
     boolean,
@@ -20,9 +25,15 @@ pub const Flag = struct {
     arg_expects_type: ?FlagExpectsType = null,
     is_required: bool = false,
     is_present: bool = false,
-    args: ?[][]const u8 = null,
+    args: ?[][:0]const u8 = null,
 };
 
+
+pub fn process(argv: []const [:0]const u8) !void {
+    for (argv) |arg| {
+        print("{s}\n", .{arg});
+    }
+}
 // #define ARGS_MISSING_FLAG_TEXT "option '--%s' is required"
 // #define ARGS_MISSING_ARG_TEXT "option '--%s' requires an argument"
 // #define ARGS_INVALID_FLAG_TEXT "invalid option"
@@ -35,22 +46,6 @@ pub const Flag = struct {
 // #define ARGS_VERSION_FLAG_NAME_LONG "version"
 // #define ARGS_VERSION_FLAG_HELP_TEXT "output version information and exit"
 
-// args_Flag *args_byNameShort(char name_short, const size_t flags_count, args_Flag *flags[]) {
-//     for (size_t i = 0; i < flags_count; i++) {
-//         if (name_short == flags[i]->name_short) return flags[i];
-//     }
-//     return NULL;
-// }
-//
-//
-// args_Flag *args_byNameLong(char *name_long, const size_t flags_count, args_Flag *flags[]) {
-//     for (size_t i = 0; i < flags_count; i++) {
-//         if (!strncasecmp(name_long, flags[i]->name_long, strlen(name_long))) return flags[i];
-//     }
-//     return NULL;
-// }
-//
-//
 // void args_helpHint(void) {
 //     #ifndef ARGS_HELP_FLAG_DISABLED
 //     printf(ARGS_USAGE_ERR_HELP_TEXT, ARGS_BINARY_NAME, ARGS_HELP_FLAG_NAME_LONG);

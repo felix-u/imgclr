@@ -9,7 +9,6 @@
 // });
 
 const args = @import("./args.zig");
-// _ = args;
 const clap = @import("clap"); // @Enhancement { Replace clap };
 const clr = @import("./colour.zig");
 const dither = @import("./dither.zig");
@@ -20,6 +19,7 @@ const ascii = std.ascii;
 const debug = std.debug;
 const maths = std.math;
 const print = std.debug.print;
+const process = std.process;
 const Soa = std.MultiArrayList;
 
 const binary_name = "imgclr";
@@ -37,6 +37,12 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
+
+    // WIP and placeholder
+    const argv: []const [:0]u8 = try process.argsAlloc(allocator);
+    defer process.argsFree(allocator, argv);
+
+    args.process(argv) catch unreachable;
 
     const params = comptime clap.parseParamsComptime(
         \\-d, --dither <str>        specify dithering algorithm
