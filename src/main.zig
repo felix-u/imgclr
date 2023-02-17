@@ -106,12 +106,12 @@ pub fn main() !void {
     defer zstbi.deinit();
 
     const desired_channels = 3;
-    var image = zstbi.Image.init(infile, desired_channels) catch |err| {
+    var img = zstbi.Image.init(infile, desired_channels) catch |err| {
         print("{s}: error loading image '{s}'\n", .{binary_name, infile});
         print("{}\n", .{err});
         std.os.exit(@enumToInt(errors.unavailable));
     };
-    defer image.deinit();
+    defer img.deinit();
     print("Loaded image '{s}'\n", .{infile});
 
     var palette = Soa(clr.Rgb) {};
@@ -131,17 +131,17 @@ pub fn main() !void {
     if (res.args.invert) {
         print("Inverting brightness... ", .{});
         var idx: usize = 0;
-        while (idx < image.data.len) : (idx += image.num_components) {
-            const r = image.data[idx + 0];
-            const g = image.data[idx + 1];
-            const b = image.data[idx + 2];
+        while (idx < img.data.len) : (idx += img.num_components) {
+            const r = img.data[idx + 0];
+            const g = img.data[idx + 1];
+            const b = img.data[idx + 2];
             const brightness: u8 = @intCast(u8, (@as(u16, r) + @as(u16, g) + @as(u16, b)) / 3);
             const r_rel: i16 = @as(i16, r) - brightness;
             const g_rel: i16 = @as(i16, g) - brightness;
             const b_rel: i16 = @as(i16, b) - brightness;
-            image.data[idx + 0] = maths.lossyCast(u8, 255 - brightness +| r_rel);
-            image.data[idx + 1] = maths.lossyCast(u8, 255 - brightness +| g_rel);
-            image.data[idx + 2] = maths.lossyCast(u8, 255 - brightness +| b_rel);
+            img.data[idx + 0] = maths.lossyCast(u8, 255 - brightness +| r_rel);
+            img.data[idx + 1] = maths.lossyCast(u8, 255 - brightness +| g_rel);
+            img.data[idx + 2] = maths.lossyCast(u8, 255 - brightness +| b_rel);
         }
         print("Done!\n", .{});
     }
@@ -153,66 +153,63 @@ pub fn main() !void {
     const palette_rs = palette_channels.items(.r);
     const palette_gs = palette_channels.items(.g);
     const palette_bs = palette_channels.items(.b);
-    var idx: usize = 0;
-    while (idx < image.data.len) : (idx += image.num_components) {
-        const image_r: u8 = image.data[idx + 0];
-        const image_g: u8 = image.data[idx + 1];
-        const image_b: u8 = image.data[idx + 2];
+    var i: usize = 0;
+    while (i < img.data.len) : (i += img.num_components) {
+        const img_r: u8 = img.data[i + 0];
+        const img_g: u8 = img.data[i + 1];
+        const img_b: u8 = img.data[i + 2];
 
         var min_diff: u16 = maths.maxInt(u16);
         var best_match: usize = undefined;
-        var palette_idx: usize = 0;
-        while (palette_idx < palette.len) : (palette_idx += 1) {
-            const diff_r: u8 =
-                maths.lossyCast(u8, maths.absCast(@as(i16, image_r) - @as(i16, palette_rs[palette_idx])));
-            const diff_g: u8 =
-                maths.lossyCast(u8, maths.absCast(@as(i16, image_g) - @as(i16, palette_gs[palette_idx])));
-            const diff_b: u8 =
-                maths.lossyCast(u8, maths.absCast(@as(i16, image_b) - @as(i16, palette_bs[palette_idx])));
+        var palette_i: usize = 0;
+        while (palette_i < palette.len) : (palette_i += 1) {
+            const diff_r: u8 = maths.lossyCast(u8, maths.absCast(@as(i16, img_r) - @as(i16, palette_rs[palette_i])));
+            const diff_g: u8 = maths.lossyCast(u8, maths.absCast(@as(i16, img_g) - @as(i16, palette_gs[palette_i])));
+            const diff_b: u8 = maths.lossyCast(u8, maths.absCast(@as(i16, img_b) - @as(i16, palette_bs[palette_i])));
             const diff_total: u16 = @as(u16, diff_r) + @as(u16, diff_g) + @as(u16, diff_b);
             if (diff_total < min_diff) {
                 min_diff = diff_total;
-                best_match = palette_idx;
+                best_match = palette_i;
             }
         }
 
-        const quant_error: [3]i16 = .{
-            @as(i16, image_r) - palette_rs[best_match],
-            @as(i16, image_g) - palette_gs[best_match],
-            @as(i16, image_b) - palette_bs[best_match],
+        const quant_err: [3]i16 = .{
+            @as(i16, img_r) - palette_rs[best_match],
+            @as(i16, img_g) - palette_gs[best_match],
+            @as(i16, img_b) - palette_bs[best_match],
         };
-        const current_x: isize = @intCast(isize, (idx / image.num_components) % image.width);
-        const current_y: isize = @intCast(isize, (idx / image.num_components) / image.width);
+        const current_x: isize = @intCast(isize, (i / img.num_components) % img.width);
+        const current_y: isize = @intCast(isize, (i / img.num_components) / img.width);
         for (dither_algorithm.errors) |d_error| {
             const target_x: isize = current_x + d_error.x_offset;
             const target_y: isize = current_y + d_error.y_offset;
 
-            if (target_x < 0 or target_x >= image.width or target_y < 0 or target_y >= image.height) continue;
+            if (target_x < 0 or target_x >= img.width or target_y < 0 or target_y >= img.height) continue;
 
-            const target_idx: usize =
-                image.num_components * (@intCast(usize, target_y) * image.width + @intCast(usize, target_x));
+            const target_i: usize =
+                img.num_components * (@intCast(usize, target_y) * img.width + @intCast(usize, target_x));
             @setFloatMode(.Optimized);
-            var new_r: i16 = @as(i16, image.data[target_idx + 0]) +
-                                @floatToInt(i16, @intToFloat(f64, quant_error[0]) * d_error.ratio);
-            var new_g: i16 = @as(i16, image.data[target_idx + 1]) +
-                                @floatToInt(i16, @intToFloat(f64, quant_error[1]) * d_error.ratio);
-            var new_b: i16 = @as(i16, image.data[target_idx + 2]) +
-                                @floatToInt(i16, @intToFloat(f64, quant_error[2]) * d_error.ratio);
-            image.data[target_idx + 0] = maths.lossyCast(u8, new_r);
-            image.data[target_idx + 1] = maths.lossyCast(u8, new_g);
-            image.data[target_idx + 2] = maths.lossyCast(u8, new_b);
+            var new_r: i16 =
+                @as(i16, img.data[target_i + 0]) + @floatToInt(i16, @intToFloat(f64, quant_err[0]) * d_error.ratio);
+            var new_g: i16 =
+                @as(i16, img.data[target_i + 1]) + @floatToInt(i16, @intToFloat(f64, quant_err[1]) * d_error.ratio);
+            var new_b: i16 =
+                @as(i16, img.data[target_i + 2]) + @floatToInt(i16, @intToFloat(f64, quant_err[2]) * d_error.ratio);
+            img.data[target_i + 0] = maths.lossyCast(u8, new_r);
+            img.data[target_i + 1] = maths.lossyCast(u8, new_g);
+            img.data[target_i + 2] = maths.lossyCast(u8, new_b);
         }
 
-        image.data[idx + 0] = palette_rs[best_match];
-        image.data[idx + 1] = palette_gs[best_match];
-        image.data[idx + 2] = palette_bs[best_match];
+        img.data[i + 0] = palette_rs[best_match];
+        img.data[i + 1] = palette_gs[best_match];
+        img.data[i + 2] = palette_bs[best_match];
     }
     print("Done!\n", .{});
 
     // Write to file
     // @Missing { Handle format - don't just use PNG no matter what }
-    print("Writing {}x{} px image to {s}... ", .{image.width, image.height, outfile});
-    zstbi.Image.writeToFile(&image, outfile, .png) catch |err| {
+    print("Writing {}x{} px image to {s}... ", .{img.width, img.height, outfile});
+    zstbi.Image.writeToFile(&img, outfile, .png) catch |err| {
         print("{s}: error writing image to file '{s}'\n", .{binary_name, outfile});
         print("{}\n", .{err});
         std.os.exit(@enumToInt(errors.unavailable));
