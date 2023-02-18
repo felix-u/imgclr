@@ -192,10 +192,9 @@ int main(int argc, char **argv) {
         u16 min_diff = 999;
         usize best_match = 0;
         for (usize j = 0; j < palette_flag.opts_num; j++) {
-            u16 diff_r = abs(data[i + 0] - palette[j].r);
-            u16 diff_g = abs(data[i + 1] - palette[j].g);
-            u16 diff_b = abs(data[i + 2] - palette[j].b);
-            u16 diff_total = diff_r + diff_g + diff_b;
+            u16 diff_total = abs(data[i + 0] - palette[j].r) +
+                             abs(data[i + 1] - palette[j].g) +
+                             abs(data[i + 2] - palette[j].b);
             if (diff_total < min_diff) {
                 min_diff = diff_total;
                 best_match = j;
