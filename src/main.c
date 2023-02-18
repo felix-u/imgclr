@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
     // NOTE: Having several loops to avoid bounds checking on the majority of the image may seem appealing. It is NOT
     // worth it.
 
-    for (usize i = 0; i < data_len; i += 3) {
+    for (usize i = 0; i < data_len; i += channels) {
 
         u16 min_diff = 999;
         usize best_match = 0;
