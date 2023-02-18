@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        i16 quant_error[3] = {
+        i16 quant_err[3] = {
             (i16)data[i + 0] - palette[best_match].r,
             (i16)data[i + 1] - palette[best_match].g,
             (i16)data[i + 2] - palette[best_match].b
@@ -226,25 +226,19 @@ int main(int argc, char **argv) {
 
             if (target_x < 0 || target_x >= width || target_y < 0 || target_y >= height) continue;
 
-            usize target_index = channels * (target_y * width + target_x);
-            i16 new_r =
-                (i16)data[target_index + 0] +
-                (double)quant_error[0] * algorithm->offsets[j].ratio;
-            i16 new_g =
-                (i16)data[target_index + 1] +
-                (double)quant_error[1] * algorithm->offsets[j].ratio;
-            i16 new_b =
-                (i16)data[target_index + 2] +
-                (double)quant_error[2] * algorithm->offsets[j].ratio;
+            usize target_i = channels * (target_y * width + target_x);
+            i16 new_r = (i16)data[target_i + 0] + (double)quant_err[0] * algorithm->offsets[j].ratio;
+            i16 new_g = (i16)data[target_i + 1] + (double)quant_err[1] * algorithm->offsets[j].ratio;
+            i16 new_b = (i16)data[target_i + 2] + (double)quant_err[2] * algorithm->offsets[j].ratio;
 
             // Clamp to 0 - 255
             if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
             if (new_g < 0) new_g = 0; else if (new_g > 255) new_g = 255;
             if (new_b < 0) new_b = 0; else if (new_b > 255) new_b = 255;
 
-            data[target_index + 0] = (u8)new_r;
-            data[target_index + 1] = (u8)new_g;
-            data[target_index + 2] = (u8)new_b;
+            data[target_i + 0] = (u8)new_r;
+            data[target_i + 1] = (u8)new_g;
+            data[target_i + 2] = (u8)new_b;
 
         }
 
