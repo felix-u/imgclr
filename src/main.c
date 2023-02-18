@@ -184,8 +184,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    // NOTE: Having several loops to avoid bounds checking on the majority of the image may seem appealing. It is NOT
-    // worth it.
+    // NOTE: Having several loops to avoid bounds checking on the majority of the image is not worth it.
 
     for (usize i = 0; i < data_len; i += channels) {
 
