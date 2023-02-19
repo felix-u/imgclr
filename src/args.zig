@@ -1,4 +1,5 @@
 const std = @import("std");
+const ascii = std.ascii;
 
 
 const FlagExpectsWhat = enum {
@@ -61,31 +62,34 @@ pub fn proc(
     _ = allocator;
     _ = proc_args;
 
+    var any_required_flags = false;
     for (flags) |flag| {
-        try writer.print("{s}\n", .{flag.name_long});
+        if (flag.is_required) any_required_flags = true;
     }
 
     for (argv) |arg| {
-        try writer.print("{s}\n", .{arg});
+        // Position
+        if (arg.len <= 1) {
+            try writer.print("Very short positional: {s}\n", .{arg});
+        }
+        // Short form: -f
+        else if (arg[0] == '-' and arg[1] != '-') {
+            try writer.print("Short flag: {s}\n", .{arg});
+        }
+        // Long form: --flag
+        else if (ascii.eqlIgnoreCase(arg[0..2], "--")) {
+            try writer.print("Long flag: {s}\n", .{arg});
+        }
+        // Positional
+        else {
+            try writer.print("Positional: {s}\n", .{arg});
+        }
     }
 }
 
 // int args_process
-// (int argc, char **argv, const char *usage_description, const size_t flags_count, args_Flag *flags[],
-// size_t *positional_num, char **positional_args, const ARGS_FLAG_EXPECTS positional_expects,
-// const ARGS_BINARY_POSITIONAL_TYPE positional_type, const size_t positional_cap)
 // {
-//     #ifdef ARGS_HELP_FLAG_DISABLED
-//     (void) usage_description;
-//     #endif // ARGS_HELP_FLAG_DISABLED
 //
-//     // All flags MUST have a long format, if not a short one.
-//     // While we're looping over flags, if none are required, let's not mention mandatory options in help text later.
-//     bool any_mandatory = false;
-//     for (size_t i = 0; i < flags_count; i++) {
-//         assert(flags[i]->name_long != NULL && "One flag has a NULL name_long");
-//         if (flags[i]->required == true) any_mandatory = true;
-//     }
 //
 //     #ifndef ARGS_HELP_FLAG_DISABLED
 //     args_Flag *help_flag = args_byNameShort(ARGS_HELP_FLAG_NAME_SHORT, flags_count, flags);
