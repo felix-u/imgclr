@@ -58,20 +58,25 @@ pub fn main() !void {
         .args_type    = .string,
     };
 
-    args.proc(argv, std.io.getStdErr().writer(), allocator, .{
-        .binary_name = "imgclr",
-        .binary_ver  = "0.2-dev",
-        .usage_desc  = "image colouriser",
-        .flags       = &.{
+    args.proc(
+        argv,
+        std.io.getStdErr().writer(),
+        allocator,
+        .{
+            .binary_name = "imgclr",
+            .binary_ver  = "0.2-dev",
+            .usage_desc  = "image colouriser",
+            .expects_pos = .multiple_args,
+            .pos_type    = .path,
+        },
+        &.{
             &dither_flag,
             &invert_flag,
             &palette_flag,
             &args.help_flag,
             &args.version_flag,
         },
-        .expects_pos = .multiple_args,
-        .pos_type    = .path,
-    }) catch unreachable;
+    ) catch unreachable;
 
     const params = comptime clap.parseParamsComptime(
         \\-d, --dither <str>        specify dithering algorithm

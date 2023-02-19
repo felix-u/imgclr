@@ -17,7 +17,7 @@ const FlagExpectsType = enum {
 
 pub const Flag = struct {
     name_short   : ?u8              = null,
-    name_long    : ?[]const u8      = null,
+    name_long    : []const u8       = undefined,
     help_text    : ?[]const u8      = null,
     expects_args : FlagExpectsWhat  = .boolean,
     args_type    : ?FlagExpectsType = null,
@@ -26,52 +26,47 @@ pub const Flag = struct {
     args         : ?[][:0]const u8  = null,
 };
 
-
 const msg_missing_required_flag       = "option '{s}' is required";
 const msg_missing_required_arg        = "option '{s}' requires an argument";
 const msg_invalid_flag                = "invalid option '{s}'";
 const msg_missing_required_positional = "expected '{s}'";
 const msg_help_hint                   = "Try '{s} {s}' for more information.";
-pub const help_flag = Flag {
+pub var help_flag = Flag {
     .name_short = 'h',
     .name_long  = "help",
     .help_text  = "display this help and exit",
 };
-pub const version_flag = Flag {
+pub var version_flag = Flag {
     .name_long = "version",
     .help_text = "display version information and exit",
 };
 
 
 pub const ProcArgs = struct {
-    binary_name : ?[]const u8         = null,
-    binary_ver  : ?[]const u8         = null,
-    usage_desc  : ?[]const u8         = null,
-    flags       : []const *const Flag = undefined,
-    expects_pos : FlagExpectsWhat     = .none,
-    pos_type    : ?FlagExpectsType    = null,
-    pos_args    : ?*[][:0]const u8    = null,
+    binary_name : ?[]const u8      = null,
+    binary_ver  : ?[]const u8      = null,
+    usage_desc  : ?[]const u8      = null,
+    expects_pos : FlagExpectsWhat  = .none,
+    pos_type    : ?FlagExpectsType = null,
+    pos_args    : ?*[][:0]const u8 = null,
 };
 
 pub fn proc(
-    argv      : []const [:0]const u8,
-    writer    : anytype,
-    allocator : std.mem.Allocator,
+    argv               : []const [:0]const u8,
+    writer             : anytype,
+    allocator          : std.mem.Allocator,
     comptime proc_args : ProcArgs,
+    flags              : []const *const Flag,
 ) !void {
-    _ = writer;
     _ = allocator;
+    _ = proc_args;
 
-    comptime {
-        for (proc_args.flags) |flag| {
-            if (flag.name_short == null and flag.name_long == null) {
-                @compileError("Flags require at least a short form OR a long form.");
-            }
-        }
+    for (flags) |flag| {
+        try writer.print("{s}\n", .{flag.name_long});
     }
 
     for (argv) |arg| {
-        std.debug.print("{s}\n", .{arg});
+        try writer.print("{s}\n", .{arg});
     }
 }
 
