@@ -42,7 +42,42 @@ pub fn main() !void {
     const argv: []const [:0]u8 = try process.argsAlloc(allocator);
     defer process.argsFree(allocator, argv);
 
-    args.process(argv) catch unreachable;
+    var dither_flag = args.Flag {
+        .name_short   = 'd',
+        .name_long    = "dither",
+        .help_text    =
+            \\specify dithering algorithm, or 'none' to disable. Default is 'floyd-steinberg'.
+            \\Other options are: 'atkinson', 'jjn', 'burkes', and 'sierra-lite'
+        ,
+        .expects_args = .single_arg,
+        .args_type    = .string,
+    };
+    var invert_flag = args.Flag {
+        .name_short  = 'i',
+        .name_long   = "invert",
+        .help_text   = "invert image brightness, preserving hue and saturation",
+        .expects_args = .boolean,
+    };
+    var palette_flag = args.Flag {
+        .name_short   = 'p',
+        .name_long    = "palette",
+        .help_text    = "supply palette in hex form",
+        .expects_args = .multiple_args,
+        .args_type    = .string,
+    };
+
+    args.proc(argv, std.io.getStdErr().writer(), allocator, .{
+        .binary_name = "imgclr",
+        .binary_ver  = "0.2-dev",
+        .usage_desc  = "image colouriser",
+        .flags       = &.{
+            &dither_flag,
+            &invert_flag,
+            &palette_flag,
+        },
+        .expects_pos = .multiple_args,
+        .pos_type    = .path,
+    }) catch unreachable;
 
     const params = comptime clap.parseParamsComptime(
         \\-d, --dither <str>        specify dithering algorithm

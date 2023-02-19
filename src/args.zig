@@ -1,13 +1,11 @@
 const std = @import("std");
 
-const print = std.debug.print;
-
 
 const FlagExpectsWhat = enum {
     none,
     boolean,
-    single_option,
-    multiple_options,
+    single_arg,
+    multiple_args,
 };
 
 const FlagExpectsType = enum {
@@ -18,50 +16,57 @@ const FlagExpectsType = enum {
 };
 
 pub const Flag = struct {
-    name_short: ?u8 = null,
-    name_long: ?[]const u8 = null,
-    help_text: ?[]const u8 = null,
-    arg_expects_what: FlagExpectsWhat = .none,
-    arg_expects_type: ?FlagExpectsType = null,
-    is_required: bool = false,
-    is_present: bool = false,
-    args: ?[][:0]const u8 = null,
+    name_short   : ?u8              = null,
+    name_long    : ?[]const u8      = null,
+    help_text    : ?[]const u8      = null,
+    expects_args : FlagExpectsWhat  = .boolean,
+    args_type    : ?FlagExpectsType = null,
+    is_required  : bool             = false,
+    is_present   : bool             = false,
+    args         : ?[][:0]const u8  = null,
 };
 
 
-pub fn process(argv: []const [:0]const u8) !void {
+const msg_missing_required_flag       = "option '{s}' is required";
+const msg_missing_required_arg        = "option '{s}' requires an argument";
+const msg_invalid_flag                = "invalid option '{s}'";
+const msg_missing_required_positional = "expected '{s}'";
+const msg_help_hint                   = "Try '{s} {s}' for more information.";
+const help_flag = Flag {
+    .name_short = 'h',
+    .name_long  = "help",
+    .help_text  = "display this help and exit",
+};
+const version_flag = Flag {
+    .name_long = "version",
+    .help_text = "display version information and exit",
+};
+
+
+pub const ProcArgs = struct {
+    binary_name : ?[]const u8      = null,
+    binary_ver  : ?[]const u8      = null,
+    usage_desc  : ?[]const u8      = null,
+    flags       : []const* Flag    = undefined,
+    expects_pos : FlagExpectsWhat  = .none,
+    pos_type    : ?FlagExpectsType = null,
+    pos_args    : ?*[][:0]const u8 = null,
+};
+
+pub fn proc(
+    argv      : []const [:0]const u8,
+    writer    : anytype,
+    allocator : std.mem.Allocator,
+    proc_args : ProcArgs,
+) !void {
+    _ = writer;
+    _ = allocator;
+    _ = proc_args;
     for (argv) |arg| {
-        print("{s}\n", .{arg});
+        std.debug.print("{s}\n", .{arg});
     }
 }
-// #define ARGS_MISSING_FLAG_TEXT "option '--%s' is required"
-// #define ARGS_MISSING_ARG_TEXT "option '--%s' requires an argument"
-// #define ARGS_INVALID_FLAG_TEXT "invalid option"
-// #define ARGS_MISSING_POSITIONAL_TEXT "expected %s"
-// #define ARGS_USAGE_ERR_HELP_TEXT "Try '%s --%s' for more information."
-// #define ARGS_HELP_FLAG_NAME_SHORT 'h'
-// #define ARGS_HELP_FLAG_NAME_LONG "help"
-// #define ARGS_HELP_FLAG_HELP_TEXT "display this help and exit"
-// #define ARGS_VERSION_FLAG_NAME_SHORT false
-// #define ARGS_VERSION_FLAG_NAME_LONG "version"
-// #define ARGS_VERSION_FLAG_HELP_TEXT "output version information and exit"
 
-// void args_helpHint(void) {
-//     #ifndef ARGS_HELP_FLAG_DISABLED
-//     printf(ARGS_USAGE_ERR_HELP_TEXT, ARGS_BINARY_NAME, ARGS_HELP_FLAG_NAME_LONG);
-//     putchar('\n');
-//     #endif // ARGS_HELP_FLAG_DISABLED
-// }
-//
-//
-// bool args_optionalFlagsPresent(const size_t flags_count, args_Flag *flags[]) {
-//     for (size_t i = 0; i < flags_count; i++) {
-//         if (!flags[i]->required && flags[i]->is_present) return true;
-//     }
-//     return false;
-// }
-//
-//
 // int args_process
 // (int argc, char **argv, const char *usage_description, const size_t flags_count, args_Flag *flags[],
 // size_t *positional_num, char **positional_args, const ARGS_FLAG_EXPECTS positional_expects,
@@ -372,6 +377,3 @@ pub fn process(argv: []const [:0]const u8) !void {
 //
 //     return ARGS_RETURN_CONTINUE;
 // }
-//
-// #endif // ARGS_IMPLEMENTATION
-//
