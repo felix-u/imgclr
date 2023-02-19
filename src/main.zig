@@ -1,26 +1,18 @@
-// const c = @cImport({
-//     @cDefine ( "STBI_ONLY_JPEG", "" );
-//     @cDefine ( "STBI_ONLY_PNG", "" );
-//     @cDefine ( "STBI_ONLY_BMP", "" );
-//     @cDefine ( "STBI_ONLY_PNM", "" );
-//     @cDefine ( "STBI_FAILURE_USERMSG", "" );
-//     @cInclude ("stb_image-v2.27/stb_image.h");
-//     @cInclude ("stb_image_write-v1.16/stb_image_write.h");
-// });
+const clap   = @import("clap"); // @Enhancement { Replace clap };
+const std    = @import("std");
+const zstbi  = @import("zstbi");
 
-const args = @import("./args.zig");
-const clap = @import("clap"); // @Enhancement { Replace clap };
-const clr = @import("./colour.zig");
+const args   = @import("./args.zig");
+const clr    = @import("./colour.zig");
 const dither = @import("./dither.zig");
-const std = @import("std");
-const zstbi = @import("zstbi");
 
-const ascii = std.ascii;
-const debug = std.debug;
-const maths = std.math;
-const print = std.debug.print;
+const ascii   = std.ascii;
+const debug   = std.debug;
+const maths   = std.math;
+const print   = std.debug.print;
 const process = std.process;
-const Soa = std.MultiArrayList;
+const Soa     = std.MultiArrayList;
+
 
 const binary_name = "imgclr";
 const binary_vers = "0.2-dev";
@@ -74,6 +66,8 @@ pub fn main() !void {
             &dither_flag,
             &invert_flag,
             &palette_flag,
+            &args.help_flag,
+            &args.version_flag,
         },
         .expects_pos = .multiple_args,
         .pos_type    = .path,

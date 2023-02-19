@@ -32,12 +32,12 @@ const msg_missing_required_arg        = "option '{s}' requires an argument";
 const msg_invalid_flag                = "invalid option '{s}'";
 const msg_missing_required_positional = "expected '{s}'";
 const msg_help_hint                   = "Try '{s} {s}' for more information.";
-const help_flag = Flag {
+pub var help_flag = Flag {
     .name_short = 'h',
     .name_long  = "help",
     .help_text  = "display this help and exit",
 };
-const version_flag = Flag {
+pub var version_flag = Flag {
     .name_long = "version",
     .help_text = "display version information and exit",
 };
@@ -57,11 +57,17 @@ pub fn proc(
     argv      : []const [:0]const u8,
     writer    : anytype,
     allocator : std.mem.Allocator,
-    proc_args : ProcArgs,
+    comptime proc_args : ProcArgs,
 ) !void {
     _ = writer;
     _ = allocator;
-    _ = proc_args;
+    comptime {
+        for (proc_args.flags) |flag| {
+            if (!flag.name_short and !flag.name_long) {
+                @compileError("Flags require at least a short form OR a long form.");
+            }
+        }
+    }
     for (argv) |arg| {
         std.debug.print("{s}\n", .{arg});
     }
