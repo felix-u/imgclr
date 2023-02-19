@@ -68,7 +68,7 @@ pub fn proc(
     }
 
     for (argv) |arg| {
-        // Position
+        // Positional
         if (arg.len <= 1) {
             try writer.print("Very short positional: {s}\n", .{arg});
         }
