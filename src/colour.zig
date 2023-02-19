@@ -48,7 +48,6 @@ pub fn hexToRgb(str: []const u8) ?Rgb {
             str[start_idx + 2],
         }) catch return null;
     }
-
     else if (hex_len == 6) {
         _ = fmt.hexToBytes(&byte_buf, str[start_idx..]) catch return null;
     }
@@ -59,3 +58,4 @@ pub fn hexToRgb(str: []const u8) ?Rgb {
         .b = byte_buf[2],
     };
 }
+

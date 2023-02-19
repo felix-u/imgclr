@@ -264,3 +264,4 @@ fn printHelp(params: []const clap.Param(clap.Help)) !void {
     print("\n\nUSAGE\n", .{});
     return clap.help(std.io.getStdErr().writer(), clap.Help, params, .{});
 }
+
