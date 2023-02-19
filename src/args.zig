@@ -62,9 +62,11 @@ pub fn proc(
     _ = writer;
     _ = allocator;
 
-    inline for (proc_args.flags) |flag| {
-        if (flag.name_short == null and flag.name_long == null) {
-            @compileError("Flags require at least a short form OR a long form.");
+    comptime {
+        for (proc_args.flags) |flag| {
+            if (flag.name_short == null and flag.name_long == null) {
+                @compileError("Flags require at least a short form OR a long form.");
+            }
         }
     }
 
