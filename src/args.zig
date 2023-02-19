@@ -32,25 +32,25 @@ const msg_missing_required_arg        = "option '{s}' requires an argument";
 const msg_invalid_flag                = "invalid option '{s}'";
 const msg_missing_required_positional = "expected '{s}'";
 const msg_help_hint                   = "Try '{s} {s}' for more information.";
-pub var help_flag = Flag {
+pub const help_flag = Flag {
     .name_short = 'h',
     .name_long  = "help",
     .help_text  = "display this help and exit",
 };
-pub var version_flag = Flag {
+pub const version_flag = Flag {
     .name_long = "version",
     .help_text = "display version information and exit",
 };
 
 
 pub const ProcArgs = struct {
-    binary_name : ?[]const u8      = null,
-    binary_ver  : ?[]const u8      = null,
-    usage_desc  : ?[]const u8      = null,
-    flags       : []const* Flag    = undefined,
-    expects_pos : FlagExpectsWhat  = .none,
-    pos_type    : ?FlagExpectsType = null,
-    pos_args    : ?*[][:0]const u8 = null,
+    binary_name : ?[]const u8         = null,
+    binary_ver  : ?[]const u8         = null,
+    usage_desc  : ?[]const u8         = null,
+    flags       : []const *const Flag = undefined,
+    expects_pos : FlagExpectsWhat     = .none,
+    pos_type    : ?FlagExpectsType    = null,
+    pos_args    : ?*[][:0]const u8    = null,
 };
 
 pub fn proc(
@@ -61,13 +61,13 @@ pub fn proc(
 ) !void {
     _ = writer;
     _ = allocator;
-    comptime {
-        for (proc_args.flags) |flag| {
-            if (!flag.name_short and !flag.name_long) {
-                @compileError("Flags require at least a short form OR a long form.");
-            }
+
+    inline for (proc_args.flags) |flag| {
+        if (flag.name_short == null and flag.name_long == null) {
+            @compileError("Flags require at least a short form OR a long form.");
         }
     }
+
     for (argv) |arg| {
         std.debug.print("{s}\n", .{arg});
     }

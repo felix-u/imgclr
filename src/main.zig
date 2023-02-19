@@ -34,7 +34,7 @@ pub fn main() !void {
     const argv: []const [:0]u8 = try process.argsAlloc(allocator);
     defer process.argsFree(allocator, argv);
 
-    var dither_flag = args.Flag {
+    const dither_flag = args.Flag {
         .name_short   = 'd',
         .name_long    = "dither",
         .help_text    =
@@ -44,13 +44,13 @@ pub fn main() !void {
         .expects_args = .single_arg,
         .args_type    = .string,
     };
-    var invert_flag = args.Flag {
+    const invert_flag = args.Flag {
         .name_short  = 'i',
         .name_long   = "invert",
         .help_text   = "invert image brightness, preserving hue and saturation",
         .expects_args = .boolean,
     };
-    var palette_flag = args.Flag {
+    const palette_flag = args.Flag {
         .name_short   = 'p',
         .name_long    = "palette",
         .help_text    = "supply palette in hex form",
