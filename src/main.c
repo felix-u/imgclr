@@ -272,16 +272,16 @@ int main(int argc, char **argv) {
 // Get file extension from string
 char *extensionFromStr(char *str) {
     usize str_len = strlen(str);
-    usize ext_pos = 0;
+    usize ext_pos = str_len;
 
-    for (usize i = 0; i < str_len; i++) {
+    for (usize i = str_len; i >= 0; i--) {
         if (str[i] == '.') {
             ext_pos = i;
             break;
         }
     }
 
-    if (ext_pos != 0 && ext_pos < str_len - 1) {
+    if (ext_pos < str_len - 1) {
         return str + ext_pos + 1;
     }
     return NULL;

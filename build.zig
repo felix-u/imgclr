@@ -10,26 +10,13 @@ pub fn build(b: *std.Build) !void {
 
 
     const cc_shared_flags = [_][]const u8 {
-        "-std=c99",
-        "-Wall",
-        "-Wextra",
-        "-pedantic",
-        "-Wshadow",
-        "-Wstrict-overflow",
-        "-Wstrict-aliasing",
-        // libs
-        // "-lm",
+        "-std=c99", "-Wall", "-Wextra", "-pedantic", "-Wshadow", "-Wstrict-overflow", "-Wstrict-aliasing",
     };
     const cc_debug_flags = cc_shared_flags ++ .{
-        "-g",
-        "-Og",
-        "-ggdb",
+        "-g", "-Og", "-ggdb",
     };
     const cc_release_flags = cc_shared_flags ++ .{
-        "-O3",
-        "-s",
-        "-static",
-        "-march=native",
+        "-O3", "-s", "-static", "-march=native",
     };
 
 
