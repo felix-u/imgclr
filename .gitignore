@@ -6,6 +6,7 @@ imgclr
 *.org
 *.a
 *.out
+*.o
 log
 !examples/*/*.jpg
 target/
