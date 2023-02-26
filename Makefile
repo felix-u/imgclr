@@ -10,7 +10,7 @@ DEBUGFLAGS=-Og -g -ggdb
 RELEASEFLAGS=-O3 -s -march=native
 LIBS=-lm
 
-CROSSCC=zig cc
+CROSSCC=zig cc -fstack-protector
 
 debug: $(obj)
 	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(LIBS) -o $(NAME) $^
