@@ -13,8 +13,12 @@
 #define DITHER_IMPLEMENTATION
 #include "dither.h"
 
+#ifdef UNITY_BUILD
+#include "./stbi.c"
+#else
 #include "../libs/stb_image-v2.27/stb_image.h"
 #include "../libs/stb_image_write-v1.16/stb_image_write.h"
+#endif // UNITY_BUILD
 
 #define EX_USAGE 64
 #define EX_NOINPUT 66

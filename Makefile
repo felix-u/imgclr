@@ -7,18 +7,18 @@ obj = $(src:.c=.o)
 CFLAGS=-std=c99 -pedantic -Wshadow -Wstrict-aliasing -Wstrict-overflow \
 	   -Wextra -Wall
 DEBUGFLAGS=-Og -g -ggdb
-RELEASEFLAGS=-O3 -s -march=native
+RELEASEFLAGS=-O3 -s
 LIBS=-lm
 
-CROSSCC=zig cc -fstack-protector
+CROSSCC=zig cc -DUNITY_BUILD
 
 debug: $(obj)
 	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(LIBS) -o $(NAME) $^
 
 release: $(obj)
-	$(CC) $(CFLAGS) $(RELEASEFLAGS) $(LIBS) -o $(NAME) $^
+	$(CC) $(CFLAGS) -march=native $(RELEASEFLAGS) $(LIBS) -o $(NAME) $^
 
-cross: $(obj)
+cross: src/main.c
 	mkdir -p release
 	$(CROSSCC) -static -target x86_64-windows     $(CFLAGS) $(RELEASEFLAGS) $(LIBS) -o release/$(NAME)-v$(VERSION)-x86_64-win.exe  $^
 	$(CROSSCC) -static -target aarch64-windows    $(CFLAGS) $(RELEASEFLAGS) $(LIBS) -o release/$(NAME)-v$(VERSION)-aarch64-win.exe $^
