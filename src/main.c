@@ -1,32 +1,35 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
+#include "base.c"
 
 #define ARGS_IMPLEMENTATION
 #define ARGS_BINARY_NAME "imgclr"
 #define ARGS_BINARY_VERSION "0.2-dev"
 #include "args.h"
-#define CLR_IMPLEMENTATION
-#include "clr.h"
-#include "int_types.h"
-#define DITHER_IMPLEMENTATION
-#include "dither.h"
 
-#ifdef UNITY_BUILD
-#include "./stbi.c"
+#include "colour.c"
+#include "dither.c"
+
+#ifndef DEBUG
+    #include "stbi.c"
 #else
-#include "../libs/stb_image-v2.27/stb_image.h"
-#include "../libs/stb_image_write-v1.16/stb_image_write.h"
-#endif // UNITY_BUILD
+    #include "stb_image.h"
+    #include "stb_image_write.h"
+#endif // DEBUG
 
-#define EX_USAGE 64
-#define EX_NOINPUT 66
-#define EX_UNAVAILABLE 69
+char *extension_from_cstr(char *str) {
+    usize str_len = strlen(str);
+    usize ext_pos = str_len;
 
+    for (usize i = str_len; i >= 0; i--) {
+        if (str[i] != '.') continue;
+        ext_pos = i;
+        break;
+    }
 
-char *extensionFromStr(char *str);
-
+    if (ext_pos < str_len - 1) {
+        return str + ext_pos + 1;
+    }
+    return NULL;
+}
 
 int main(int argc, char **argv) {
 
@@ -77,17 +80,17 @@ int main(int argc, char **argv) {
     if (positional_num < 2) {
         printf("%s: expected output file as positional argument\n", ARGS_BINARY_NAME);
         args_helpHint();
-        return EX_USAGE;
+        return 1;
     }
 
     char *input_path = positional_args[0];
     char *output_path = positional_args[1];
 
-    char *ext = extensionFromStr(output_path);
+    char *ext = extension_from_cstr(output_path);
     if (ext == NULL) {
         printf("%s: unable to infer output image format\n", ARGS_BINARY_NAME);
         args_helpHint();
-        return EX_USAGE;
+        return 1;
     }
 
     if (strcasecmp(ext, "jpg") && strcasecmp(ext, "jpeg") &&
@@ -96,17 +99,17 @@ int main(int argc, char **argv) {
     {
         printf("%s: cannot infer image format from extension '%s'\n", ARGS_BINARY_NAME, ext);
         args_helpHint();
-        return EX_USAGE;
+        return 1;
     }
 
     if (palette_flag.opts_num < 2) {
         printf("%s: must provide at least two (2) palette colours\n", ARGS_BINARY_NAME);
         args_helpHint();
-        return EX_USAGE;
+        return 1;
     }
 
 
-    const dither_Algorithm *algorithm = &floyd_steinberg;
+    const Dither_Algorithm *algorithm = &floyd_steinberg;
     char *dither_alg = dither_flag.is_present ? dither_flag.opts[0] : "floyd-steinberg";
     bool found_algorithm = false;
     for (usize i = 0; i < DITHER_ALGORITHM_NUM; i++) {
@@ -119,23 +122,23 @@ int main(int argc, char **argv) {
 
     if (!found_algorithm) {
         printf("%s: invalid dithering algorithm '%s'\n", ARGS_BINARY_NAME, dither_alg);
-        return EX_USAGE;
+        return 1;
     }
 
 
     // Convert palette hex strings to an array of RGB
 
-    clr_RGB palette[palette_flag.opts_num];
+    Rgb palette[palette_flag.opts_num];
 
     for (usize i = 0; i < palette_flag.opts_num; i++) {
-        clr_RGB *rgb_get = &(clr_RGB){ 0, 0, 0 };
+        Rgb *rgb_get = &(Rgb){ 0, 0, 0 };
         rgb_get = clr_hexToRGB(palette_flag.opts[i], rgb_get);
         if (rgb_get == NULL) {
             printf("%s: '%s' is not a valid hex colour\n", ARGS_BINARY_NAME, palette_flag.opts[i]);
             args_helpHint();
-            return EX_USAGE;
+            return 1;
         }
-        clr_RGB rgb_put = {rgb_get->r, rgb_get->g, rgb_get->b};
+        Rgb rgb_put = {rgb_get->r, rgb_get->g, rgb_get->b};
         palette[i] = rgb_put;
     }
 
@@ -147,34 +150,31 @@ int main(int argc, char **argv) {
     if (data == NULL) {
         const char *reason = stbi_failure_reason();
         printf("%s: could not load '%s':\n%s\n", ARGS_BINARY_NAME, input_path, reason);
-        return EX_NOINPUT;
+        return 1;
     }
 
     usize data_len = width * height * channels;
 
 
     // Invert brightness, if applicable
-    if (swap_flag.is_present) {
-        for (usize i = 0; i < data_len; i += 3) {
+    if (swap_flag.is_present) for (usize i = 0; i < data_len; i += 3) {
+        i16 brightness = (data[i + 0] + data[i + 1] + data[i + 2]) / 3;
+        i16 r_relative = data[i + 0] - brightness;
+        i16 g_relative = data[i + 1] - brightness;
+        i16 b_relative = data[i + 2] - brightness;
 
-            i16 brightness = (data[i + 0] + data[i + 1] + data[i + 2]) / 3;
-            i16 r_relative = data[i + 0] - brightness;
-            i16 g_relative = data[i + 1] - brightness;
-            i16 b_relative = data[i + 2] - brightness;
+        i16 new_r = (255 - brightness) + r_relative;
+        i16 new_g = (255 - brightness) + g_relative;
+        i16 new_b = (255 - brightness) + b_relative;
 
-            i16 new_r = (255 - brightness) + r_relative;
-            i16 new_g = (255 - brightness) + g_relative;
-            i16 new_b = (255 - brightness) + b_relative;
+        // Clamp to 0 - 255
+        if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
+        if (new_g < 0) new_g = 0; else if (new_g > 255) new_g = 255;
+        if (new_b < 0) new_b = 0; else if (new_b > 255) new_b = 255;
 
-            // Clamp to 0 - 255
-            if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
-            if (new_g < 0) new_g = 0; else if (new_g > 255) new_g = 255;
-            if (new_b < 0) new_b = 0; else if (new_b > 255) new_b = 255;
-
-            data[i + 0] = (u8)new_r;
-            data[i + 1] = (u8)new_g;
-            data[i + 2] = (u8)new_b;
-        }
+        data[i + 0] = (u8)new_r;
+        data[i + 1] = (u8)new_g;
+        data[i + 2] = (u8)new_b;
     }
 
     // NOTE: Having several loops to avoid bounds checking on the majority of the image is not worth it.
@@ -184,9 +184,9 @@ int main(int argc, char **argv) {
         u16 min_diff = 999;
         usize best_match = 0;
         for (usize j = 0; j < palette_flag.opts_num; j++) {
-            u16 diff_total = abs(data[i + 0] - palette[j].r) +
-                             abs(data[i + 1] - palette[j].g) +
-                             abs(data[i + 2] - palette[j].b);
+            u16 diff_total = (u16)abs(data[i + 0] - palette[j].r) +
+                             (u16)abs(data[i + 1] - palette[j].g) +
+                             (u16)abs(data[i + 2] - palette[j].b);
             if (diff_total < min_diff) {
                 min_diff = diff_total;
                 best_match = j;
@@ -212,15 +212,15 @@ int main(int argc, char **argv) {
 
         for (usize j = 0; j < algorithm->offset_num; j++) {
 
-            isize target_x = current_x + algorithm->offsets[j].x;
-            isize target_y = current_y + algorithm->offsets[j].y;
+            i64 target_x = current_x + algorithm->offsets[j].x_offset;
+            i64 target_y = current_y + algorithm->offsets[j].y_offset;
 
             if (target_x < 0 || target_x >= width || target_y < 0 || target_y >= height) continue;
 
             usize target_i = channels * (target_y * width + target_x);
-            i16 new_r = (i16)data[target_i + 0] + (double)quant_err[0] * algorithm->offsets[j].ratio;
-            i16 new_g = (i16)data[target_i + 1] + (double)quant_err[1] * algorithm->offsets[j].ratio;
-            i16 new_b = (i16)data[target_i + 2] + (double)quant_err[2] * algorithm->offsets[j].ratio;
+            i16 new_r = (i16)data[target_i + 0] + (i16)((double)quant_err[0] * algorithm->offsets[j].factor);
+            i16 new_g = (i16)data[target_i + 1] + (i16)((double)quant_err[1] * algorithm->offsets[j].factor);
+            i16 new_b = (i16)data[target_i + 2] + (i16)((double)quant_err[2] * algorithm->offsets[j].factor);
 
             // Clamp to 0 - 255
             if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
@@ -252,30 +252,11 @@ int main(int argc, char **argv) {
     if (!write_success) {
         printf("%s: unable to write image to '%s'\n", ARGS_BINARY_NAME, output_path);
         stbi_image_free(data);
-        return EX_UNAVAILABLE;
+        return 1;
     }
 
     printf("%s: wrote image of size %dx%d to '%s'\n", ARGS_BINARY_NAME, width, height, output_path);
 
     stbi_image_free(data);
     return EXIT_SUCCESS;
-}
-
-
-// Get file extension from string
-char *extensionFromStr(char *str) {
-    usize str_len = strlen(str);
-    usize ext_pos = str_len;
-
-    for (usize i = str_len; i >= 0; i--) {
-        if (str[i] == '.') {
-            ext_pos = i;
-            break;
-        }
-    }
-
-    if (ext_pos < str_len - 1) {
-        return str + ext_pos + 1;
-    }
-    return NULL;
 }

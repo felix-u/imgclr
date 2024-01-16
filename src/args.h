@@ -378,7 +378,7 @@ const ARGS_BINARY_POSITIONAL_TYPE positional_type, const size_t positional_cap)
                         }
                         flags[j]->opts = argv + i + 1;
                         flags[j]->opts_num = opts_num;
-                        skip = opts_num;
+                        skip = (int)opts_num;
                     }
                     found_match = true;
                     break;
@@ -440,7 +440,7 @@ const ARGS_BINARY_POSITIONAL_TYPE positional_type, const size_t positional_cap)
                     }
                     flags[k]->opts = argv + i + 1;
                     flags[k]->opts_num = opts_num;
-                    skip = opts_num;
+                    skip = (int)opts_num;
                 }
             }
         }
