@@ -15,30 +15,28 @@
     #include "stb_image_write.h"
 #endif // DEBUG
 
-char *extension_from_cstr(char *str) {
-    usize str_len = strlen(str);
+static error extension_from_cstr(char *cstr, char **ext) {
+    usize str_len = strlen(cstr);
     usize ext_pos = str_len;
-
     for (usize i = str_len; i >= 0; i--) {
-        if (str[i] != '.') continue;
+        if (cstr[i] != '.') continue;
         ext_pos = i;
         break;
     }
-
-    if (ext_pos < str_len - 1) {
-        return str + ext_pos + 1;
+    if (ext_pos + 1 >= str_len) {
+        return err("unable to infer output image format");
     }
-    return NULL;
+    *ext = cstr + ext_pos + 1;
+    return 0;
 }
 
-int main(int argc, char **argv) {
-
+static error main_wrapper(int argc, char **argv) {
     args_Flag dither_flag = {
         .name_short = 'd',
         .name_long = "dither",
-        .help_text = "specify dithering algorithm, or 'none' to disable. Default\n"
-                     "is 'floyd-steinberg'. Other options are: 'atkinson', 'jjn',\n"
-                     "'burkes', and 'sierra-lite'",
+        .help_text = "specify dithering algorithm, or 'none' to disable.\n"
+                     "Default is 'floyd-steinberg'. Other options are: \n"
+                     "'atkinson', 'jjn', 'burkes', and 'sierra-lite'",
         .required = false,
         .type = ARGS_SINGLE_OPT,
         .expects = ARGS_EXPECTS_STRING,
@@ -72,57 +70,64 @@ int main(int argc, char **argv) {
     usize positional_num = 0;
     const usize positional_cap = 256;
     char *positional_args[positional_cap];
-    int args_return = args_process(argc, argv, "image colouriser", flags_count, flags,
-                                   &positional_num, positional_args, ARGS_EXPECTS_FILE, ARGS_POSITIONAL_MULTI,
-                                   positional_cap);
+    int args_return = args_process(
+        argc, 
+        argv, 
+        "image colouriser", 
+        flags_count, 
+        flags,
+        &positional_num, 
+        positional_args, 
+        ARGS_EXPECTS_FILE, 
+        ARGS_POSITIONAL_MULTI,
+        positional_cap
+    );
     if (args_return != ARGS_RETURN_CONTINUE) return args_return;
 
     if (positional_num < 2) {
-        printf("%s: expected output file as positional argument\n", ARGS_BINARY_NAME);
+        error e = err("expected output file as positional argument");
         args_helpHint();
-        return 1;
+        return e;
     }
 
     char *input_path = positional_args[0];
     char *output_path = positional_args[1];
-
-    char *ext = extension_from_cstr(output_path);
-    if (ext == NULL) {
-        printf("%s: unable to infer output image format\n", ARGS_BINARY_NAME);
-        args_helpHint();
-        return 1;
-    }
+    char *ext; try (extension_from_cstr(output_path, &ext));
 
     if (strcasecmp(ext, "jpg") && strcasecmp(ext, "jpeg") &&
         strcasecmp(ext, "png") &&
-        strcasecmp(ext, "bmp") &&  strcasecmp(ext, "dib"))
+        strcasecmp(ext, "bmp") && strcasecmp(ext, "dib"))
     {
-        printf("%s: cannot infer image format from extension '%s'\n", ARGS_BINARY_NAME, ext);
+        error e = errf("cannot infer image format from extension '%s'", ext);
         args_helpHint();
-        return 1;
+        return e;
     }
 
     if (palette_flag.opts_num < 2) {
-        printf("%s: must provide at least two (2) palette colours\n", ARGS_BINARY_NAME);
+        error e = err("must provide at least two (2) palette colours");
         args_helpHint();
-        return 1;
+        return e;
     }
-
 
     const Dither_Algorithm *algorithm = &floyd_steinberg;
-    char *dither_alg = dither_flag.is_present ? dither_flag.opts[0] : "floyd-steinberg";
+    char *dither_alg = dither_flag.is_present 
+        ? dither_flag.opts[0] 
+        : "floyd-steinberg";
     bool found_algorithm = false;
     for (usize i = 0; i < DITHER_ALGORITHM_NUM; i++) {
-        if (!strncasecmp(dither_alg, DITHER_ALGORITHMS[i]->name, strlen(dither_alg))) {
-            found_algorithm = true;
-            algorithm = DITHER_ALGORITHMS[i];
-            break;
+        if (strncasecmp(
+                dither_alg, 
+                DITHER_ALGORITHMS[i]->name, 
+                strlen(dither_alg)
+        )) {
+            continue;
         }
+        found_algorithm = true;
+        algorithm = DITHER_ALGORITHMS[i];
+        break;
     }
-
     if (!found_algorithm) {
-        printf("%s: invalid dithering algorithm '%s'\n", ARGS_BINARY_NAME, dither_alg);
-        return 1;
+        return errf("invalid dithering algorithm '%s'", dither_alg);
     }
 
 
@@ -154,7 +159,6 @@ int main(int argc, char **argv) {
     }
 
     usize data_len = width * height * channels;
-
 
     // Invert brightness, if applicable
     if (swap_flag.is_present) for (usize i = 0; i < data_len; i += 3) {
@@ -258,5 +262,10 @@ int main(int argc, char **argv) {
     printf("%s: wrote image of size %dx%d to '%s'\n", ARGS_BINARY_NAME, width, height, output_path);
 
     stbi_image_free(data);
-    return EXIT_SUCCESS;
+    return 0;
+}
+
+int main(int argc, char **argv) {
+    error e = main_wrapper(argc, argv);
+    return e;
 }

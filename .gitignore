@@ -3,7 +3,7 @@
 *.dll
 release/
 
-imgclr
+imgclr*
 *.jpg
 *.png
 *.bmp
