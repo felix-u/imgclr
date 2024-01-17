@@ -10,7 +10,6 @@ static bool is_hex_char(char c) {
     return false;
 }
 
-
 static bool is_hex_cstr(char *str) {
     usize len = strlen(str);
     for (usize i = 0; i < len; i += 1) {
@@ -19,14 +18,9 @@ static bool is_hex_cstr(char *str) {
     return true;
 }
 
-
-static Rgb *clr_hexToRGB(char *str, Rgb *rgb) {
-
+static error hex_to_rgb(char *str, Rgb *out) {
     usize start_pos = 0;
     usize hex_len = 0;
-
-    // Find hex format & ignore starting characters
-    // (anything which isn't a-fA-F0-9).
     usize len = strlen(str);
     for (usize i = 0; i < len; i += 1) {
         if (!is_hex_char(str[i])) continue;
@@ -34,11 +28,12 @@ static Rgb *clr_hexToRGB(char *str, Rgb *rgb) {
         hex_len = strlen(str) - start_pos;
         // Hex colour must be in either three-digit format (e.g. "fff") 
         // or six-digit format (e.g. "ffffff").
-        if (hex_len != 3 && hex_len != 6) return NULL;
-        if (!is_hex_cstr(str + i)) return NULL;
+        if (hex_len != 3 && hex_len != 6) {
+            return errf("hex colour '%s' must be of length 3 or 6", str);
+        }
+        if (!is_hex_cstr(str + i)) return errf("invalid hex colour '%s'", str);
         break;
     }
-
 
     // Now we've got a valid hex string to parse.
     if (hex_len == 3) {
@@ -48,12 +43,11 @@ static Rgb *clr_hexToRGB(char *str, Rgb *rgb) {
         u8 single_r = (u8)strtol(r_as_str, NULL, 16);
         u8 single_g = (u8)strtol(g_as_str, NULL, 16);
         u8 single_b = (u8)strtol(b_as_str, NULL, 16);
-        rgb->r = single_r * 16 + single_r;
-        rgb->g = single_g * 16 + single_g;
-        rgb->b = single_b * 16 + single_b;
-        return rgb;
-    }
-    else if (hex_len == 6) {
+        out->r = single_r * 16 + single_r;
+        out->g = single_g * 16 + single_g;
+        out->b = single_b * 16 + single_b;
+        return 0;
+    } else if (hex_len == 6) {
         char r1_as_str[] = { str[start_pos + 0], '\0' };
         char r2_as_str[] = { str[start_pos + 1], '\0' };
         char g1_as_str[] = { str[start_pos + 2], '\0' };
@@ -66,12 +60,11 @@ static Rgb *clr_hexToRGB(char *str, Rgb *rgb) {
         u8 single_g2 = (u8)strtol(g2_as_str, NULL, 16);
         u8 single_b1 = (u8)strtol(b1_as_str, NULL, 16);
         u8 single_b2 = (u8)strtol(b2_as_str, NULL, 16);
-        rgb->r = single_r1 * 16 + single_r2;
-        rgb->g = single_g1 * 16 + single_g2;
-        rgb->b = single_b1 * 16 + single_b2;
-        return rgb;
+        out->r = single_r1 * 16 + single_r2;
+        out->g = single_g1 * 16 + single_g2;
+        out->b = single_b1 * 16 + single_b2;
+        return 0;
     }
 
-    // If we've not returned by now, there's something wrong.
-    return NULL;
+    return errf("invalid hex colour '%s'", str);
 }
