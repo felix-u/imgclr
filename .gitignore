@@ -22,3 +22,5 @@ target/
 zig-cache/
 zig-out/
 zig-clap/
+*.exe
+*.pdb
