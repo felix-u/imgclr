@@ -8,7 +8,7 @@ typedef struct {
 } Dither_Error;
 
 typedef struct {
-    char name[32];
+    Str8 name;
     usize offset_num;
     Dither_Error offsets[DITHER_MAX_OFFSET_NUM];
 } Dither_Algorithm;
@@ -18,7 +18,7 @@ typedef struct {
 // 3 5 1
 // multiplier: 1/16
 const Dither_Algorithm floyd_steinberg = {
-    .name = "floyd-steinberg",
+    .name = str8("floyd-steinberg"),
     .offset_num = 4,
     .offsets = {
         { 1, 0, 7.0/16.0},
@@ -30,7 +30,7 @@ const Dither_Algorithm floyd_steinberg = {
 
 
 const Dither_Algorithm none = {
-    .name = "none",
+    .name = str8("none"),
     .offset_num = 0,
     .offsets = {{0, 0, 0}},
 };
@@ -42,7 +42,7 @@ const Dither_Algorithm none = {
 //   1
 // multiplier: 1/8
 const Dither_Algorithm atkinson = {
-    .name = "atkinson",
+    .name = str8("atkinson"),
     .offset_num = 6,
     .offsets = {
         { 1, 0, 1.0/8.0},
@@ -61,7 +61,7 @@ const Dither_Algorithm atkinson = {
 // 1 3 5 3 1
 // multiplier = 1/48
 const Dither_Algorithm jjn = {
-    .name = "jjn",
+    .name = str8("jjn"),
     .offset_num = 12,
     .offsets = {
         { 1, 0, 7.0/48.0},
@@ -85,7 +85,7 @@ const Dither_Algorithm jjn = {
 // 2 4 8 4 2
 // multiplier = 1/32
 const Dither_Algorithm burkes = {
-    .name = "burkes",
+    .name = str8("burkes"),
     .offset_num = 7,
     .offsets = {
         { 1, 0, 8.0/32.0},
@@ -101,7 +101,7 @@ const Dither_Algorithm burkes = {
 
 // Results are VERY similar to Floyd-Steinberg, and execution speed is slightly faster.
 const Dither_Algorithm sierra_lite = {
-    .name = "sierra-lite",
+    .name = str8("sierra-lite"),
     .offset_num = 3,
     .offsets = {
         { 1, 0, 2.0/4.0},

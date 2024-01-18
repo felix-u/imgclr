@@ -31,56 +31,53 @@ typedef struct {
     Slice(Rgb) palette;
 } Context;
 
-static error extension_from_str(Str8 str, char **ext) {
-    usize ext_pos = str.len;
+static error format_from_str(Str8 str, Format *format) {
+    usize extension_pos = str.len;
     for (usize i = str.len; i >= 0; i--) {
         if (str.ptr[i] != '.') continue;
-        ext_pos = i;
+        extension_pos = i + 1;
         break;
     }
-    if (ext_pos + 1 >= str.len) {
-        return err("unable to infer output image format");
-    }
-    *ext = (char *)(str.ptr + ext_pos + 1);
+    
+    if (extension_pos + 1 >= str.len) return errf(
+        "unable to infer image format from filename '%.*s'", 
+        str8_fmt(str)
+    );
+
+    Str8 ext = str8_range(str, extension_pos, str.len);
+    
+    if (str8_eql(ext, str8("jpg")) || str8_eql(ext, str8("jpeg"))) {
+        *format = FORMAT_JPG;
+    } else if (str8_eql(ext, str8("png"))) {
+        *format = FORMAT_PNG;
+    } else if (str8_eql(ext, str8("bmp")) || str8_eql(ext, str8("dib"))) {
+        *format = FORMAT_BMP;
+    } else return errf(
+        "extension '%.*s' does not match any supported image format", 
+        str8_fmt(ext)
+    );
+    
     return 0;
 }
 
 static error main_wrapper(Context *ctx) {
     try (arena_init(&ctx->arena, 16 * 1024 * 1024));
-
-    char *ext; try (extension_from_str(ctx->outfile_path, &ext));
-
-    if (strcasecmp(ext, "jpg") && strcasecmp(ext, "jpeg") &&
-        strcasecmp(ext, "png") &&
-        strcasecmp(ext, "bmp") && strcasecmp(ext, "dib"))
-    {
-        return errf("cannot infer image format from extension '%s'", ext);
-    }
+    try (format_from_str(ctx->outfile_path, &ctx->outfile_format));
 
     const Dither_Algorithm *algorithm = &floyd_steinberg;
-    bool found_algorithm = false;
+    bool ok = false;
     for (usize i = 0; i < DITHER_ALGORITHM_NUM; i++) {
-        if (strncasecmp(
-                (const char *)ctx->dither_arg.ptr, 
-                DITHER_ALGORITHMS[i]->name, 
-                ctx->dither_arg.len
-        )) {
-            continue;
-        }
-        found_algorithm = true;
+        if (!str8_eql(ctx->dither_arg, DITHER_ALGORITHMS[i]->name)) continue;
+        ok = true;
         algorithm = DITHER_ALGORITHMS[i];
         break;
     }
-    if (!found_algorithm) return errf(
-        "invalid dithering algorithm '%.*s'", 
-        str8_fmt(ctx->dither_arg)
-    );
+    if (!ok) return errf("no algorithm '%.*s'", str8_fmt(ctx->dither_arg));
 
-    // FIXME: don't use VLA
     int palette_arg_i = 5;
     int palette_num = ctx->argc - palette_arg_i;
     try (
-        arena_alloc(&ctx->arena,  palette_num * sizeof(Rgb), &ctx->palette.ptr)
+        arena_alloc(&ctx->arena, palette_num * sizeof(Rgb), &ctx->palette.ptr)
     );
     for (int i = palette_arg_i; i < ctx->argc; i += 1) {
         Rgb rgb; try (hex_to_rgb(ctx->argv[i], &rgb));
@@ -112,18 +109,17 @@ static error main_wrapper(Context *ctx) {
         i16 new_g = (255 - brightness) + g_relative;
         i16 new_b = (255 - brightness) + b_relative;
 
-        // Clamp to 0 - 255
-        if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
-        if (new_g < 0) new_g = 0; else if (new_g > 255) new_g = 255;
-        if (new_b < 0) new_b = 0; else if (new_b > 255) new_b = 255;
+        clamp(new_r, 0, 255); 
+        clamp(new_g, 0, 255); 
+        clamp(new_b, 0, 255); 
 
         data[i + 0] = (u8)new_r;
         data[i + 1] = (u8)new_g;
         data[i + 2] = (u8)new_b;
     }
 
-    // NOTE: Having several loops to avoid bounds checking on the majority of 
-    // the image is not worth it.
+    // NOTE (OUTDATED): Having several loops to avoid bounds checking on the
+    // majority of the image is not worth it.
 
     for (usize i = 0; i < data_len; i += channels) {
         u16 min_diff = 999;
@@ -167,10 +163,9 @@ static error main_wrapper(Context *ctx) {
             i16 new_b = (i16)data[target_i + 2] + 
                 (i16)((double)quant_err[2] * algorithm->offsets[j].factor);
 
-            // FIXME: this solution for clamping is exorbitantly expensive.
-            if (new_r < 0) new_r = 0; else if (new_r > 255) new_r = 255;
-            if (new_g < 0) new_g = 0; else if (new_g > 255) new_g = 255;
-            if (new_b < 0) new_b = 0; else if (new_b > 255) new_b = 255;
+            clamp(new_r, 0, 255);
+            clamp(new_g, 0, 255);
+            clamp(new_b, 0, 255);
 
             data[target_i + 0] = (u8)new_r;
             data[target_i + 1] = (u8)new_g;
@@ -179,40 +174,43 @@ static error main_wrapper(Context *ctx) {
     }
 
     bool write_ok = false;
-    if (!strcasecmp(ext, "jpg") || !strcasecmp(ext, "jpeg")) {
-        write_ok = stbi_write_jpg(
-            (const char *)ctx->outfile_path.ptr, 
-            width, 
-            height, 
-            channels, 
-            data, 
-            100
-        );
-    } else if (!strcasecmp(ext, "png")) {
-        int stride_in_bytes = width * channels;
-        write_ok = stbi_write_png(
-            (const char *)ctx->outfile_path.ptr, 
-            width, 
-            height, 
-            channels, 
-            data, 
-            stride_in_bytes
-        );
-    } else if (!strcasecmp(ext, "bmp") || !strcasecmp(ext, "dib")) {
-        write_ok = stbi_write_bmp(
-            (const char *)ctx->outfile_path.ptr, 
-            width, 
-            height, 
-            channels, 
-            data
-        );
+    switch (ctx->outfile_format) {
+        case FORMAT_JPG: {
+            write_ok = stbi_write_jpg(
+                (const char *)ctx->outfile_path.ptr, 
+                width, 
+                height, 
+                channels, 
+                data, 
+                100
+            );
+        } break;
+        case FORMAT_PNG: {
+            int stride_in_bytes = width * channels;
+            write_ok = stbi_write_png(
+                (const char *)ctx->outfile_path.ptr, 
+                width, 
+                height, 
+                channels, 
+                data, 
+                stride_in_bytes
+            );
+        } break;
+        case FORMAT_BMP: {
+            write_ok = stbi_write_bmp(
+                (const char *)ctx->outfile_path.ptr, 
+                width, 
+                height, 
+                channels, 
+                data
+            );
+        } break;
     }
 
     if (!write_ok) {
-        error e = 
-            errf("error writing image '%.*s'\n", str8_fmt(ctx->outfile_path));
         stbi_image_free(data);
-        return e;
+        return 
+            errf("error writing image '%.*s'\n", str8_fmt(ctx->outfile_path));
     }
 
     printf(

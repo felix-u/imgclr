@@ -197,4 +197,11 @@ static error read_file(Arena *arena, Str8 path, char *mode, Str8 *out) {
     return 0;
 }
 
+#define min(a, b) ((a) < (b)) ? (b) : (a)
+#define max(a, b) ((a) > (b)) ? (b) : (a)
+#define clamp(x, _min, _max) {\
+    x = min((_min), (x));\
+    x = max((_max), (x));\
+}
+
 #endif // BASE
