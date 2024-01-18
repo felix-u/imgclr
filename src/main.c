@@ -1,10 +1,5 @@
 #include "base.c"
 
-#define ARGS_IMPLEMENTATION
-#define ARGS_BINARY_NAME "imgclr"
-#define ARGS_BINARY_VERSION "0.2-dev"
-#include "args.h"
-
 #include "colour.c"
 #include "dither.c"
 
@@ -23,12 +18,17 @@ typedef enum {
 
 typedef struct {
     Arena arena;
+    int argc;
+    char **argv;
     Str8 infile_path;
     Str8 infile;
     Format infile_format;
     Str8 outfile_path;
     Str8 outfile;
     Format outfile_format;
+    Str8 dither_arg;
+    i8 swap_arg;
+    Slice(Rgb) palette;
 } Context;
 
 static error extension_from_str(Str8 str, char **ext) {
@@ -46,33 +46,24 @@ static error extension_from_str(Str8 str, char **ext) {
 }
 
 static error main_wrapper(Context *ctx) {
+    try (arena_init(&ctx->arena, 16 * 1024 * 1024));
+
     char *ext; try (extension_from_str(ctx->outfile_path, &ext));
 
     if (strcasecmp(ext, "jpg") && strcasecmp(ext, "jpeg") &&
         strcasecmp(ext, "png") &&
         strcasecmp(ext, "bmp") && strcasecmp(ext, "dib"))
     {
-        error e = errf("cannot infer image format from extension '%s'", ext);
-        args_helpHint();
-        return e;
-    }
-
-    if (palette_flag.opts_num < 2) {
-        error e = err("must provide at least two (2) palette colours");
-        args_helpHint();
-        return e;
+        return errf("cannot infer image format from extension '%s'", ext);
     }
 
     const Dither_Algorithm *algorithm = &floyd_steinberg;
-    char *dither_alg = dither_flag.is_present 
-        ? dither_flag.opts[0] 
-        : "floyd-steinberg";
     bool found_algorithm = false;
     for (usize i = 0; i < DITHER_ALGORITHM_NUM; i++) {
         if (strncasecmp(
-                dither_alg, 
+                (const char *)ctx->dither_arg.ptr, 
                 DITHER_ALGORITHMS[i]->name, 
-                strlen(dither_alg)
+                ctx->dither_arg.len
         )) {
             continue;
         }
@@ -80,28 +71,38 @@ static error main_wrapper(Context *ctx) {
         algorithm = DITHER_ALGORITHMS[i];
         break;
     }
-    if (!found_algorithm) {
-        return errf("invalid dithering algorithm '%s'", dither_alg);
-    }
+    if (!found_algorithm) return errf(
+        "invalid dithering algorithm '%.*s'", 
+        str8_fmt(ctx->dither_arg)
+    );
 
     // FIXME: don't use VLA
-    Rgb palette[palette_flag.opts_num];
-    for (usize i = 0; i < palette_flag.opts_num; i++) {
-        Rgb rgb; try (hex_to_rgb(palette_flag.opts[i], &rgb));
-        palette[i] = rgb;
+    int palette_arg_i = 5;
+    int palette_num = ctx->argc - palette_arg_i;
+    try (
+        arena_alloc(&ctx->arena,  palette_num * sizeof(Rgb), &ctx->palette.ptr)
+    );
+    for (int i = palette_arg_i; i < ctx->argc; i += 1) {
+        Rgb rgb; try (hex_to_rgb(ctx->argv[i], &rgb));
+        slice_push(ctx->palette, rgb);
     }
 
     int width = 0, height = 0, channels = 0;
-    unsigned char *data = stbi_load(input_path, &width, &height, &channels, 3);
-    if (data == NULL) {
-        const char *reason = stbi_failure_reason();
-        return errf("error loading '%s':\n%s", input_path, reason);
-    }
+    uchar *data = stbi_load(
+        (const char *)ctx->infile_path.ptr, 
+        &width, 
+        &height, 
+        &channels, 
+        3
+    );
+    if (data == NULL) return errf(
+        "error loading '%.*s':\n%s", 
+        str8_fmt(ctx->infile_path), stbi_failure_reason()
+    );
 
     usize data_len = width * height * channels;
 
-    // Invert brightness, if applicable
-    if (swap_flag.is_present) for (usize i = 0; i < data_len; i += 3) {
+    if (ctx->swap_arg) for (usize i = 0; i < data_len; i += 3) {
         i16 brightness = (data[i + 0] + data[i + 1] + data[i + 2]) / 3;
         i16 r_relative = data[i + 0] - brightness;
         i16 g_relative = data[i + 1] - brightness;
@@ -127,10 +128,10 @@ static error main_wrapper(Context *ctx) {
     for (usize i = 0; i < data_len; i += channels) {
         u16 min_diff = 999;
         usize best_match = 0;
-        for (usize j = 0; j < palette_flag.opts_num; j++) {
-            u16 diff_total = (u16)abs(data[i + 0] - palette[j].r) +
-                             (u16)abs(data[i + 1] - palette[j].g) +
-                             (u16)abs(data[i + 2] - palette[j].b);
+        for (usize j = 0; j < ctx->palette.len; j += 1) {
+            u16 diff_total = (u16)abs(data[i + 0] - ctx->palette.ptr[j].r) +
+                             (u16)abs(data[i + 1] - ctx->palette.ptr[j].g) +
+                             (u16)abs(data[i + 2] - ctx->palette.ptr[j].b);
             if (diff_total < min_diff) {
                 min_diff = diff_total;
                 best_match = j;
@@ -138,14 +139,14 @@ static error main_wrapper(Context *ctx) {
         }
 
         i16 quant_err[3] = {
-            (i16)data[i + 0] - palette[best_match].r,
-            (i16)data[i + 1] - palette[best_match].g,
-            (i16)data[i + 2] - palette[best_match].b
+            (i16)data[i + 0] - ctx->palette.ptr[best_match].r,
+            (i16)data[i + 1] - ctx->palette.ptr[best_match].g,
+            (i16)data[i + 2] - ctx->palette.ptr[best_match].b
         };
 
-        data[i + 0] = palette[best_match].r;
-        data[i + 1] = palette[best_match].g;
-        data[i + 2] = palette[best_match].b;
+        data[i + 0] = ctx->palette.ptr[best_match].r;
+        data[i + 1] = ctx->palette.ptr[best_match].g;
+        data[i + 2] = ctx->palette.ptr[best_match].b;
 
         usize current_x = (i / channels) % width;
         usize current_y = (i / channels) / width;
@@ -179,12 +180,18 @@ static error main_wrapper(Context *ctx) {
 
     bool write_ok = false;
     if (!strcasecmp(ext, "jpg") || !strcasecmp(ext, "jpeg")) {
-        write_ok = 
-            stbi_write_jpg(output_path, width, height, channels, data, 100);
+        write_ok = stbi_write_jpg(
+            (const char *)ctx->outfile_path.ptr, 
+            width, 
+            height, 
+            channels, 
+            data, 
+            100
+        );
     } else if (!strcasecmp(ext, "png")) {
         int stride_in_bytes = width * channels;
         write_ok = stbi_write_png(
-            output_path, 
+            (const char *)ctx->outfile_path.ptr, 
             width, 
             height, 
             channels, 
@@ -192,85 +199,48 @@ static error main_wrapper(Context *ctx) {
             stride_in_bytes
         );
     } else if (!strcasecmp(ext, "bmp") || !strcasecmp(ext, "dib")) {
-        write_ok = stbi_write_bmp(output_path, width, height, channels, data);
+        write_ok = stbi_write_bmp(
+            (const char *)ctx->outfile_path.ptr, 
+            width, 
+            height, 
+            channels, 
+            data
+        );
     }
 
     if (!write_ok) {
-        error e = errf("error writing image '%s'\n", output_path);
+        error e = 
+            errf("error writing image '%.*s'\n", str8_fmt(ctx->outfile_path));
         stbi_image_free(data);
         return e;
     }
 
-    printf("wrote image of size %dx%d to '%s'\n", width, height, output_path);
+    printf(
+        "wrote image of size %dx%d to '%.*s'\n", 
+        width, height, str8_fmt(ctx->outfile_path)
+    );
     stbi_image_free(data);
     return 0;
 }
 
 int main(int argc, char **argv) {
-    args_Flag dither_flag = {
-        .name_short = 'd',
-        .name_long = "dither",
-        .help_text = "specify dithering algorithm, or 'none' to disable.\n"
-                     "Default is 'floyd-steinberg'. Other options are: \n"
-                     "'atkinson', 'jjn', 'burkes', and 'sierra-lite'",
-        .required = false,
-        .type = ARGS_SINGLE_OPT,
-        .expects = ARGS_EXPECTS_STRING,
-    };
-    args_Flag palette_flag = {
-        .name_short = 'p',
-        .name_long = "palette",
-        .help_text = "supply palette as whitespace-separated hex colours",
-        .required = true,
-        .type = ARGS_MULTI_OPT,
-        .expects = ARGS_EXPECTS_STRING,
-    };
-    args_Flag swap_flag = {
-        .name_short = 's',
-        .name_long = "swap",
-        .help_text = "invert image brightness, preserving hue and saturation",
-        .required = false,
-        .type = ARGS_BOOLEAN,
-        .expects = ARGS_EXPECTS_NONE,
-    };
-
-    args_Flag *flags[] = {
-        &dither_flag,
-        &palette_flag,
-        &swap_flag,
-        &ARGS_HELP_FLAG,
-        &ARGS_VERSION_FLAG,
-    };
-
-    const usize flags_count = sizeof(flags) / sizeof(flags[0]);
-    usize positional_num = 0;
-    const usize positional_cap = 256;
-    char *positional_args[positional_cap];
-    int args_return = args_process(
-        argc, 
-        argv, 
-        "image colouriser", 
-        flags_count, 
-        flags,
-        &positional_num, 
-        positional_args, 
-        ARGS_EXPECTS_FILE, 
-        ARGS_POSITIONAL_MULTI,
-        positional_cap
+    // HACK while I work on a new args.c
+    // $ exe infile outfile dither swap palette+
+    if (argc < 7) return err(
+        "[HACK] expected at least 6 arguments, in this order:\n"
+        "infile outfile dither swap palette+"
     );
-    if (args_return != ARGS_RETURN_CONTINUE) return args_return;
-
-    if (positional_num < 2) {
-        error e = err("expected output file as positional argument");
-        args_helpHint();
-        return e;
-    }
 
     Context ctx = {
-        .infile_path = str8_from_cstr(positional_args[0]),
-        .outfile_path = str8_from_cstr(positional_args[1]),
+        .argc = argc,
+        .argv = argv,
+        .infile_path = str8_from_cstr(argv[1]),
+        .outfile_path = str8_from_cstr(argv[2]),
+        .dither_arg = str8_from_cstr(argv[3]),
+        .swap_arg = argv[4][0] - '0',
     };
 
     error e = main_wrapper(&ctx);
+    arena_deinit(&ctx.arena);
     return e;
 }

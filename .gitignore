@@ -4,6 +4,8 @@
 release/
 
 imgclr*
+imgclr.exe
+imgclr.pdb
 *.jpg
 *.png
 *.bmp
