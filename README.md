@@ -41,7 +41,7 @@ image. Disable dithering by passing `--dither none`:
 ```sh
 imgclr input.jpg output.jpg --palette 000 fff f00 0f0 00f --dither none
 ```
-Input                                                | Result (simple)
+Input                                                | Result
 :---------------------------------------------------:|:---------------------------------------------------------------------------:
 ![Original image](examples/jacek-dylag/original.jpg) | ![Processed image (not dithered)](examples/jacek-dylag/output-nodither.jpg)
 
@@ -73,12 +73,12 @@ Disabling dithering or using other algorithms may yield very different results.
     - A slightly faster approximation of the Floyd-Steinberg algorithm.
    ![Sierra Lite](examples/algorithms/sierra-lite.jpg)
 
-* **DITHERING DISABLED** (`--dither none`)
+* Dithering disabled (`--dither none`)
   ![Dithering disabled](examples/algorithms/none.jpg)
 
 #### Inverting brightness
 
-The `--invert- flag inverts luminance whilst preserving hue and saturation
+The `--invert` flag inverts luminance whilst preserving hue and saturation
 before quantisation. An example with the
 [tokyonight](https://github.com/folke/tokyonight.nvim) colour scheme:
 
