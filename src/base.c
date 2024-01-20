@@ -175,6 +175,23 @@ static Str8 str8_range(Str8 s, usize beg, usize end) {
     };
 }
 
+const u8 decimal_from_hex_char_table[256] = {
+    ['0'] = 0, ['1'] = 1, ['2'] = 2, ['3'] = 3, ['4'] = 4, 
+    ['5'] = 5, ['6'] = 6, ['7'] = 7, ['8'] = 8, ['9'] = 9, 
+    ['A'] = 10, ['B'] = 11, ['C'] = 12, ['D'] = 13, ['E'] = 14, ['F'] = 15,
+    ['a'] = 10, ['b'] = 11, ['c'] = 12, ['d'] = 13, ['e'] = 14, ['f'] = 15,
+};
+
+static usize decimal_from_hex_str8(Str8 s) {
+    usize result = 0, magnitude = s.len;
+    for (usize i = 0; i < s.len; i += 1, magnitude -= 1) {
+        usize hex_digit = decimal_from_hex_char_table[s.ptr[i]];
+        for (usize j = 1; j < magnitude; j += 1) hex_digit *= 16;
+        result += hex_digit;
+    }
+    return result;
+}
+
 static error read_file(Arena *arena, Str8 path, char *mode, Str8 *out) {
     FILE *fp = NULL;
     if (path.len == 0) return err("empty path");
