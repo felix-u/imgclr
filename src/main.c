@@ -1,6 +1,6 @@
 #include "base.c"
 
-#define version_lit "0.2-dev"
+#define version_lit "0.2"
 
 const Str8 version_text = str8("imgclr version " version_lit "\n");
 
