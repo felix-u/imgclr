@@ -112,12 +112,16 @@ static void arena_deinit(Arena *arena) {
     arena->cap = 0;
 }
 
+#define count_of(arr) (sizeof(arr) / sizeof((arr)[0]))
+
 #define Slice(type) struct { type *ptr; usize len; }
+#define slice(arr) { .ptr = arr, .len = count_of(arr) }
 #define slice_expand(s) (s).ptr, (s).len
 #define slice_push(slice, item) (slice).ptr[(slice).len++] = (item)
 #define slice_pop(slice) (slice).ptr[--(slice).len]
 
 typedef Slice(u8) Str8;
+typedef Slice(Str8) Slice_Str8;
 #define str8(s) (Str8){ .ptr = (u8 *)s, .len = sizeof(s) - 1 }
 #define str8_fmt(s) (int)(s).len, (s).ptr
 
