@@ -135,18 +135,22 @@ static error main_wrapper(Context *ctx) {
 
     try (format_from_str(ctx->outfile_path, &ctx->outfile_format));
 
-    const Dither_Algorithm *algorithm = &floyd_steinberg;
+    Dither_Algorithm algorithm = floyd_steinberg;
     if (dither_flag.is_present) {
-        bool ok = false;
-        for (usize i = 0; i < DITHER_ALGORITHM_NUM; i++) {
-            if (!str8_eql(dither_flag.single_pos, DITHER_ALGORITHMS[i]->name)) {
-                continue;
-            }
-            ok = true;
-            algorithm = DITHER_ALGORITHMS[i];
-            break;
-        }
-        if (!ok) return errf(
+        Str8 s = dither_flag.single_pos;
+        if (str8_eql(s, str8("floyd-steinberg"))) {
+            algorithm = floyd_steinberg;
+        } else if (str8_eql(s, str8("none"))) {
+            algorithm = none;
+        } else if (str8_eql(s, str8("atkinson"))) {
+            algorithm = atkinson;
+        } else if (str8_eql(s, str8("jjn"))) {
+            algorithm = jjn;
+        } else if (str8_eql(s, str8("burkes"))) {
+            algorithm = burkes;
+        } else if (str8_eql(s, str8("sierra-lite"))) {
+            algorithm = sierra_lite;
+        } else return errf(
             "invalid algorithm '%.*s'", 
             str8_fmt(dither_flag.single_pos)
         );
@@ -229,9 +233,9 @@ static error main_wrapper(Context *ctx) {
 
         usize current_x = (i / channels) % width;
         usize current_y = (i / channels) / width;
-        for (usize j = 0; j < algorithm->offset_num; j++) {
-            i64 target_x = current_x + algorithm->offsets[j].x_offset;
-            i64 target_y = current_y + algorithm->offsets[j].y_offset;
+        for (usize j = 0; j < algorithm.len; j++) {
+            i64 target_x = current_x + algorithm.ptr[j].x_offset;
+            i64 target_y = current_y + algorithm.ptr[j].y_offset;
             if (target_x < 0 || target_x >= width || 
                 target_y < 0 || target_y >= height
             ) {
@@ -240,11 +244,11 @@ static error main_wrapper(Context *ctx) {
 
             usize target_i = channels * (target_y * width + target_x);
             i16 new_r = (i16)data[target_i + 0] + 
-                (i16)((double)quant_err[0] * algorithm->offsets[j].factor);
+                (i16)((double)quant_err[0] * algorithm.ptr[j].factor);
             i16 new_g = (i16)data[target_i + 1] + 
-                (i16)((double)quant_err[1] * algorithm->offsets[j].factor);
+                (i16)((double)quant_err[1] * algorithm.ptr[j].factor);
             i16 new_b = (i16)data[target_i + 2] + 
-                (i16)((double)quant_err[2] * algorithm->offsets[j].factor);
+                (i16)((double)quant_err[2] * algorithm.ptr[j].factor);
 
             clamp(new_r, 0, 255);
             clamp(new_g, 0, 255);
