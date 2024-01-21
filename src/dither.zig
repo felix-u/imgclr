@@ -103,8 +103,7 @@ fn quantiseAlgorithm(
         var min_diff: u16 = std.math.maxInt(u16);
         var closest_clr = palette[0];
         for (palette) |clr| {
-            const diffs = @abs(pixel - clr);
-            const diff: u16 = @reduce(.Add, diffs);
+            const diff: u16 = @reduce(.Add, @abs(pixel - clr));
             if (diff >= min_diff) continue;
             min_diff = diff;
             closest_clr = clr;
@@ -125,6 +124,10 @@ fn quantiseAlgorithm(
 
         const offsets = @field(@This(), @tagName(algorithm));
         for (offsets) |offset| {
+            // NOTE: repeated non-rigorous testing indicates that extracting
+            // these bounds checks into separate loops does not speed anything
+            // up. In fact, we get a lot slower. I could be doing something
+            // wrong, but for now I consider this not worth the effort.
             const x_overflow = @as(isize, @intCast(this_x)) + offset.x;
             const y_overflow = @as(isize, @intCast(this_y)) + offset.y;
             if (x_overflow < 0 or x_overflow >= width or
