@@ -80,16 +80,9 @@ pub fn main() !void {
     }
 
     const dither_algorithm = if (opts.dither.items.len == 0)
-        &dither.floyd_steinberg
+        dither.Algorithm.@"floyd-steinberg"
     else
-        dither.algorithm_map.get(opts.dither.items[0]) orelse {
-            try stderr_writer.print(
-                "error: no such dither algorithm '{s}'\n",
-                .{opts.dither.items[0]},
-            );
-            return Error.InvalidUsage;
-        };
-    _ = dither_algorithm;
+        try dither.algorithmFromString(stderr_writer, opts.dither.items[0]);
 
     var palette = try std.ArrayList(colour.Rgb).initCapacity(
         allocator,
@@ -102,20 +95,16 @@ pub fn main() !void {
     }
 
     const infile_path = opts.pos.items[0];
-    const outfile_path = opts.pos.items[1];
+    const infile = try readFileAlloc(allocator, infile_path);
 
-    const infile_format =
-        try imageFormatFromFilename(stderr_writer, infile_path);
+    const outfile_path = opts.pos.items[1];
     const outfile_format =
         try imageFormatFromFilename(stderr_writer, outfile_path);
-    _ = infile_format;
-
-    const infile = try readFileAlloc(allocator, infile_path);
 
     var width: c_int = 0;
     var height: c_int = 0;
     var channels: c_int = 0;
-    const data = c.stbi_load_from_memory(
+    const data_ptr = c.stbi_load_from_memory(
         @ptrCast(infile),
         @intCast(infile.len),
         &width,
@@ -123,7 +112,17 @@ pub fn main() !void {
         &channels,
         3,
     );
-    defer c.stbi_image_free(data);
+    defer c.stbi_image_free(data_ptr);
+
+    const data_len = width * height * channels;
+    const data = data_ptr[0..@intCast(data_len)];
+    dither.quantise(
+        dither_algorithm,
+        data,
+        @intCast(width),
+        @intCast(height),
+        palette.items,
+    );
 
     const write_ok = switch (outfile_format) {
         .jpg => c.stbi_write_jpg(
@@ -131,7 +130,7 @@ pub fn main() !void {
             width,
             height,
             channels,
-            data,
+            data_ptr,
             100,
         ),
         .png => c.stbi_write_png(
@@ -139,7 +138,7 @@ pub fn main() !void {
             width,
             height,
             channels,
-            data,
+            data_ptr,
             width * channels,
         ),
         .bmp => c.stbi_write_bmp(
@@ -147,7 +146,7 @@ pub fn main() !void {
             width,
             height,
             channels,
-            data,
+            data_ptr,
         ),
     };
     if (write_ok == 0) {
