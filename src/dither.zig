@@ -27,7 +27,7 @@ pub fn algorithmFromString(
     return Error.InvalidAlgorithm;
 }
 
-const Offset = struct { x: isize, y: isize, factor: f64 };
+const Offset = struct { x: isize, y: isize, factor: f32 };
 
 const @"floyd-steinberg" = [_]Offset{
     .{ .x = 1, .y = 0, .factor = 7.0 / 16.0 },
@@ -99,75 +99,55 @@ fn quantiseAlgorithm(
 ) void {
     var i: usize = 0;
     while (i < data.len) : (i += 3) {
-        const r = @as(i16, data[i]);
-        const g = @as(i16, data[i + 1]);
-        const b = @as(i16, data[i + 2]);
-
-        var min_diff: usize = std.math.maxInt(usize);
-        var closest_clr_i: usize = 0;
-        for (palette, 0..palette.len) |clr, j| {
-            const diff_r = @abs(r - clr.r);
-            const diff_g = @abs(g - clr.g);
-            const diff_b = @abs(b - clr.b);
-            const diff: usize = diff_r + diff_g + diff_b;
+        const pixel: @Vector(3, i16) = data[i .. i + 3][0..3].*;
+        var min_diff: u16 = std.math.maxInt(u16);
+        var closest_clr = palette[0];
+        for (palette) |clr| {
+            const diffs = @abs(pixel - clr);
+            const diff: u16 = @reduce(.Add, diffs);
             if (diff >= min_diff) continue;
             min_diff = diff;
-            closest_clr_i = j;
+            closest_clr = clr;
         }
 
-        const closest_clr = palette[closest_clr_i];
-        data[i] = closest_clr.r;
-        data[i + 1] = closest_clr.g;
-        data[i + 2] = closest_clr.b;
+        data[i .. i + 3][0..3].* = closest_clr;
 
         switch (algorithm) {
             inline .none => continue,
             inline else => {},
         }
 
-        const QuantError = struct { r: i16, g: i16, b: i16 };
-        const quant_error = QuantError{
-            .r = r - closest_clr.r,
-            .g = g - closest_clr.g,
-            .b = b - closest_clr.b,
-        };
+        const quant_error = pixel - closest_clr;
 
         const channels = 3;
-        const this_x = (i / channels) % width;
-        const this_y = (i / channels) / width;
+        const this_x: usize = (i / channels) % width;
+        const this_y: usize = (i / channels) / width;
 
         const offsets = @field(@This(), @tagName(algorithm));
         for (offsets) |offset| {
-            const target_x_overflow = @as(isize, @intCast(this_x)) + offset.x;
-            const target_y_overflow = @as(isize, @intCast(this_y)) + offset.y;
-            if (target_x_overflow < 0 or target_x_overflow >= width or
-                target_y_overflow < 0 or target_y_overflow >= height)
+            const x_overflow = @as(isize, @intCast(this_x)) + offset.x;
+            const y_overflow = @as(isize, @intCast(this_y)) + offset.y;
+            if (x_overflow < 0 or x_overflow >= width or
+                y_overflow < 0 or y_overflow >= height)
             {
                 continue;
             }
 
-            const target_x: usize = @intCast(target_x_overflow);
-            const target_y: usize = @intCast(target_y_overflow);
+            const target_x: usize = @intCast(x_overflow);
+            const target_y: usize = @intCast(y_overflow);
             const target_i = channels * (target_y * width + target_x);
 
-            const r_err: f64 = @floatFromInt(quant_error.r);
-            const g_err: f64 = @floatFromInt(quant_error.g);
-            const b_err: f64 = @floatFromInt(quant_error.b);
+            const err: @Vector(3, f32) = @floatFromInt(quant_error);
+            const correction: @Vector(3, i16) = @intFromFloat(
+                err * @as(@Vector(3, f32), @splat(offset.factor)),
+            );
 
-            const r_correction: i16 = @intFromFloat(offset.factor * r_err);
-            const g_correction: i16 = @intFromFloat(offset.factor * g_err);
-            const b_correction: i16 = @intFromFloat(offset.factor * b_err);
+            var new_pixel: @Vector(3, u8) =
+                data[target_i .. target_i + 3][0..3].*;
+            inline for (0..3) |chan| new_pixel[chan] =
+                std.math.lossyCast(u8, new_pixel[chan] +| correction[chan]);
 
-            const r_new =
-                std.math.lossyCast(u8, data[target_i] +| r_correction);
-            const g_new =
-                std.math.lossyCast(u8, data[target_i + 1] +| g_correction);
-            const b_new =
-                std.math.lossyCast(u8, data[target_i + 2] +| b_correction);
-
-            data[target_i] = r_new;
-            data[target_i + 1] = g_new;
-            data[target_i + 2] = b_new;
+            data[target_i .. target_i + 3][0..3].* = new_pixel;
         }
     }
 }

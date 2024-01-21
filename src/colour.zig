@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub const Rgb = struct { r: u8, g: u8, b: u8 };
+pub const Rgb = @Vector(3, u8);
 
 const Error = error{InvalidHexColour};
 
@@ -17,17 +17,16 @@ pub fn rgbFromHexString(
             const r: u8 = @intCast((value & 0xf00) >> 8);
             const g: u8 = @intCast((value & 0x0f0) >> 4);
             const b: u8 = @intCast(value & 0x00f);
-            return .{ .r = r * 16 + r, .g = g * 16 + g, .b = b * 16 + b };
+            return .{ r * 16 + r, g * 16 + g, b * 16 + b };
         },
         6 => {
             const value = std.fmt.parseInt(u24, hex, 16) catch {
                 return errInvalid(err_writer, string);
             };
-            return .{
-                .r = @intCast((value & 0xff0000) >> 16),
-                .g = @intCast((value & 0x00ff00) >> 8),
-                .b = @intCast(value & 0x0000ff),
-            };
+            const r: u8 = @intCast((value & 0xff0000) >> 16);
+            const g: u8 = @intCast((value & 0x00ff00) >> 8);
+            const b: u8 = @intCast(value & 0x0000ff);
+            return .{ r, g, b };
         },
         else => return errInvalid(err_writer, string),
     }
