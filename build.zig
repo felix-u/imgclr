@@ -10,6 +10,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .root_source_file = .{ .path = "src/main.zig" },
+        .strip = if (optimize == .Debug) false else true,
     });
 
     exe.linkLibC();
