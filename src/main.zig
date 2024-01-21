@@ -1,4 +1,5 @@
 const args = @import("./args.zig");
+const colour = @import("./colour.zig");
 const dither = @import("./dither.zig");
 const std = @import("std");
 
@@ -7,9 +8,7 @@ const c = @cImport({
     @cInclude("stb_image_write.h");
 });
 
-const Error = error{
-    InvalidUsage,
-};
+const Error = error{ InvalidUsage, WriteError };
 
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -38,7 +37,7 @@ pub fn main() !void {
                     .long = "dither",
                     .desc = "Specify dithering algorithm",
                     .usage = "<algorithm>",
-                    .kind = .single_pos,
+                    .kind = .multi_pos,
                 },
                 .{
                     .short = 'i',
@@ -72,16 +71,35 @@ pub fn main() !void {
         return Error.InvalidUsage;
     }
 
-    const dither_algorithm = if (opts.dither) |name| blk: {
-        break :blk dither.algorithm_map.get(name) orelse {
+    if (opts.dither.items.len > 1) {
+        try stderr_writer.print(
+            "error: unexpected positional argument '{s}'\n",
+            .{opts.dither.items[1]},
+        );
+        return Error.InvalidUsage;
+    }
+
+    const dither_algorithm = if (opts.dither.items.len == 0)
+        &dither.floyd_steinberg
+    else
+        dither.algorithm_map.get(opts.dither.items[0]) orelse {
             try stderr_writer.print(
                 "error: no such dither algorithm '{s}'\n",
-                .{name},
+                .{opts.dither.items[0]},
             );
             return Error.InvalidUsage;
         };
-    } else &dither.floyd_steinberg;
     _ = dither_algorithm;
+
+    var palette = try std.ArrayList(colour.Rgb).initCapacity(
+        allocator,
+        opts.palette.items.len,
+    );
+    defer palette.deinit();
+    for (opts.palette.items) |hex_string| {
+        const rgb = try colour.rgbFromHexString(stderr_writer, hex_string);
+        palette.appendAssumeCapacity(rgb);
+    }
 
     const infile_path = opts.pos.items[0];
     const outfile_path = opts.pos.items[1];
@@ -90,11 +108,60 @@ pub fn main() !void {
         try imageFormatFromFilename(stderr_writer, infile_path);
     const outfile_format =
         try imageFormatFromFilename(stderr_writer, outfile_path);
+    _ = infile_format;
 
     const infile = try readFileAlloc(allocator, infile_path);
-    _ = infile;
 
-    std.debug.print("{} {}\n", .{ infile_format, outfile_format });
+    var width: c_int = 0;
+    var height: c_int = 0;
+    var channels: c_int = 0;
+    const data = c.stbi_load_from_memory(
+        @ptrCast(infile),
+        @intCast(infile.len),
+        &width,
+        &height,
+        &channels,
+        3,
+    );
+    defer c.stbi_image_free(data);
+
+    const write_ok = switch (outfile_format) {
+        .jpg => c.stbi_write_jpg(
+            @ptrCast(outfile_path),
+            width,
+            height,
+            channels,
+            data,
+            100,
+        ),
+        .png => c.stbi_write_png(
+            @ptrCast(outfile_path),
+            width,
+            height,
+            channels,
+            data,
+            width * channels,
+        ),
+        .bmp => c.stbi_write_bmp(
+            @ptrCast(outfile_path),
+            width,
+            height,
+            channels,
+            data,
+        ),
+    };
+    if (write_ok == 0) {
+        try stderr_writer.print(
+            "error: failure writing image to location '{s}'\n",
+            .{outfile_path},
+        );
+        return Error.WriteError;
+    }
+
+    try stdout_writer.print(
+        "wrote image of size {d}x{d} to '{s}'\n",
+        .{ width, height, outfile_path },
+    );
 }
 
 fn readFileAlloc(
