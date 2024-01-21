@@ -1,9 +1,14 @@
 const colour = @import("./colour.zig");
 const std = @import("std");
 
-const Offset = struct { x: isize, y: isize, factor: f64 };
-
-pub const Algorithm = enum { @"floyd-steinberg", none, atkinson, jjn };
+pub const Algorithm = enum {
+    @"floyd-steinberg",
+    none,
+    atkinson,
+    jjn,
+    burkes,
+    @"sierra-lite",
+};
 
 pub fn algorithmFromString(
     err_writer: std.fs.File.Writer,
@@ -22,16 +27,18 @@ pub fn algorithmFromString(
     return Error.InvalidAlgorithm;
 }
 
-pub const @"floyd-steinberg" = [_]Offset{
+const Offset = struct { x: isize, y: isize, factor: f64 };
+
+const @"floyd-steinberg" = [_]Offset{
     .{ .x = 1, .y = 0, .factor = 7.0 / 16.0 },
     .{ .x = -1, .y = 1, .factor = 3.0 / 16.0 },
     .{ .x = 0, .y = 1, .factor = 5.0 / 16.0 },
     .{ .x = 1, .y = 1, .factor = 1.0 / 16.0 },
 };
 
-pub const none = [_]Offset{.{ .x = 0, .y = 0, .factor = 0 }};
+const none = [_]Offset{.{ .x = 0, .y = 0, .factor = 0 }};
 
-pub const atkinson = [_]Offset{
+const atkinson = [_]Offset{
     .{ .x = 1, .y = 0, .factor = 1.0 / 8.0 },
     .{ .x = 2, .y = 0, .factor = 1.0 / 8.0 },
     .{ .x = -1, .y = 1, .factor = 1.0 / 8.0 },
@@ -40,7 +47,7 @@ pub const atkinson = [_]Offset{
     .{ .x = 1, .y = 2, .factor = 1.0 / 8.0 },
 };
 
-pub const jjn = [_]Offset{
+const jjn = [_]Offset{
     .{ .x = 1, .y = 0, .factor = 7.0 / 48.0 },
     .{ .x = 2, .y = 0, .factor = 5.0 / 48.0 },
     .{ .x = -2, .y = 1, .factor = 3.0 / 48.0 },
@@ -53,6 +60,22 @@ pub const jjn = [_]Offset{
     .{ .x = 0, .y = 2, .factor = 5.0 / 48.0 },
     .{ .x = 1, .y = 2, .factor = 3.0 / 48.0 },
     .{ .x = 2, .y = 2, .factor = 1.0 / 48.0 },
+};
+
+const burkes = [_]Offset{
+    .{ .x = 1, .y = 0, .factor = 8.0 / 32.0 },
+    .{ .x = 2, .y = 0, .factor = 4.0 / 32.0 },
+    .{ .x = -2, .y = 1, .factor = 2.0 / 32.0 },
+    .{ .x = -1, .y = 1, .factor = 4.0 / 32.0 },
+    .{ .x = 0, .y = 1, .factor = 8.0 / 32.0 },
+    .{ .x = 1, .y = 1, .factor = 4.0 / 32.0 },
+    .{ .x = 2, .y = 1, .factor = 2.0 / 32.0 },
+};
+
+const @"sierra-lite" = [_]Offset{
+    .{ .x = 1, .y = 0, .factor = 2.0 / 4.0 },
+    .{ .x = -1, .y = 1, .factor = 1.0 / 4.0 },
+    .{ .x = 0, .y = 1, .factor = 1.0 / 4.0 },
 };
 
 pub fn quantise(
