@@ -109,9 +109,10 @@ Options:
 
 ### Building
 
-Using a C99 compiler, build `src/main.c` with optimisations. For example:
+Using a C99 compiler, build `src/main.c`, linking the math library. For
+example:
 ```sh
-cc src/main.c -O3 -s -o ./imgclr
+cc src/main.c -O3 -s -lm -o ./imgclr
 ```
 
 
