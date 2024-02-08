@@ -15,25 +15,15 @@ static bool is_hex_str8(Str8 s) {
 }
 
 static error rgb_from_hex_str8(Str8 s, Rgb *out) {
-    usize start_pos = 0;
-    usize hex_len = 0;
-    for (usize i = 0; i < s.len; i += 1) {
-        if (!is_hex_char_table[s.ptr[i]]) continue;
-        start_pos = i;
-        // Hex colour must be in either three-digit format (e.g. "fff") 
-        // or six-digit format (e.g. "ffffff").
-        hex_len = s.len - start_pos;
-        if (hex_len != 3 && hex_len != 6) return errf(
-            "hex colour '%.*s' must be of length 3 or 6", 
-            str8_fmt(s)
-        );
-        if (!is_hex_str8(str8_range(s, i, s.len))) {
-            return errf("invalid hex colour '%.*s'", str8_fmt(s));
-        }
-        break;
+    if (s.len != 3 && s.len != 6) return errf(
+        "hex colour '%.*s' must be of length 3 or 6", 
+        str8_fmt(s)
+    );
+    if (!is_hex_str8(s)) {
+        return errf("invalid hex colour '%.*s'", str8_fmt(s));
     }
 
-    if (hex_len == 3) {
+    if (s.len == 3) {
         usize value = decimal_from_hex_str8(s);
         u8 r = (value & 0xf00) >> 8;
         u8 g = (value & 0x0f0) >> 4;
@@ -41,7 +31,7 @@ static error rgb_from_hex_str8(Str8 s, Rgb *out) {
         out->r = r * 16 + r;
         out->g = g * 16 + g;
         out->b = b * 16 + b;
-    } else if (hex_len == 6) {
+    } else if (s.len == 6) {
         usize value = decimal_from_hex_str8(s);
         out->r = (value & 0xff0000) >> 16;
         out->g = (value & 0x00ff00) >> 8;

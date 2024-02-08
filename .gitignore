@@ -4,8 +4,7 @@
 release/
 
 imgclr*
-imgclr.exe
-imgclr.pdb
+*.ff
 *.jpg
 *.png
 *.bmp
@@ -18,9 +17,4 @@ log
 target/
 **/.bin
 
-# zig stuff
-zig-cache/
-zig-out/
-zig-clap/
-*.exe
-*.pdb
+zig*
