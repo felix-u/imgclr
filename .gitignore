@@ -3,7 +3,7 @@
 *.dll
 release/
 
-imgclr
+imgclr*
 *.jpg
 *.png
 *.bmp
@@ -16,9 +16,4 @@ log
 target/
 **/.bin
 
-# zig stuff
-zig-cache/
-zig-out/
-zig-clap/
-
-release/
+zig*
