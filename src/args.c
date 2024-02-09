@@ -117,8 +117,11 @@ static error args_parse(int argc, char **argv, Args_Desc *desc) {
                     i < argc; 
                     arg = str8_from_cstr(argv[++i])
                 ) {
+                    if (arg.ptr[0] == '-') {
+                        i -= 1;
+                        break;
+                    }
                     flag->multi_pos.end_i = i + 1;
-                    if (arg.ptr[0] == '-') break;
                 }
             } break;
         }

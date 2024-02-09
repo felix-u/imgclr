@@ -192,30 +192,41 @@ static usize decimal_from_hex_str8(Str8 s) {
     return result;
 }
 
-static error read_file(Arena *arena, Str8 path, char *mode, Str8 *out) {
-    FILE *fp = NULL;
+static error file_open(Str8 path, char *mode, FILE **file_out) {
+    FILE *file = NULL;
     if (path.len == 0) return err("empty path");
     if (mode == NULL) return err("invalid mode");
 
-    if ((fp = fopen((char *)path.ptr, mode)) == NULL) {
-        return err("failed to open file");
+    if ((file = fopen((char *)path.ptr, mode)) == NULL) {
+        return errf("failed to open file '%.*s'", path);
     }
+
+    *file_out = file;
+    return 0;
+}
+
+static error file_read(Arena *arena, Str8 path, char *mode, Str8 *out) {
+    FILE *file; try (file_open(path, mode, &file));
     
-    fseek(fp, 0L, SEEK_END);
-    usize filesize = ftell(fp);
+    fseek(file, 0L, SEEK_END);
+    usize filesize = ftell(file);
     try (arena_alloc(arena, filesize + 1, &out->ptr));
 
-    fseek(fp, 0L, SEEK_SET);
-    out->len = fread(out->ptr, sizeof(u8), filesize, fp);
+    fseek(file, 0L, SEEK_SET);
+    out->len = fread(out->ptr, sizeof(u8), filesize, file);
     out->ptr[out->len] = '\0';
 
-    if (ferror(fp)) {
-        fclose(fp);
+    if (ferror(file)) {
+        fclose(file);
         return err("error reading file");
     }
 
-    fclose(fp);
+    fclose(file);
     return 0;
+}
+
+static void file_write(FILE *file, Str8 memory) {
+    fwrite(memory.ptr, memory.len, 1, file);
 }
 
 #define min(a, b) ((a) < (b)) ? (b) : (a)

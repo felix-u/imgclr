@@ -27,17 +27,62 @@ const Str8 help_text = str8(
 #include "args.c"
 #include "colour.c"
 #include "dither.c"
-#include "farbfeld.c"
+
+#ifndef DEBUG
+    #include "stbi.c"
+#else
+    #include "stb_image.h"
+    #include "stb_image_write.h"
+#endif // DEBUG
+
+typedef enum { FORMAT_JPG, FORMAT_PNG, FORMAT_BMP } Format;
 
 typedef struct {
     Arena arena;
     int argc;
     char **argv;
+    Str8 infile_path;
     Str8 infile;
+    Format infile_format;
+    Str8 outfile_path;
     Str8 outfile;
+    Format outfile_format;
     Slice(Rgb) palette;
-    Farbfeld_Image image;
+    uchar *data;
 } Context;
+
+static error format_from_str(Str8 str, Format *format) {
+    usize extension_pos = str.len;
+    for (usize i = str.len; i >= 0; i--) {
+        if (str.ptr[i] != '.') continue;
+        extension_pos = i + 1;
+        break;
+    }
+    
+    if (extension_pos + 1 >= str.len) return errf(
+        "unable to infer image format from filename '%.*s'", 
+        str8_fmt(str)
+    );
+
+    Str8 ext = str8_range(str, extension_pos, str.len);
+    
+    if (str8_eql(ext, str8("jpg")) || str8_eql(ext, str8("JPG")) ||
+        str8_eql(ext, str8("jpeg")) || str8_eql(ext, str8("JPEG"))
+    ) {
+        *format = FORMAT_JPG;
+    } else if (str8_eql(ext, str8("png")) || str8_eql(ext, str8("PNG"))) {
+        *format = FORMAT_PNG;
+    } else if (str8_eql(ext, str8("bmp")) || str8_eql(ext, str8("BMP")) ||
+        str8_eql(ext, str8("dib")) || str8_eql(ext, str8("DIB"))
+    ) {
+        *format = FORMAT_BMP;
+    } else return errf(
+        "extension '%.*s' does not match any supported image format", 
+        str8_fmt(ext)
+    );
+    
+    return 0;
+}
 
 static error main_wrapper(Context *ctx) {
     try (arena_init(&ctx->arena, 16 * 1024 * 1024));
@@ -77,15 +122,22 @@ static error main_wrapper(Context *ctx) {
         return 0;
     }
 
-    if (args_desc.multi_pos.end_i - args_desc.multi_pos.beg_i < 2) return err(
+    usize positional_args_len = 
+        args_desc.multi_pos.end_i - args_desc.multi_pos.beg_i;
+    if (positional_args_len < 2) return err(
         "expected input and output paths as positional arguments"
     );
 
-    usize palette_len = 
-        palette_flag.multi_pos.end_i - palette_flag.multi_pos.beg_i;
+    usize palette_len = args_desc.multi_pos.end_i - args_desc.multi_pos.beg_i;
     if (!palette_flag.is_present || palette_len < 2) {
         return err("expected at least two (2) palette colours");
     }
+
+    ctx->infile_path = str8_from_cstr(ctx->argv[args_desc.multi_pos.beg_i]);
+    ctx->outfile_path = 
+        str8_from_cstr(ctx->argv[args_desc.multi_pos.beg_i + 1]);
+
+    try (format_from_str(ctx->outfile_path, &ctx->outfile_format));
 
     Dither_Algorithm algorithm = floyd_steinberg;
     if (dither_flag.is_present) {
@@ -111,7 +163,6 @@ static error main_wrapper(Context *ctx) {
     try (
         arena_alloc(&ctx->arena, palette_len * sizeof(Rgb), &ctx->palette.ptr)
     );
-
     for (
         int i = palette_flag.multi_pos.beg_i; 
         i < palette_flag.multi_pos.end_i; 
@@ -122,21 +173,32 @@ static error main_wrapper(Context *ctx) {
         slice_push(ctx->palette, rgb);
     }
 
-    Str8 infile_path = str8_from_cstr(ctx->argv[args_desc.multi_pos.beg_i]);
     Str8 infile_buf; try (
-        read_file(&ctx->arena, infile_path, "rb", &infile_buf)
+        file_read(&ctx->arena, ctx->infile_path, "rb", &infile_buf)
     );
 
-    try (farbfeld_read_from_memory(infile_buf, &ctx->image));
-    Farbfeld_Image image = ctx->image;
-    u16 *data = image.data;
-    usize data_len = image.width * image.height * 8;
+    int width = 0, height = 0, channels = 0;
+    ctx->data = stbi_load_from_memory(
+        infile_buf.ptr, 
+        (int)infile_buf.len,
+        &width, 
+        &height, 
+        &channels, 
+        3
+    );
+    if (ctx->data == NULL) return errf(
+        "error loading '%.*s':\n%s", 
+        str8_fmt(ctx->infile_path), stbi_failure_reason()
+    );
 
-    if (invert_flag.is_present) for (usize i = 0; i < data_len; i += 4) {
+    usize data_len = width * height * channels;
+
+    uchar *data = ctx->data;
+    if (invert_flag.is_present) for (usize i = 0; i < data_len; i += 3) {
         i16 brightness = (data[i + 0] + data[i + 1] + data[i + 2]) / 3;
-        i16 r_relative = (i16)data[i + 0] - brightness;
-        i16 g_relative = (i16)data[i + 1] - brightness;
-        i16 b_relative = (i16)data[i + 2] - brightness;
+        i16 r_relative = data[i + 0] - brightness;
+        i16 g_relative = data[i + 1] - brightness;
+        i16 b_relative = data[i + 2] - brightness;
 
         i16 new_r = (255 - brightness) + r_relative;
         i16 new_g = (255 - brightness) + g_relative;
@@ -146,15 +208,15 @@ static error main_wrapper(Context *ctx) {
         clamp(new_g, 0, 255); 
         clamp(new_b, 0, 255); 
 
-        data[i + 0] = new_r;
-        data[i + 1] = new_g;
-        data[i + 2] = new_b;
+        data[i + 0] = (u8)new_r;
+        data[i + 1] = (u8)new_g;
+        data[i + 2] = (u8)new_b;
     }
 
     // NOTE (OUTDATED): Having several loops to avoid bounds checking on the
     // majority of the image is not worth it.
 
-    for (usize i = 0; i < data_len; i += 4) {
+    for (usize i = 0; i < data_len; i += channels) {
         u16 min_diff = 999;
         usize best_match = 0;
         for (usize j = 0; j < ctx->palette.len; j += 1) {
@@ -177,18 +239,18 @@ static error main_wrapper(Context *ctx) {
         data[i + 1] = ctx->palette.ptr[best_match].g;
         data[i + 2] = ctx->palette.ptr[best_match].b;
 
-        usize current_x = (i / 4) % image.width;
-        usize current_y = (i / 4) / image.width;
+        usize current_x = (i / channels) % width;
+        usize current_y = (i / channels) / width;
         for (usize j = 0; j < algorithm.len; j++) {
             i64 target_x = current_x + algorithm.ptr[j].x_offset;
             i64 target_y = current_y + algorithm.ptr[j].y_offset;
-            if (target_x < 0 || target_x >= image.width || 
-                target_y < 0 || target_y >= image.height
+            if (target_x < 0 || target_x >= width || 
+                target_y < 0 || target_y >= height
             ) {
                 continue;
             }
 
-            usize target_i = 4 * (target_y * image.width + target_x);
+            usize target_i = channels * (target_y * width + target_x);
             i16 new_r = (i16)data[target_i + 0] + 
                 (i16)((double)quant_err[0] * algorithm.ptr[j].factor);
             i16 new_g = (i16)data[target_i + 1] + 
@@ -205,9 +267,51 @@ static error main_wrapper(Context *ctx) {
             data[target_i + 2] = (u8)new_b;
         }
     }
-    ctx->image.data = data;
+    ctx->data = data;
 
-    return err("writing not implemented");
+    bool write_ok = false;
+    switch (ctx->outfile_format) {
+        case FORMAT_JPG: {
+            write_ok = stbi_write_jpg(
+                (const char *)ctx->outfile_path.ptr, 
+                width, 
+                height, 
+                channels, 
+                ctx->data, 
+                100
+            );
+        } break;
+        case FORMAT_PNG: {
+            int stride_in_bytes = width * channels;
+            write_ok = stbi_write_png(
+                (const char *)ctx->outfile_path.ptr, 
+                width, 
+                height, 
+                channels, 
+                ctx->data, 
+                stride_in_bytes
+            );
+        } break;
+        case FORMAT_BMP: {
+            write_ok = stbi_write_bmp(
+                (const char *)ctx->outfile_path.ptr, 
+                width, 
+                height, 
+                channels, 
+                ctx->data
+            );
+        } break;
+    }
+
+    if (!write_ok) return errf(
+        "error writing image '%.*s'\n", 
+        str8_fmt(ctx->outfile_path)
+    );
+
+    printf(
+        "wrote image of size %dx%d to '%.*s'\n", 
+        width, height, str8_fmt(ctx->outfile_path)
+    );
     return 0;
 }
 
@@ -219,6 +323,7 @@ int main(int argc, char **argv) {
 
     Context ctx = { .argc = argc, .argv = argv };
     error e = main_wrapper(&ctx);
+    stbi_image_free(ctx.data);
     arena_deinit(&ctx.arena);
     return e;
 }
